@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: theme("colors.canvas");
+    color: theme("colors.ink");
+    font-family: theme("fontFamily.sans");
+    -webkit-font-smoothing: antialiased;
+  }
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+  :focus-visible {
+    outline: 2px solid theme("colors.accent");
+    outline-offset: 2px;
+  }
+  /* Only remove the outline where a visible ring replaces it. */
+  [data-focus-ring="none"]:focus { outline: none; }
+}
+
+@layer components {
+  .panel { @apply bg-panel border border-[#EEF2F7] rounded-2xl shadow-subtle; }
+  .field { @apply bg-panel border border-[#E2E8F0] text-ink text-sm px-3.5 py-2 rounded-xl transition-all; }
+  .field:focus { @apply border-brandPink outline-none ring-1 ring-brandPink; }
+  .btn { @apply border border-[#E2E8F0] bg-panel text-ink text-sm px-4 py-2 rounded-xl cursor-pointer font-medium hover:bg-slate-50 transition-all; }
+  .btn-primary { @apply border-transparent bg-gradient-to-r from-[#FA2E76] to-[#E91E63] text-white shadow-glow-pink hover:opacity-95 active:scale-[0.98]; }
+  .btn-primary:hover { filter: brightness(1.05); }
+  .btn:disabled { @apply opacity-45 cursor-not-allowed; }
+  .chip { @apply border border-[#E2E8F0] text-xs px-3 py-1.5 cursor-pointer text-slate-600 rounded-lg hover:border-slate-300 transition-all whitespace-nowrap; }
+  .chip-on { @apply border-transparent bg-gradient-to-r from-[#FA2E76] to-[#E91E63] text-white shadow-sm font-semibold; }
+  .row-hover:hover { background: #F8FAFC; }
+  .tnum { font-variant-numeric: tabular-nums; }
+
+  .card-gradient-pink {
+    background: linear-gradient(135deg, #FF3377 0%, #F5365C 100%);
+  }
+  .card-gradient-purple {
+    background: linear-gradient(135deg, #6C5CE7 0%, #4834D4 100%);
+  }
+  .card-gradient-cyan {
+    background: linear-gradient(135deg, #00C2FF 0%, #0072FF 100%);
+  }
+  .card-gradient-orange {
+    background: linear-gradient(135deg, #FF9F43 0%, #FF5252 100%);
+  }
+}
+
+.scroll-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: theme("colors.hairline"); border-radius: 9999px; }
+
+/* Isolated Section Scrollbars - prevents merging with universal window scroll */
+.section-scroll {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.section-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.section-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.section-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+.section-scroll::-webkit-scrollbar-thumb:hover {
+  background: #FA2E76;
+}
+
+/* Section scroll snap & reveal effect */
+.section-snap-container {
+  scroll-snap-type: y proximity;
+}
+.section-snap-item {
+  scroll-snap-align: start;
+  scroll-margin-top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .panel { break-inside: avoid; }
+}
