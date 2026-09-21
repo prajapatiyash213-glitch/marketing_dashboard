@@ -155,7 +155,7 @@ export function AccountMenu() {
             <div className="border-b border-slate-100 px-3.5 py-2.5 text-xs">
               <span className="text-slate-400 font-medium">Signed in as</span>
               <div className="truncate font-semibold text-slate-800 text-sm mt-0.5">{user.email}</div>
-              {insecure && <div className="mt-1 text-xs text-amber-600 font-medium">Demo mode (unauthenticated)</div>}
+              {user.role && <div className="mt-1 text-xs text-slate-500 font-medium">{user.role}</div>}
             </div>
             <div className="p-1">
               <button

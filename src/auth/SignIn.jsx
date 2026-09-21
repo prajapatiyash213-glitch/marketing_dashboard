@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "./AuthContext.jsx";
 
 export function SignIn() {
-  const { signIn, signUp, resetPassword, insecure } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState("signin"); // "signin" | "register" | "forgot"
 
   // Sign in state
@@ -118,13 +118,6 @@ export function SignIn() {
     } finally {
       setPending(false);
     }
-  };
-
-  const fillDemo = () => {
-    setEmail("yash.prajapati@tecnoprism.com");
-    setPassword("password123");
-    setError("");
-    setSuccessMsg("");
   };
 
   return (
@@ -343,18 +336,8 @@ export function SignIn() {
                       onChange={(e) => setRememberMe(e.target.checked)}
                       className="rounded border-slate-300 text-brandPink focus:ring-brandPink"
                     />
-                    <span>Remember me</span>
+                    <span>Remember me on this device</span>
                   </label>
-
-                  {insecure && (
-                    <button
-                      type="button"
-                      onClick={fillDemo}
-                      className="text-xs text-brandPink hover:underline cursor-pointer font-medium"
-                    >
-                      Fill demo details
-                    </button>
-                  )}
                 </div>
 
                 <button
