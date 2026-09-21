@@ -25,14 +25,32 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  const signUp = useCallback(async (details) => {
+    if (adapter.signUp) {
+      const u = await adapter.signUp(details);
+      setUser(u);
+      return u;
+    }
+    const u = await adapter.signIn(details);
+    setUser(u);
+    return u;
+  }, []);
+
+  const resetPassword = useCallback(async (details) => {
+    if (adapter.resetPassword) {
+      return await adapter.resetPassword(details);
+    }
+    return { ok: true };
+  }, []);
+
   const signOut = useCallback(async () => {
     await adapter.signOut();
     setUser(null);
   }, []);
 
   const value = useMemo(
-    () => ({ user, restoring, signIn, signOut, insecure: adapter.insecure, mode: adapter.mode }),
-    [user, restoring, signIn, signOut]
+    () => ({ user, restoring, signIn, signUp, resetPassword, signOut, insecure: adapter.insecure, mode: adapter.mode }),
+    [user, restoring, signIn, signUp, resetPassword, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
