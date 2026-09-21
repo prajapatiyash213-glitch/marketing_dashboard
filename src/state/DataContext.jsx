@@ -45,33 +45,22 @@ export function DataProvider({ children }) {
     let alive = true;
     loadDataset().then((saved) => {
       if (!alive) return;
-      if (saved?.leads?.length || saved?.weeks?.length) {
+      // Do NOT auto-load dummy sample data. Only restore if real user files were imported (!saved.isSample).
+      if (saved && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length)) {
         setLeads(saved.leads || []);
         let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
-        const tpWeeks = cleanWeeks.filter((w) => w.site === "tecnoprism.com");
-        const tpViews = tpWeeks.reduce((acc, w) => acc + (w.views || 0), 0);
-        if (tpWeeks.length !== 45 || tpViews !== 64002) {
-          cleanWeeks = cleanWeeks.filter((w) => w.site !== "tecnoprism.com").concat(EXACT_SEO_DATA);
-        }
         setWeeks(cleanWeeks);
         setChannels(saved.channels || { email: [], social: [], landing: [], cost: [] });
         setFiles(saved.files || []);
-        setIsSample(Boolean(saved.isSample));
-        saveDataset({
-          leads: saved.leads || [],
-          weeks: cleanWeeks,
-          channels: saved.channels || { email: [], social: [], landing: [], cost: [] },
-          files: saved.files || [],
-          isSample: Boolean(saved.isSample),
-        });
+        setIsSample(false);
       } else {
-        const sample = buildSampleData();
-        setLeads(sample.leads);
-        setWeeks(sample.weeks);
-        setChannels(sample.channels);
-        setFiles(sample.files);
-        setIsSample(true);
-        saveDataset({ ...sample, isSample: true });
+        // New user or dummy sample session: Start completely clean with zero dummy data
+        setLeads([]);
+        setWeeks([]);
+        setChannels({ email: [], social: [], landing: [], cost: [] });
+        setFiles([]);
+        setIsSample(false);
+        clearDataset();
       }
       setRestored(true);
     });

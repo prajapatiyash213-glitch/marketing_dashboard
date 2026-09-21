@@ -17,7 +17,7 @@ import { EXACT_SEO_DATA } from "./lib/exactSeoData.js";
 
 function Dashboard() {
   const data = useData();
-  const effectiveWeeks = data.weeks?.length > 0 ? data.weeks : EXACT_SEO_DATA;
+  const effectiveWeeks = data.weeks || [];
   const d = useDashboard({ leads: data.leads, weeks: effectiveWeeks, channels: data.channels });
   const [view, setView] = useState("overview");
   const [filters, setFilters] = useState({ file: "All", stage: "All", status: "All", query: "" });

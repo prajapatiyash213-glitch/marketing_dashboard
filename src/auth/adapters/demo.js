@@ -2,6 +2,8 @@
  * Browser-only authentication adapter with registration, persistence, and demo presets.
  * Supports local account registration, remember-me sessions, and password recovery.
  */
+import { clearDataset } from "../../lib/storage.js";
+
 const SESSION_KEY = "dashboard.demo-session";
 const REMEMBER_KEY = "dashboard.remembered-user";
 const USERS_KEY = "dashboard.registered-users";
@@ -165,6 +167,7 @@ export const demoAuth = {
       if (rememberMe) {
         localStorage.setItem(REMEMBER_KEY, serial);
       }
+      await clearDataset();
     } catch {
       /* private mode */
     }
