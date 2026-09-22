@@ -144,7 +144,7 @@ function MappingSummary({ mapping }) {
   );
 }
 
-export function SourcesView({ files, onFiles, busy, onClear, hasData }) {
+export function SourcesView({ files, onFiles, busy, onClear, onReloadMaster, hasData }) {
   return (
     <>
       <SampleSheetsSection />
@@ -152,7 +152,23 @@ export function SourcesView({ files, onFiles, busy, onClear, hasData }) {
       <Panel
         title="Workspace Master Data"
         note="Shared across all team members and accounts"
-        right={<button className="btn" onClick={onClear} disabled={!hasData}>Clear all</button>}
+        right={
+          <div className="flex items-center gap-2">
+            {onReloadMaster && (
+              <button
+                className="btn btn-primary text-xs"
+                onClick={onReloadMaster}
+                disabled={busy}
+                title="Re-sync latest 8 master files and upgrade local workspace"
+              >
+                {busy ? "Syncing..." : "Sync Master Files"}
+              </button>
+            )}
+            <button className="btn text-xs" onClick={onClear} disabled={!hasData || busy}>
+              Clear all
+            </button>
+          </div>
+        }
       >
       {!files.length ? <EmptyState height={120}>No files loaded yet.</EmptyState> : (
         <ul className="space-y-3">

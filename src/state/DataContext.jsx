@@ -8,6 +8,19 @@ import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
+export const MASTER_DATASET_VERSION = "2026-09-22-v8-final";
+
+export const MASTER_FILES = [
+  "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
+  "/master/Leads_Sheet.xlsx",
+  "/master/KPI _ Automation COE.xlsx",
+  "/master/Tecnoprism _ KPIs.xlsx",
+  "/master/Tools_And_Costs_Cleaned.xlsx",
+  "/master/Website Visitors Leads Sheet.xlsx",
+  "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
+  "/master/Imagine 26 - Leads Database.xlsx"
+];
+
 export function DataProvider({ children }) {
   const [leads, setLeads] = useState([]);
   const [weeks, setWeeks] = useState([]);
@@ -40,7 +53,7 @@ export function DataProvider({ children }) {
 
   useEffect(() => () => workerRef.current?.terminate(), []);
 
-  const persist = useCallback((next) => { saveDataset(next); }, []);
+  const persist = useCallback((next) => { saveDataset({ ...next, masterVersion: MASTER_DATASET_VERSION }); }, []);
 
   // Live real-time sync across tabs and sessions
   useEffect(() => {
@@ -139,7 +152,7 @@ export function DataProvider({ children }) {
     setBusy(false);
   }, [getWorker, isSample]);
 
-  // Restore workspace master dataset or load admin's published master files:
+  // Restore workspace master dataset or automatically upgrade existing users to latest master files:
   useEffect(() => {
     let alive = true;
 
@@ -147,8 +160,12 @@ export function DataProvider({ children }) {
       try {
         const saved = await loadDataset();
         if (!alive) return;
+
+        // Check if user already has the latest 8-file master version
+        const hasLatestVersion = saved && saved.masterVersion === MASTER_DATASET_VERSION;
         const channelCount = Object.values(saved?.channels || {}).reduce((n, r) => n + r.length, 0);
-        if (saved && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length || channelCount > 0)) {
+
+        if (hasLatestVersion && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length || channelCount > 0)) {
           setLeads(saved.leads || []);
           let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
           setWeeks(cleanWeeks);
@@ -159,19 +176,10 @@ export function DataProvider({ children }) {
           return;
         }
 
-        // If no master dataset exists in this browser yet, load admin's master sheets
-        const masterFiles = [
-          "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
-          "/master/Leads_Sheet.xlsx",
-          "/master/KPI _ Automation COE.xlsx",
-          "/master/Tecnoprism _ KPIs.xlsx",
-          "/master/Tools_And_Costs_Cleaned.xlsx",
-          "/master/Website Visitors Leads Sheet.xlsx",
-          "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
-          "/master/Imagine 26 - Leads Database.xlsx"
-        ];
+        // For existing users with older cache, or new users:
+        // Automatically fetch and load all 8 final master files
         const loadedBlobs = [];
-        for (const url of masterFiles) {
+        for (const url of MASTER_FILES) {
           const res = await fetch(url).catch(() => null);
           if (res && res.ok) {
             const blob = await res.blob();
@@ -185,7 +193,7 @@ export function DataProvider({ children }) {
           return;
         }
       } catch (err) {
-        console.warn("Could not load master files:", err);
+        console.warn("Could not auto-load master files:", err);
       }
 
       if (alive) {
@@ -200,6 +208,26 @@ export function DataProvider({ children }) {
 
     initDataset();
     return () => { alive = false; };
+  }, [importFiles]);
+
+  const reloadMasterDataset = useCallback(async () => {
+    setBusy(true);
+    try {
+      const loadedBlobs = [];
+      for (const url of MASTER_FILES) {
+        const res = await fetch(url).catch(() => null);
+        if (res && res.ok) {
+          const blob = await res.blob();
+          const fileName = decodeURIComponent(url.split("/").pop());
+          loadedBlobs.push(new File([blob], fileName));
+        }
+      }
+      if (loadedBlobs.length > 0) {
+        await importFiles(loadedBlobs);
+      }
+    } finally {
+      setBusy(false);
+    }
   }, [importFiles]);
 
   const loadSample = useCallback(() => {
@@ -235,8 +263,24 @@ export function DataProvider({ children }) {
   }, [leads, weeks, channels, files, isSample, restored, persist]);
 
   const value = useMemo(
-    () => ({ leads, weeks, channels, files, rawSheets, isSample, busy, problems, restored, importFiles, loadSample, loadExactSeo, clearAll, dismissProblems: () => setProblems([]) }),
-    [leads, weeks, channels, files, rawSheets, isSample, busy, problems, restored, importFiles, loadSample, loadExactSeo, clearAll]
+    () => ({
+      leads,
+      weeks,
+      channels,
+      files,
+      rawSheets,
+      isSample,
+      busy,
+      problems,
+      restored,
+      importFiles,
+      reloadMasterDataset,
+      loadSample,
+      loadExactSeo,
+      clearAll,
+      dismissProblems: () => setProblems([]),
+    }),
+    [leads, weeks, channels, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

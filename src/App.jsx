@@ -60,6 +60,7 @@ function Dashboard() {
     onFiles: data.importFiles,
     busy: data.busy,
     onClear: data.clearAll,
+    onReloadMaster: data.reloadMasterDataset,
     hasData,
     setView,
   };
