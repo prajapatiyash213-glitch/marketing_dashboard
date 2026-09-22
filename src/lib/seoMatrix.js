@@ -21,6 +21,9 @@ export const SEO_METRICS = {
 export const STOCK_METRICS = new Set(["backlinks", "da", "as", "pa", "keywords", "aiSearch"]);
 
 export function classifyMetric(raw) {
+  if (typeof raw !== "string" && typeof raw !== "number") return null;
+  const str = String(raw).trim();
+  if (!str || str.length > 80 || /^https?:\/\//i.test(str) || /^mailto:/i.test(str)) return null;
   const s = norm(raw);
   if (!s) return null;
   if (/bounce/.test(s)) return "bounce";
@@ -29,10 +32,10 @@ export function classifyMetric(raw) {
   if (/authority score|semrush|\bas\b/.test(s)) return "as";
   if (/domain authority|domain rating|\bda\b|\bdr\b|dapa/.test(s)) return "da";
   if (/keyword|ranking|\bkw\b/.test(s)) return "keywords";
-  if (/total users|users|visitors|unique/.test(s)) return "users";
+  if (/total users|\busers\b|\bvisitors\b|\bunique\b/.test(s)) return "users";
   if (/views|traffic|sessions|pageview|ga4|impressions/.test(s)) return "views";
   if (/download/.test(s)) return "downloads";
-  if (/lead|form|chatbot|enquir|inquir|conversion/.test(s)) return "seoLeads";
+  if (/(\bleads?\b|\bform\b|chatbot|\benquir|\binquir|\bconversion)/.test(s) && !/leader|developer|engineer|manager|director|vp|executive/i.test(s)) return "seoLeads";
   if (/ai search|ai-search|\bai\b/.test(s)) return "aiSearch";
   return null;
 }
@@ -79,6 +82,15 @@ export function parseSeoMatrix(rows, { minWeeks = 3, headerScanDepth = 10, today
   if (sheetName && /^(monthly|month|ytd|annual|yearly|summary)$/i.test(sheetName.trim())) {
     return null;
   }
+
+  // If the sheet contains obvious lead columns in the top header row, it is NOT an SEO matrix
+  for (let r = 0; r < Math.min(rows.length, 3); r++) {
+    const rowNorm = (rows[r] || []).map((c) => String(c || "").toLowerCase().trim());
+    if (rowNorm.some((h) => ["email", "first name", "last name", "lead stage", "lead status", "lead source", "contact owner"].includes(h))) {
+      return null;
+    }
+  }
+
   const site = detectSite({ sheetName, fileName });
   for (let r = 0; r < Math.min(rows.length, headerScanDepth); r++) {
     const row = rows[r] || [];
@@ -123,7 +135,9 @@ export function parseSeoMatrix(rows, { minWeeks = 3, headerScanDepth = 10, today
       if (wrote) metricsFound.push({ metric, sourceLabel: String(labelCell) });
     }
 
-    if (metricsFound.length) {
+    const coreMetrics = new Set(["views", "users", "bounce", "da", "pa", "as", "keywords", "backlinks"]);
+    const hasCoreMetric = metricsFound.some((m) => coreMetrics.has(m.metric));
+    if (metricsFound.length >= 2 || (metricsFound.length >= 1 && hasCoreMetric)) {
       return {
         weeks: Array.from(buckets.values()).sort((a, b) => a.sort - b.sort),
         metrics: metricsFound,

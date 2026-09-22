@@ -45,8 +45,11 @@ export function parseSalesSheet(rows, { fileName, sheetName, overrides = {} } = 
     const raw = (field) => (map[field] ? row[map[field].index] : null);
     const text = (field) => asText(raw(field));
 
-    let name = text("name");
-    if (!name) name = [text("firstName"), text("lastName")].filter(Boolean).join(" ").trim();
+    const firstLast = [text("firstName"), text("lastName")].filter(Boolean).join(" ").trim();
+    let name = firstLast || text("name");
+    if (name && (name.startsWith("http://") || name.startsWith("https://"))) {
+      name = firstLast || "";
+    }
     const company = text("company");
     const email = text("email");
     if (!name && !company && !email) continue;
@@ -56,10 +59,15 @@ export function parseSalesSheet(rows, { fileName, sheetName, overrides = {} } = 
     const date = parseDateCell(raw("date"), { dayFirst: dayFirst.dayFirst });
     if (!date) undated++;
 
+    const explicitPipeline = text("pipeline");
+    const explicitSite = text("site");
+    const pipeline = detectPipeline({ explicit: explicitPipeline, sheetName, fileName });
+    const site = detectSite({ explicit: explicitSite, brand: explicitPipeline, pipeline, sheetName, fileName });
+
     leads.push({
       id: `${fileName}::${sheetName}::${headerRow + 1 + i}`,
-      pipeline: detectPipeline({ explicit: text("pipeline"), sheetName, fileName }),
-      site: detectSite({ explicit: text("site"), sheetName, fileName }),
+      pipeline,
+      site,
       campaign: text("campaign"),
       medium: text("medium"),
       name: name || "—",

@@ -119,5 +119,19 @@ describe("parseWorkbook end to end", () => {
     expect(out.file.sheets.find((s) => s.sheet === "Weekly")?.kind).toBe("seo");
     expect(out.file.sheets.find((s) => s.sheet === "Monthly")?.kind).not.toBe("seo");
   });
+
+  it("correctly identifies lead sheets with dates in data rows as leads, not seo matrix", () => {
+    const visitorLeads = [
+      ["First Name", "Last Name", "Title", "Company Name", "Email", "Person Linkedin Url", "Brand", "Lead Date", "Lead Source", "Lead Stage"],
+      ["Robert", "Link", "VP", "Acme", "r.link@acme.com", "http://linkedin.com/in/rlink", "Tecnoprism", "3-Sep", "Inbound", "Discovery"],
+      ["Jane", "Doe", "Leader", "Beta", "j.doe@beta.com", "http://linkedin.com/in/jdoe", "Tecnoprism", "7-Sep", "Inbound", "Discovery"],
+    ];
+    const out = parseWorkbook(workbook({ "Website Visitors - People": visitorLeads }), "Website Visitors Leads Sheet.xlsx");
+    expect(out.leads).toHaveLength(2);
+    expect(out.seoWeeks).toHaveLength(0);
+    expect(out.leads[0].name).toBe("Robert Link");
+    expect(out.leads[0].site).toBe("tecnoprism.com");
+    expect(out.file.sheets[0].kind).toBe("leads");
+  });
 });
 

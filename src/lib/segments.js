@@ -27,9 +27,9 @@ export const siteById = (id) =>
       (id && (s.match.test(norm(id)) || s.label.toLowerCase() === String(id).toLowerCase() || (s.aliases && s.aliases.some((a) => norm(a) === norm(id)))))
   ) || UNASSIGNED_SITE;
 
-/** Looks through a file name, tab name and any explicit cell value, in that order of trust. */
-export function detectSite({ explicit, sheetName, fileName } = {}) {
-  const candidates = [explicit, sheetName, fileName].filter(Boolean).map((v) => norm(v));
+/** Looks through explicit site, brand, pipeline, tab name and file name, in that order of trust. */
+export function detectSite({ explicit, brand, pipeline, sheetName, fileName } = {}) {
+  const candidates = [explicit, brand, pipeline, sheetName, fileName].filter(Boolean).map((v) => norm(v));
   for (const value of candidates) {
     const hit = SITES.find((s) => s.match.test(value));
     if (hit) return hit.id;

@@ -160,7 +160,11 @@ export function DataProvider({ children }) {
         }
 
         // If no master dataset exists in this browser yet, load admin's master KPI sheets
-        const masterFiles = ["/master/KPI _ Automation COE.xlsx", "/master/Tecnoprism _ KPIs.xlsx"];
+        const masterFiles = [
+          "/master/KPI _ Automation COE.xlsx",
+          "/master/Tecnoprism _ KPIs.xlsx",
+          "/master/Website Visitors Leads Sheet.xlsx"
+        ];
         const loadedBlobs = [];
         for (const url of masterFiles) {
           const res = await fetch(url).catch(() => null);

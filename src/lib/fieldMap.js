@@ -59,7 +59,13 @@ export function matchColumns(headers, defs) {
   for (const [field, , aliases] of defs) {
     if (map[field]) continue;
     for (const alias of aliases) {
-      const i = normed.findIndex((h, ix) => !claimed.has(ix) && h.length > 1 && h.includes(alias));
+      const i = normed.findIndex((h, ix) => {
+        if (claimed.has(ix) || h.length <= 1) return false;
+        if (["name", "firstName", "lastName", "company"].includes(field) && /(url|link|linkedin|profile|website|\bid\b)/i.test(h)) {
+          return false;
+        }
+        return h.includes(alias);
+      });
       if (i >= 0) {
         map[field] = { index: i, header: String(headers[i]), confidence: "guess" };
         claimed.add(i);
