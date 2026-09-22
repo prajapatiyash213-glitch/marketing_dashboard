@@ -22,7 +22,20 @@ const ROW_HEIGHT = 46;
  * one. Sorting and filtering stay in the parent so exports match what is shown.
  */
 export function LeadTable({ leads, fileNames, statuses, filters, setFilters, onExportCsv, onExportXlsx }) {
-  const [sort, setSort] = useState({ key: "value", dir: "desc" });
+  const [sort, setSort] = useState({ key: "date", dir: "desc" });
+
+  const hasValue = useMemo(() => leads.some((l) => l.value != null && Number.isFinite(l.value) && l.value > 0), [leads]);
+  const columns = useMemo(() => {
+    if (hasValue) return COLUMNS;
+    return [
+      { key: "name", label: "Lead", width: "24%" },
+      { key: "company", label: "Company", width: "24%" },
+      { key: "stage", label: "Stage", width: "13%" },
+      { key: "source", label: "Source", width: "14%" },
+      { key: "status", label: "Status", width: "13%" },
+      { key: "date", label: "Date", width: "12%" },
+    ];
+  }, [hasValue]);
 
   const rows = useMemo(() => {
     const q = filters.query.trim().toLowerCase();
@@ -54,20 +67,22 @@ export function LeadTable({ leads, fileNames, statuses, filters, setFilters, onE
     const l = rows[index];
     return (
       <div style={style} className="row-hover flex items-center border-b border-hair px-3 text-sm" role="row">
-        <div style={{ width: COLUMNS[0].width }} className="min-w-0 pr-3">
+        <div style={{ width: columns[0].width }} className="min-w-0 pr-3">
           <div className="truncate text-ink">{l.name}</div>
           {l.title && <div className="truncate text-xs text-faint">{l.title}</div>}
         </div>
-        <div style={{ width: COLUMNS[1].width }} className="truncate pr-3 text-ink2">{l.company}</div>
-        <div style={{ width: COLUMNS[2].width }} className="pr-3"><StagePill stage={l.stage} /></div>
-        <div style={{ width: COLUMNS[3].width }} className="truncate pr-3 text-ink2">{l.source}</div>
-        <div style={{ width: COLUMNS[4].width }} className="truncate pr-3 text-ink2">{l.status}</div>
-        <div style={{ width: COLUMNS[5].width }} className={`pr-3 text-xs ${l.date ? "text-ink2" : "text-faint"}`}>
+        <div style={{ width: columns[1].width }} className="truncate pr-3 text-ink2">{l.company}</div>
+        <div style={{ width: columns[2].width }} className="pr-3"><StagePill stage={l.stage} /></div>
+        <div style={{ width: columns[3].width }} className="truncate pr-3 text-ink2">{l.source}</div>
+        <div style={{ width: columns[4].width }} className="truncate pr-3 text-ink2">{l.status}</div>
+        <div style={{ width: columns[5].width }} className={`pr-3 text-xs ${l.date ? "text-ink2" : "text-faint"}`}>
           {l.dateText || "no date"}
         </div>
-        <div style={{ width: COLUMNS[6].width }} className={`tnum text-right ${l.value ? "text-ink" : "text-faint"}`}>
-          {l.value ? fmtInt(l.value) : "—"}
-        </div>
+        {hasValue && (
+          <div style={{ width: columns[6].width }} className={`tnum text-right ${l.value ? "text-ink" : "text-faint"}`}>
+            {l.value ? fmtInt(l.value) : "—"}
+          </div>
+        )}
       </div>
     );
   };
@@ -110,7 +125,7 @@ export function LeadTable({ leads, fileNames, statuses, filters, setFilters, onE
       ) : (
         <div className="min-w-[860px] rounded-xl border border-slate-200 overflow-hidden bg-white shadow-sm">
           <div className="flex items-center bg-[#1E293B] px-3 py-2.5 text-[11px] uppercase tracking-wider font-bold" role="row">
-            {COLUMNS.map((c) => (
+            {columns.map((c) => (
               <div key={c.key} style={{ width: c.width }} className={c.align === "right" ? "text-right" : ""}>
                 <button
                   className="text-[11px] font-bold tracking-wider uppercase transition-colors"

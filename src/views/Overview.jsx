@@ -78,7 +78,7 @@ export function OverviewView({ d, allUndated, setView }) {
                 module="pipeline"
                 connected={on.pipeline}
                 headline={fmtInt(d.periodLeads.length)}
-                caption={`${fmtInt(d.advanced)} past discovery · ${fmtMoneyCompact(d.pipelineValue)} in play`}
+                caption={d.pipelineValue ? `${fmtInt(d.advanced)} past discovery · ${fmtMoneyCompact(d.pipelineValue)} in play` : `${fmtInt(d.advanced)} qualified & past discovery`}
                 spark={d.leadTrend.map((r) => r.leads)}
                 change={d.previousLeads?.length ? ((d.periodLeads.length - d.previousLeads.length) / d.previousLeads.length) * 100 : null}
                 hint="Drop a lead sheet with a name or company column."

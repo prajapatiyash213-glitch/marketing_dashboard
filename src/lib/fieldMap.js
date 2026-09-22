@@ -24,7 +24,7 @@ export const FIELD_DEFS = [
   ["stage", "Stage", ["stage", "lead stage", "deal stage", "sales stage", "pipeline stage", "funnel stage"]],
   ["source", "Source", ["source", "lead source", "lead type", "channel", "origin", "utm source", "campaign"]],
   ["status", "Lead status", ["lead status", "current status", "status", "state", "disposition"]],
-  ["value", "Value", ["lead value", "annual revenue", "deal value", "opportunity value", "estimated value", "value", "revenue", "arr", "amount", "potential"]],
+  ["value", "Value", ["deal value", "deal amount", "deal size", "opportunity value", "lead value", "deal price", "contract value", "estimated deal value"]],
   ["date", "Date", ["date", "created", "created on", "created date", "date added", "captured on", "visit date", "enquiry date", "timestamp", "first seen"]],
   ["title", "Job title", ["designation", "job title", "title", "role", "position"]],
   ["email", "Email", ["email", "email address", "e mail", "work email"]],

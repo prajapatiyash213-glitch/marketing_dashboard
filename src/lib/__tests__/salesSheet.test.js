@@ -5,7 +5,7 @@ import { dayKey } from "../dates.js";
 const ctx = { fileName: "Leads Sheet.xlsx", sheetName: "Main Leads Sheet" };
 
 const ROWS = [
-  ["First Name", "Last Name", "Company Name", "Lead Stage", "Lead Source", "Lead Status", "Annual Revenue", "Date"],
+  ["First Name", "Last Name", "Company Name", "Lead Stage", "Lead Source", "Lead Status", "Deal Value", "Date"],
   ["Meera", "Iyer", "Arcelia Industries", "Qualified", "Organic Search", "Meeting booked", "₹12,50,000", "03/04/2026"],
   ["Rohan", "Shah", "Novaris Technologies", "Disqualified", "Outbound", "Not interested", "8 lakh", "15/04/2026"],
   [null, null, null, null, null, null, null, null],

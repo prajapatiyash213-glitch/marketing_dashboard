@@ -16,7 +16,7 @@ describe("mapHeaders", () => {
   });
 
   it("maps the alternative headers used across the different sheets", () => {
-    const m = mapHeaders(["Company", "Lead Source", "Annual Revenue", "Current Status"]);
+    const m = mapHeaders(["Company", "Lead Source", "Deal Value", "Current Status"]);
     expect(m.company.index).toBe(0);
     expect(m.source.index).toBe(1);
     expect(m.value.index).toBe(2);

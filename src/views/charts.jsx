@@ -436,11 +436,11 @@ export function GradientStatCards({ d }) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {/* Card 1: Hot Pink gradient (Revenue / Pipeline Status) */}
+      {/* Card 1: Hot Pink gradient (Pipeline Leads) */}
       <div className="card-gradient-pink rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Revenue Status</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">Pipeline</span>
+          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Pipeline Status</span>
+          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">All Leads</span>
         </div>
         <div className="flex items-end justify-between mt-3">
           <div className="flex items-end gap-1.5 h-9 pb-1">
@@ -452,9 +452,9 @@ export function GradientStatCards({ d }) {
           </div>
           <div className="text-right">
             <div className="text-2xl font-black font-display tracking-tight text-white">
-              {d.pipelineValue ? fmtMoneyCompact(d.pipelineValue) : "₹0"}
+              {fmtInt(d.periodLeads.length)}
             </div>
-            <div className="text-[11px] text-white/80 mt-0.5">In Active Deals</div>
+            <div className="text-[11px] text-white/80 mt-0.5">{fmtInt(d.advanced)} Active & Qualified</div>
           </div>
         </div>
       </div>
@@ -497,11 +497,11 @@ export function GradientStatCards({ d }) {
         </div>
       </div>
 
-      {/* Card 4: Orange gradient (Closed Won) */}
+      {/* Card 4: Orange gradient (Closed Won Deals) */}
       <div className="card-gradient-orange rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Revenue Status</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">Closed Won</span>
+          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Closed Won</span>
+          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">Conversion</span>
         </div>
         <div className="flex items-end justify-between mt-3">
           <div className="flex items-end gap-1.5 h-9 pb-1">
@@ -512,9 +512,9 @@ export function GradientStatCards({ d }) {
           </div>
           <div className="text-right">
             <div className="text-2xl font-black font-display tracking-tight text-white">
-              {d.wonValue ? fmtMoneyCompact(d.wonValue) : "₹0"}
+              {fmtInt(d.wonCount)}
             </div>
-            <div className="text-[11px] text-white/80 mt-0.5">{fmtInt(d.wonCount)} Deals Won</div>
+            <div className="text-[11px] text-white/80 mt-0.5">{d.conversion.toFixed(1)}% Conversion Rate</div>
           </div>
         </div>
       </div>
@@ -732,7 +732,7 @@ export function OrderStatusTable({ leads, onViewAll }) {
               <th className="p-3">Client Name</th>
               <th className="p-3">Deal ID</th>
               <th className="p-3">Pipeline</th>
-              <th className="p-3 text-right">Value</th>
+              <th className="p-3">Source</th>
               <th className="p-3 text-center">Status</th>
               <th className="p-3 text-center w-12">Action</th>
             </tr>
@@ -761,8 +761,8 @@ export function OrderStatusTable({ leads, onViewAll }) {
                     <td className="p-3 text-slate-600 font-medium truncate max-w-[120px]">
                       {lead.pipeline || "General"}
                     </td>
-                    <td className="p-3 text-right font-bold text-slate-800">
-                      {lead.value ? fmtMoneyCompact(lead.value) : "—"}
+                    <td className="p-3 text-slate-500 text-xs truncate max-w-[120px]">
+                      {lead.source || "Direct / Inbound"}
                     </td>
                     <td className="p-3 text-center">
                       <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${badgeClass}`}>
