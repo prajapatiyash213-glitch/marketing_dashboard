@@ -235,16 +235,16 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
         <div className="lg:col-span-3 flex flex-col justify-between py-1">
           <div>
             <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-display">
-              {d.pipelineValue ? fmtMoneyCompact(d.pipelineValue) : "₹0"}
+              {fmtInt(d.periodLeads.length)}
             </div>
-            <div className="text-xs font-medium text-slate-400 mt-1">Current Period Pipeline</div>
+            <div className="text-xs font-medium text-slate-400 mt-1">Total Leads Captured</div>
           </div>
 
           <div className="mt-5">
-            <div className="text-xl sm:text-2xl font-extrabold text-slate-800">
-              {fmtInt(d.periodLeads.length)}
+            <div className="text-xl sm:text-2xl font-extrabold text-emerald-600">
+              {fmtInt(d.wonCount || 0)}
             </div>
-            <div className="text-xs font-medium text-slate-400 mt-0.5">Total Leads Captured</div>
+            <div className="text-xs font-medium text-slate-400 mt-0.5">Deals Won</div>
           </div>
 
           <div className="mt-6">
