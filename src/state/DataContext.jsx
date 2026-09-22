@@ -161,14 +161,14 @@ export function DataProvider({ children }) {
 
         // If no master dataset exists in this browser yet, load admin's master sheets
         const masterFiles = [
+          "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
+          "/master/Leads_Sheet.xlsx",
           "/master/KPI _ Automation COE.xlsx",
           "/master/Tecnoprism _ KPIs.xlsx",
+          "/master/Tools_And_Costs_Cleaned.xlsx",
           "/master/Website Visitors Leads Sheet.xlsx",
-          "/master/Imagine 26 - Leads Database.xlsx",
           "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
-          "/master/Leads_Sheet.xlsx",
-          "/master/Email_Campaigns.xlsx",
-          "/master/Tools_And_Costs.xlsx"
+          "/master/Imagine 26 - Leads Database.xlsx"
         ];
         const loadedBlobs = [];
         for (const url of masterFiles) {
