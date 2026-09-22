@@ -8,17 +8,17 @@ import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-export const MASTER_DATASET_VERSION = "2026-09-22-v10-shehzad-7d";
+export const MASTER_DATASET_VERSION = "2026-09-22-v11-final-8-excel";
 
 export const MASTER_FILES = [
+  "/master/Imagine 26 - Leads Database (1).xlsx",
+  "/master/Key Metrics of Marketing (1).xlsx",
+  "/master/KPI _ Automation COE (1).xlsx",
   "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
-  "/master/Leads_Sheet.xlsx",
-  "/master/KPI _ Automation COE.xlsx",
-  "/master/Tecnoprism _ KPIs.xlsx",
   "/master/Tools_And_Costs_Cleaned.xlsx",
-  "/master/Website Visitors Leads Sheet.xlsx",
+  "/master/Leads Sheet.xlsx",
   "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
-  "/master/Imagine 26 - Leads Database.xlsx"
+  "/master/Website Visitors Leads Sheet.xlsx"
 ];
 
 export function DataProvider({ children }) {
@@ -180,7 +180,7 @@ export function DataProvider({ children }) {
         // Automatically fetch and load all 8 final master files
         const loadedBlobs = [];
         for (const url of MASTER_FILES) {
-          const res = await fetch(url).catch(() => null);
+          const res = await fetch(encodeURI(url)).catch(() => null);
           if (res && res.ok) {
             const blob = await res.blob();
             const fileName = decodeURIComponent(url.split("/").pop());
@@ -215,7 +215,7 @@ export function DataProvider({ children }) {
     try {
       const loadedBlobs = [];
       for (const url of MASTER_FILES) {
-        const res = await fetch(url).catch(() => null);
+        const res = await fetch(encodeURI(url)).catch(() => null);
         if (res && res.ok) {
           const blob = await res.blob();
           const fileName = decodeURIComponent(url.split("/").pop());
