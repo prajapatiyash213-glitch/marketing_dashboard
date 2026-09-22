@@ -81,11 +81,22 @@ export function useDashboard({ leads, weeks, channels }) {
   const rangeActive = Boolean(range.from || range.to);
   const previous = useMemo(() => previousWindow(range), [range]);
 
-  /* ---- segment + period filters ---- */
   const matchesSegment = useMemo(
     () => (row, { siteKey = "site", pipelineKey = "pipeline" } = {}) => {
-      if (site !== "All" && row[siteKey] !== site) return false;
-      if (pipeline !== "All" && pipelineKey && row[pipelineKey] !== undefined && row[pipelineKey] !== pipeline) return false;
+      if (site !== "All") {
+        const rowSite = row[siteKey];
+        const targetSiteId = site;
+        const normalizedRowSite = siteById(rowSite).id;
+        if (rowSite !== targetSiteId && normalizedRowSite !== targetSiteId) return false;
+      }
+      if (pipeline !== "All" && pipelineKey && row[pipelineKey] !== undefined) {
+        const rowPipe = row[pipelineKey];
+        const isPipeMatch =
+          rowPipe === pipeline ||
+          ((pipeline === "automationCOE" || pipeline === "Automation CoE" || pipeline === "ACOE") &&
+            /^(acoe|automation ?coe)$/i.test(rowPipe));
+        if (!isPipeMatch) return false;
+      }
       return true;
     },
     [site, pipeline]

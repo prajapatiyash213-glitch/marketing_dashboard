@@ -14,6 +14,7 @@ import { fmtInt } from "./lib/numbers.js";
 import { STAGES } from "./lib/stages.js";
 import { leadRows, toCsv, buildWorkbook, downloadBlob } from "./lib/exporters.js";
 import { EXACT_SEO_DATA } from "./lib/exactSeoData.js";
+import { siteById } from "./lib/segments.js";
 
 function Dashboard() {
   const data = useData();
@@ -100,7 +101,7 @@ function Dashboard() {
               grain={d.grain} setGrain={d.setGrain}
               site={d.site} setSite={d.setSite}
               pipeline={d.pipeline} setPipeline={d.setPipeline}
-              sites={d.sites.filter((s) => data.weeks.some((w) => w.site === s.id) || data.leads.some((l) => l.site === s.id))}
+              sites={d.sites.filter((s) => data.weeks.some((w) => w.site === s.id || siteById(w.site).id === s.id) || data.leads.some((l) => l.site === s.id || siteById(l.site).id === s.id))}
               pipelines={d.pipelines}
               undated={d.undated}
               includeUndated={d.includeUndated} setIncludeUndated={d.setIncludeUndated}

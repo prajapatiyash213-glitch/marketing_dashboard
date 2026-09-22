@@ -8,13 +8,24 @@ import { norm } from "./fieldMap.js";
  * Add your own properties here; everything downstream reads this list.
  */
 export const SITES = [
-  { id: "tecnoprism.com", label: "Tecnoprism", match: /tecnoprism|techno ?prism/, color: "#2D7DD2" },
-  { id: "automationcoe.com", label: "Automation CoE", match: /automation ?coe|automationcoe|\bcoe\b/, color: "#17A398" },
+  { id: "tecnoprism.com", label: "Tecnoprism", match: /tecnoprism|techno ?prism/i, color: "#2D7DD2" },
+  {
+    id: "automationcoe.com",
+    label: "automationCOE",
+    aliases: ["ACOE", "Automation CoE", "Automation COE"],
+    match: /automation ?coe|automationcoe|\bacoe\b|acoe|\bcoe\b/i,
+    color: "#17A398",
+  },
 ];
 
 export const UNASSIGNED_SITE = { id: "unassigned", label: "Unassigned", color: "#8E9BA6" };
 
-export const siteById = (id) => SITES.find((s) => s.id === id) || UNASSIGNED_SITE;
+export const siteById = (id) =>
+  SITES.find(
+    (s) =>
+      s.id === id ||
+      (id && (s.match.test(norm(id)) || s.label.toLowerCase() === String(id).toLowerCase() || (s.aliases && s.aliases.some((a) => norm(a) === norm(id)))))
+  ) || UNASSIGNED_SITE;
 
 /** Looks through a file name, tab name and any explicit cell value, in that order of trust. */
 export function detectSite({ explicit, sheetName, fileName } = {}) {
@@ -34,7 +45,11 @@ export function detectSite({ explicit, sheetName, fileName } = {}) {
 const PIPELINE_COLORS = ["#0E7C86", "#E4572E", "#F0A202", "#6A4C93", "#2D7DD2", "#17A398", "#D64550", "#5B8C5A"];
 
 export function detectPipeline({ explicit, sheetName, fileName } = {}) {
-  if (explicit && String(explicit).trim()) return String(explicit).trim();
+  if (explicit && String(explicit).trim()) {
+    const raw = String(explicit).trim();
+    if (/^(acoe|automation ?coe)$/i.test(raw)) return "automationCOE";
+    return raw;
+  }
   for (const site of SITES) {
     if ([sheetName, fileName].some((v) => v && site.match.test(norm(v)))) return site.label;
   }
