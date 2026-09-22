@@ -3,7 +3,7 @@ import { Panel, EmptyState, Kpi, KpiBand } from "../components/primitives.jsx";
 import { RankedBars } from "../components/visuals.jsx";
 import { CATEGORICAL } from "../lib/palette.js";
 import { downloadSampleSheet } from "../lib/sampleTemplates.js";
-import { SmtpRenewalModal } from "../components/SmtpRenewalModal.jsx";
+import { SmtpRenewalModal, SmtpDirectRenewalCard } from "../components/SmtpRenewalModal.jsx";
 
 /** Formats currency exactly with its appropriate symbol without currency conversion or estimation. */
 function fmtMoneyExact(amount, currency) {
@@ -160,40 +160,42 @@ export function TechnologyCostsView({ d }) {
         />
       </KpiBand>
 
-      {/* SMTP Provider Renewal Alert Banner */}
-      <div className="rounded-2xl border border-indigo-200/80 bg-gradient-to-r from-indigo-50/90 via-purple-50/40 to-white p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-[#625AF8] to-[#7B61FF] text-white flex items-center justify-center shrink-0 shadow-md ring-4 ring-indigo-50">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="20" height="16" x="2" y="4" rx="2" />
-              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-            </svg>
-          </div>
-          <div>
+      {/* Direct SMTP Provider Renewal Card Section */}
+      <div className="rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/70 via-purple-50/30 to-white p-6 shadow-sm">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="max-w-xl space-y-3 text-left">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 text-sm font-display">SMTP Provider Renewal</span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#5B9B00] text-white tracking-wide shadow-2xs">
-                5% - 15% OFF
+              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#5B9B00] text-white tracking-wide uppercase shadow-2xs">
+                5% OFF Special Renewal
               </span>
-              <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">Netcore / Pepipost API</span>
+              <span className="text-xs text-slate-400 font-medium">Netcore / Pepipost SMTP API</span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Bulk email sending credits due for renewal. Recharge email credits (75,000+ credits) for uninterrupted campaigns.
+            <h2 className="text-xl font-black text-slate-900 font-display">
+              SMTP Provider — Direct Renewal Card
+            </h2>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Direct renewal card for bulk email marketing server. Re-charges <strong>75,000 email credits</strong> with <strong>3 Months validity</strong> at <strong>₹5,851.62</strong> (5% OFF from standard ₹6,159.60).
             </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Monthly Equivalent</span>
+                <span className="text-sm font-bold text-slate-800 font-mono">₹1,950.54 / mo</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Total Savings</span>
+                <span className="text-sm font-bold text-[#5B9B00] font-mono">₹307.98 (5% OFF)</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Email Service</span>
+                <span className="text-xs font-semibold text-indigo-700 truncate block">marketing@tecnoprism.com</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowSmtpModal(true)}
-            className="btn-primary !py-2 !px-4 !text-xs !font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 transition-all"
-          >
-            <span>Renew SMTP Plan</span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14" />
-              <path d="m12 5 7 7-7 7" />
-            </svg>
-          </button>
+
+          {/* Direct Renewal Card (Exact from user screenshot) */}
+          <div className="shrink-0">
+            <SmtpDirectRenewalCard onGetNow={() => setShowSmtpModal(true)} />
+          </div>
         </div>
       </div>
 
