@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { SAMPLE_CATEGORIES, downloadSampleSheet } from "../lib/sampleTemplates.js";
 
-export function SampleSheetsSection({ onLoadSample, onLoadCategory }) {
+export function SampleSheetsSection() {
   const [downloading, setDownloading] = useState(null);
 
   const handleDownload = (catId) => {
@@ -27,10 +27,10 @@ export function SampleSheetsSection({ onLoadSample, onLoadCategory }) {
                 <line x1="9" y1="15" x2="15" y2="15" />
               </svg>
             </span>
-            <h2 className="text-base font-bold text-slate-800">Sample Spreadsheets by Category</h2>
+            <h2 className="text-base font-bold text-slate-800">Department Spreadsheet Templates</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Download pre-formatted Excel (.xlsx) templates for each department, or load them directly into your dashboard session.
+            Download pre-formatted Excel (.xlsx) templates for each department to organize and upload your data.
           </p>
         </div>
 
@@ -46,24 +46,8 @@ export function SampleSheetsSection({ onLoadSample, onLoadCategory }) {
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            {downloading === "all" ? "Preparing..." : "Download Master Workbook (.xlsx)"}
+            {downloading === "all" ? "Preparing..." : "Download All Templates (.xlsx)"}
           </button>
-
-          {onLoadSample && (
-            <button
-              type="button"
-              onClick={onLoadSample}
-              className="btn !py-2 !px-3.5 !text-xs !font-semibold text-slate-700 hover:text-[#FA2E76] flex items-center gap-1.5 cursor-pointer"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                <path d="M21 3v5h-5" />
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                <path d="M3 21v-5h5" />
-              </svg>
-              Load All Into Dashboard
-            </button>
-          )}
         </div>
       </div>
 

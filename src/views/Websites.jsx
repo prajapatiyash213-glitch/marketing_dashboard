@@ -25,15 +25,6 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           note="Weekly organic traffic, keywords, domain authority, and conversion funnel"
           right={
             <div className="flex items-center gap-2">
-              {onLoadExactSeo && (
-                <button
-                  type="button"
-                  onClick={onLoadExactSeo}
-                  className="btn-primary !py-2 !px-3.5 !text-xs !font-bold flex items-center gap-1.5 cursor-pointer shadow-glow-pink"
-                >
-                  Load 45-Week SEO Matrix
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => downloadSampleSheet("seo")}

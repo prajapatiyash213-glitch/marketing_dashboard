@@ -144,10 +144,10 @@ function MappingSummary({ mapping }) {
   );
 }
 
-export function SourcesView({ files, onFiles, busy, onClear, hasData, onLoadSample }) {
+export function SourcesView({ files, onFiles, busy, onClear, hasData }) {
   return (
     <>
-      <SampleSheetsSection onLoadSample={onLoadSample} />
+      <SampleSheetsSection />
 
       <Panel
         title="Files in this session"

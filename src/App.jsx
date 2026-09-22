@@ -59,8 +59,6 @@ function Dashboard() {
     onFiles: data.importFiles,
     busy: data.busy,
     onClear: data.clearAll,
-    onLoadSample: data.loadSample,
-    onLoadExactSeo: data.loadExactSeo,
     hasData,
     setView,
   };
@@ -92,7 +90,6 @@ function Dashboard() {
           <h1 className="hidden text-base font-semibold md:block">{NAV.find(([k]) => k === view)[1]}</h1>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            {!hasData && <button className="btn btn-primary" onClick={data.loadSample}>Load sample data</button>}
             <AccountMenu />
           </div>
 
@@ -143,7 +140,7 @@ function Dashboard() {
           {!hasData ? (
             <div className="mx-auto max-w-5xl">
               <div className="mb-6"><Dropzone onFiles={data.importFiles} busy={data.busy} large /></div>
-              <SampleSheetsSection onLoadSample={data.loadSample} />
+              <SampleSheetsSection />
             </div>
           ) : (
             <ErrorBoundary title="This view could not be displayed">
