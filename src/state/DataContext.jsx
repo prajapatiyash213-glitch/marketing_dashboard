@@ -8,7 +8,7 @@ import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-export const MASTER_DATASET_VERSION = "2026-09-22-v11-final-8-excel";
+export const MASTER_DATASET_VERSION = "2026-09-22-v12-exact-imagine-26";
 
 export const MASTER_FILES = [
   "/master/Imagine 26 - Leads Database (1).xlsx",
