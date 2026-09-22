@@ -159,7 +159,7 @@ export function DataProvider({ children }) {
           return;
         }
 
-        // If no master dataset exists in this browser yet, load admin's master sheets (all 8 files)
+        // If no master dataset exists in this browser yet, load admin's master sheets
         const masterFiles = [
           "/master/KPI _ Automation COE.xlsx",
           "/master/Tecnoprism _ KPIs.xlsx",
