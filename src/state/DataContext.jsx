@@ -159,11 +159,16 @@ export function DataProvider({ children }) {
           return;
         }
 
-        // If no master dataset exists in this browser yet, load admin's master KPI sheets
+        // If no master dataset exists in this browser yet, load admin's master sheets (all 8 files)
         const masterFiles = [
           "/master/KPI _ Automation COE.xlsx",
           "/master/Tecnoprism _ KPIs.xlsx",
-          "/master/Website Visitors Leads Sheet.xlsx"
+          "/master/Website Visitors Leads Sheet.xlsx",
+          "/master/Imagine 26 - Leads Database.xlsx",
+          "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
+          "/master/Leads_Sheet.xlsx",
+          "/master/Email_Campaigns.xlsx",
+          "/master/Tools_And_Costs.xlsx"
         ];
         const loadedBlobs = [];
         for (const url of masterFiles) {
