@@ -126,7 +126,7 @@ export function parseSeoMatrix(rows, { minWeeks = 3, headerScanDepth = 10, today
         if (val !== null) {
           const target = buckets.get(w.label);
           target[metric] = val;
-          if (raw !== null && raw !== undefined && typeof raw === "string" && raw.includes("(") && raw.includes(")")) {
+          if (raw !== null && raw !== undefined && typeof raw === "string" && (raw.includes("(") || raw.includes(",") || isNaN(raw.trim()))) {
             target[`raw_${metric}`] = raw.trim();
           }
           wrote = true;

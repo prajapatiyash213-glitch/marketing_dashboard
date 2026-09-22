@@ -293,7 +293,17 @@ export function useDashboard({ leads, weeks, channels }) {
       row.seoLeads += w.seoLeads || 0;
       row.downloads += w.downloads || 0;
       if (w.bounce != null) { row.bounceSum += w.bounce; row.bounceN += 1; }
-      for (const k of STOCK_METRICS) if (w[k] != null) row[k] = w[k];
+      for (const k of STOCK_METRICS) {
+        if (w[k] != null) {
+          if (k === "aiSearch") {
+            row.aiSearch = (row.aiSearch || 0) + w.aiSearch;
+            if (w.raw_aiSearch) row.raw_aiSearch = w.raw_aiSearch;
+          } else if (row[k] == null || (w.site === "tecnoprism.com" && w[k] != null)) {
+            row[k] = w[k];
+            if (w[`raw_${k}`]) row[`raw_${k}`] = w[`raw_${k}`];
+          }
+        }
+      }
     }
     return Array.from(m.values()).sort((a, b) => a.sort - b.sort)
       .map((r) => ({ ...r, bounce: r.bounceN ? Math.round((r.bounceSum / r.bounceN) * 10) / 10 : null }));
@@ -323,11 +333,13 @@ export function useDashboard({ leads, weeks, channels }) {
         efficiency: rate(leadsFromWeb, views),
         bounce: bounceRows.length ? bounceRows.reduce((n, w) => n + w.bounce, 0) / bounceRows.length : null,
         backlinks: latest.backlinks ?? null,
+        raw_backlinks: latest.raw_backlinks ?? null,
         da: latest.da ?? null,
         as: latest.as ?? null,
         pa: latest.pa ?? null,
         keywords: latest.keywords ?? null,
         aiSearch: latest.aiSearch ?? null,
+        raw_aiSearch: latest.raw_aiSearch ?? null,
         previousViews: prevRows?.length ? sum(prevRows, "views") : null,
         trend: bucketWeeks(rows),
         spark: rows.map((w) => w.views || 0),
@@ -348,7 +360,26 @@ export function useDashboard({ leads, weeks, channels }) {
       ? Math.round((bounceWeeks.reduce((acc, w) => acc + w.bounce, 0) / bounceWeeks.length) * 10) / 10
       : null;
     const peak = periodWeeks.reduce((best, w) => ((w.views || 0) > (best.views || 0) ? w : best), { views: 0 });
-    const latest = periodWeeks[periodWeeks.length - 1] || {};
+
+    const sortedWeeks = [...periodWeeks].sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    const lastDate = sortedWeeks[sortedWeeks.length - 1]?.date;
+    const latestWeeks = lastDate ? sortedWeeks.filter((w) => w.date && w.date.getTime() === lastDate.getTime()) : [];
+    const primaryId = siteBreakdown[0]?.id;
+    const primaryWeek = latestWeeks.find((w) => w.site === primaryId) || sortedWeeks[sortedWeeks.length - 1] || {};
+    const totalAiSearch = latestWeeks.reduce((acc, w) => acc + (w.aiSearch || 0), 0);
+
+    const latest = {
+      ...primaryWeek,
+      aiSearch: totalAiSearch > 0 ? totalAiSearch : (primaryWeek.aiSearch ?? null),
+      raw_aiSearch: primaryWeek.raw_aiSearch || latestWeeks.find((w) => w.raw_aiSearch)?.raw_aiSearch || null,
+      keywords: primaryWeek.keywords ?? latestWeeks.find((w) => w.keywords != null)?.keywords ?? null,
+      backlinks: primaryWeek.backlinks ?? latestWeeks.find((w) => w.backlinks != null)?.backlinks ?? null,
+      raw_backlinks: primaryWeek.raw_backlinks || latestWeeks.find((w) => w.raw_backlinks)?.raw_backlinks || null,
+      da: primaryWeek.da ?? latestWeeks.find((w) => w.da != null)?.da ?? null,
+      as: primaryWeek.as ?? latestWeeks.find((w) => w.as != null)?.as ?? null,
+      pa: primaryWeek.pa ?? latestWeeks.find((w) => w.pa != null)?.pa ?? null,
+    };
+
     return {
       views,
       users,
@@ -364,7 +395,7 @@ export function useDashboard({ leads, weeks, channels }) {
       hasAuthority: periodWeeks.some((w) => w.da != null || w.as != null || w.pa != null),
       hasBounce: periodWeeks.some((w) => w.bounce != null),
     };
-  }, [periodWeeks, previousWeeks]);
+  }, [periodWeeks, previousWeeks, siteBreakdown]);
 
   /* ---- channels ---- */
   const emailStats = useMemo(() => {

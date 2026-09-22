@@ -53,6 +53,13 @@ export function parseNumber(v) {
     }
   }
 
+  // Number preceding parentheses, e.g. "865 (470, 398)" or "711(396, 370)"
+  const leadingBeforeParen = s.match(/^(\d[\d,.]*)\s*\(/);
+  if (leadingBeforeParen) {
+    const n = parseFloat(leadingBeforeParen[1].replace(/,/g, ""));
+    if (Number.isFinite(n)) return n;
+  }
+
   // Handle AI Search strings like "14, 3, 31 (41)" or "(74) 64" or "(34) 28" where total is specified
   const parenEnd = s.match(/\((\d+)\)\s*$/);
   if (parenEnd) {
@@ -61,6 +68,19 @@ export function parseNumber(v) {
   const trailingAfterParen = s.match(/\(\d+\)[,\s]+(\d+)\s*$/);
   if (trailingAfterParen) {
     return parseInt(trailingAfterParen[1], 10);
+  }
+  // Handle comma or space-separated lists of numbers like "0, 0, 31", "0,0, 35", or "14, 1 35"
+  if (s.includes(",") || s.includes(" ")) {
+    const tokens = s.replace(/[()]/g, " ").split(/[,\s]+/).map((t) => parseFloat(t)).filter(Number.isFinite);
+    if (tokens.length > 1) {
+      if (tokens[0] === 0 && tokens.some((n) => n > 0)) {
+        const nonZero = tokens.filter((n) => n > 0);
+        return nonZero[nonZero.length - 1];
+      }
+      if (tokens.length >= 3 && tokens[tokens.length - 1] > 0) {
+        return tokens[tokens.length - 1];
+      }
+    }
   }
 
   const match = s.replace(/,/g, "").match(/-?\d*\.?\d+/);

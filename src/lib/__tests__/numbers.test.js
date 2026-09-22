@@ -61,6 +61,12 @@ describe("parseNumber", () => {
     expect(parseNumber(812)).toBe(812);
     expect(parseNumber("812")).toBe(812);
     expect(parseNumber("348 (DF - 204, NF - 146)")).toBe(348);
+    expect(parseNumber("865 (470, 398)")).toBe(865);
     expect(parseNumber("14, 3, 31 (41)")).toBe(41);
+    expect(parseNumber("14, 1, (74) 64")).toBe(64);
+    expect(parseNumber("0, 0, 31")).toBe(31);
+    expect(parseNumber("0,0, 35")).toBe(35);
+    expect(parseNumber("0, 0, 32")).toBe(32);
+    expect(parseNumber("14, 1 35")).toBe(35);
   });
 });
