@@ -71,12 +71,20 @@ export function useDashboard({ leads, weeks, channels }) {
     };
   }, [coverage]);
 
+  const anchor = useMemo(() => {
+    const today = fromLocalDate(new Date());
+    if (!bounds.max) return today;
+    // If the dataset ends in the past, anchor to newest data point.
+    // If data reaches current date or has future dates, anchor to today so presets like "Last 7 days" accurately reflect the current window.
+    return bounds.max < today ? bounds.max : today;
+  }, [bounds.max]);
+
   const range = useMemo(() => {
-    const r = resolveRange(rangeKey, bounds.max, custom);
+    const r = resolveRange(rangeKey, anchor, custom);
     // A backwards custom range is a slip, not an instruction to show nothing.
     if (r.from && r.to && r.from > r.to) return { ...r, from: r.to, to: r.from, swapped: true };
     return r;
-  }, [rangeKey, bounds.max, custom]);
+  }, [rangeKey, anchor, custom]);
 
   const rangeActive = Boolean(range.from || range.to);
   const previous = useMemo(() => previousWindow(range), [range]);

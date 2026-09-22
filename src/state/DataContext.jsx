@@ -8,7 +8,7 @@ import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-export const MASTER_DATASET_VERSION = "2026-09-22-v9-clean-norev";
+export const MASTER_DATASET_VERSION = "2026-09-22-v10-shehzad-7d";
 
 export const MASTER_FILES = [
   "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
