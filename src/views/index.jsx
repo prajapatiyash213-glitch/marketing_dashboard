@@ -150,8 +150,8 @@ export function SourcesView({ files, onFiles, busy, onClear, hasData }) {
       <SampleSheetsSection />
 
       <Panel
-        title="Files in this session"
-        note="Nothing is uploaded — parsing happens in your browser"
+        title="Workspace Master Data"
+        note="Shared across all team members and accounts"
         right={<button className="btn" onClick={onClear} disabled={!hasData}>Clear all</button>}
       >
       {!files.length ? <EmptyState height={120}>No files loaded yet.</EmptyState> : (

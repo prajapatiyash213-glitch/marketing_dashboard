@@ -1,9 +1,9 @@
 import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { mergeSeoWeeks, sanitizeSeoWeeks } from "../lib/seoMatrix.js";
 import { MAX_FILE_BYTES } from "../lib/parseWorkbook.js";
-import { saveDataset, loadDataset, clearDataset } from "../lib/storage.js";
+import { saveDataset, loadDataset, clearDataset, onDatasetUpdate } from "../lib/storage.js";
 import { buildSampleData } from "../lib/sampleData.js";
-import { EXACT_SEO_DATA } from "../lib/exactSeoData.js";
+import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
@@ -40,34 +40,26 @@ export function DataProvider({ children }) {
 
   useEffect(() => () => workerRef.current?.terminate(), []);
 
-  // Restore the previous session once on mount.
+  const persist = useCallback((next) => { saveDataset(next); }, []);
+
+  // Live real-time sync across tabs and sessions
   useEffect(() => {
-    let alive = true;
-    loadDataset().then((saved) => {
-      if (!alive) return;
-      // Do NOT auto-load dummy sample data. Only restore if real user files were imported (!saved.isSample).
-      if (saved && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length)) {
-        setLeads(saved.leads || []);
-        let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
-        setWeeks(cleanWeeks);
-        setChannels(saved.channels || { email: [], social: [], landing: [], cost: [] });
-        setFiles(saved.files || []);
-        setIsSample(false);
-      } else {
-        // New user or dummy sample session: Start completely clean with zero dummy data
+    return onDatasetUpdate((data) => {
+      if (!data) {
         setLeads([]);
         setWeeks([]);
         setChannels({ email: [], social: [], landing: [], cost: [] });
         setFiles([]);
-        setIsSample(false);
-        clearDataset();
+        setRawSheets({});
+        return;
       }
-      setRestored(true);
+      if (data.leads) setLeads(data.leads);
+      if (data.weeks) setWeeks(sanitizeSeoWeeks(data.weeks));
+      if (data.channels) setChannels(data.channels);
+      if (data.files) setFiles(data.files);
+      setIsSample(false);
     });
-    return () => { alive = false; };
   }, []);
-
-  const persist = useCallback((next) => { saveDataset(next); }, []);
 
   const importFiles = useCallback(async (fileList) => {
     const incoming = Array.from(fileList || []);
@@ -146,6 +138,60 @@ export function DataProvider({ children }) {
     setProblems(nextProblems);
     setBusy(false);
   }, [getWorker, isSample]);
+
+  // Restore workspace master dataset or load admin's published master files:
+  useEffect(() => {
+    let alive = true;
+
+    async function initDataset() {
+      try {
+        const saved = await loadDataset();
+        if (!alive) return;
+        const channelCount = Object.values(saved?.channels || {}).reduce((n, r) => n + r.length, 0);
+        if (saved && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length || channelCount > 0)) {
+          setLeads(saved.leads || []);
+          let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
+          setWeeks(cleanWeeks);
+          setChannels(saved.channels || { email: [], social: [], landing: [], cost: [] });
+          setFiles(saved.files || []);
+          setIsSample(false);
+          setRestored(true);
+          return;
+        }
+
+        // If no master dataset exists in this browser yet, load admin's master KPI sheets
+        const masterFiles = ["/master/KPI _ Automation COE.xlsx", "/master/Tecnoprism _ KPIs.xlsx"];
+        const loadedBlobs = [];
+        for (const url of masterFiles) {
+          const res = await fetch(url).catch(() => null);
+          if (res && res.ok) {
+            const blob = await res.blob();
+            const fileName = decodeURIComponent(url.split("/").pop());
+            loadedBlobs.push(new File([blob], fileName));
+          }
+        }
+        if (loadedBlobs.length > 0 && alive) {
+          await importFiles(loadedBlobs);
+          if (alive) setRestored(true);
+          return;
+        }
+      } catch (err) {
+        console.warn("Could not load master files:", err);
+      }
+
+      if (alive) {
+        setLeads([]);
+        setWeeks([]);
+        setChannels({ email: [], social: [], landing: [], cost: [] });
+        setFiles([]);
+        setIsSample(false);
+        setRestored(true);
+      }
+    }
+
+    initDataset();
+    return () => { alive = false; };
+  }, [importFiles]);
 
   const loadSample = useCallback(() => {
     const sample = buildSampleData();
