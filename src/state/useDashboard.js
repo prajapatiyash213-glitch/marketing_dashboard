@@ -236,7 +236,7 @@ export function useDashboard({ leads, weeks, channels }) {
           for (let i = 0; i <= spanDays; i++) {
             const d = addDays(range.from, i);
             const b = bucketOf(d, "day");
-            if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, won: 0, value: 0 });
+            if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, qualified: 0, won: 0, value: 0 });
           }
         }
       } else if (grain === "week") {
@@ -245,7 +245,7 @@ export function useDashboard({ leads, weeks, channels }) {
           let cur = startOfWeek(range.from);
           while (cur <= range.to) {
             const b = bucketOf(cur, "week");
-            if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, won: 0, value: 0 });
+            if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, qualified: 0, won: 0, value: 0 });
             cur = addDays(cur, 7);
           }
         }
@@ -254,10 +254,11 @@ export function useDashboard({ leads, weeks, channels }) {
     for (const l of periodLeads) {
       if (!l.date) continue;
       const b = bucketOf(l.date, grain);
-      if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, won: 0, value: 0 });
+      if (!m.has(b.key)) m.set(b.key, { label: b.label, sort: b.sort, leads: 0, qualified: 0, won: 0, value: 0 });
       const row = m.get(b.key);
       row.leads += 1;
       row.value += l.value || 0;
+      if (l.stage === "Qualified" || l.stage === "Proposal" || l.stage === "Closed Won") row.qualified += 1;
       if (l.stage === "Closed Won") row.won += 1;
     }
     return Array.from(m.values()).sort((a, b) => a.sort - b.sort);

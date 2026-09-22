@@ -222,7 +222,7 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
                 <span className="h-2.5 w-2.5 rounded-full bg-[#7B61FF]" /> Online Leads
               </span>
               <span className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#FF9F43]" /> Deals Won
+                <span className="h-2.5 w-2.5 rounded-full bg-[#10B981]" /> Qualified Leads
               </span>
             </div>
           )}
@@ -242,9 +242,9 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
 
           <div className="mt-5">
             <div className="text-xl sm:text-2xl font-extrabold text-emerald-600">
-              {fmtInt(d.wonCount || 0)}
+              {fmtInt(d.advanced || 0)}
             </div>
-            <div className="text-xs font-medium text-slate-400 mt-0.5">Deals Won</div>
+            <div className="text-xs font-medium text-slate-400 mt-0.5">Qualified Leads</div>
           </div>
 
           <div className="mt-6">
@@ -275,9 +275,9 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
                     <stop offset="5%" stopColor="#7B61FF" stopOpacity={0.4} />
                     <stop offset="95%" stopColor="#FA2E76" stopOpacity={0.0} />
                   </linearGradient>
-                  <linearGradient id="waveOrange" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF9F43" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#FF5252" stopOpacity={0.0} />
+                  <linearGradient id="waveEmerald" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="#F1F5F9" vertical={false} strokeDasharray="3 3" />
@@ -296,13 +296,13 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
                 />
                 <Area
                   type="monotone"
-                  dataKey="won"
-                  name="Closed won"
-                  stroke="#FF9F43"
+                  dataKey="qualified"
+                  name="Qualified leads"
+                  stroke="#10B981"
                   strokeWidth={2.5}
-                  fill="url(#waveOrange)"
-                  dot={{ r: 3, fill: "#FF9F43", strokeWidth: 1.5, stroke: "#fff" }}
-                  activeDot={{ r: 6, fill: "#FF5252", strokeWidth: 2, stroke: "#fff" }}
+                  fill="url(#waveEmerald)"
+                  dot={{ r: 3, fill: "#10B981", strokeWidth: 1.5, stroke: "#fff" }}
+                  activeDot={{ r: 6, fill: "#059669", strokeWidth: 2, stroke: "#fff" }}
                 />
               </AreaChart>
             </ResponsiveContainer>
