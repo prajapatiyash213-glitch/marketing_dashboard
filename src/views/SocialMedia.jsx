@@ -322,7 +322,7 @@ export function SocialMediaView({ d }) {
                 </div>
 
                 <div className="mt-4 pt-2 flex items-center justify-between">
-                  <span className="text-xs font-medium text-slate-500">By {topPost.author}</span>
+                  <span className="text-xs font-medium text-slate-500">By {topPost.author === "Shashank Jha" ? "Tecnoprism" : (topPost.author || "Tecnoprism")}</span>
                   {topPost.link && (
                     <a
                       href={topPost.link}
@@ -464,7 +464,7 @@ export function SocialMediaView({ d }) {
                       <div className="font-semibold text-slate-800 line-clamp-2" title={p.title}>
                         {p.title}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-0.5">By {p.author}</div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">By {p.author === "Shashank Jha" ? "Tecnoprism" : (p.author || "Tecnoprism")}</div>
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap text-slate-500 font-medium">
                       {prettyDate(p.date)}
@@ -491,14 +491,14 @@ export function SocialMediaView({ d }) {
                       {p.ctr != null ? `${p.ctr.toFixed(2)}%` : "—"}
                     </td>
                     <td className="py-3 px-3 text-right text-rose-600 font-medium">
-                      {fmtInt(p.likes)}
+                      {fmtInt(p.likes ?? p.reactions ?? 0)}
                     </td>
                     <td className="py-3 px-3 text-right text-slate-600">
-                      {fmtInt(p.reposts)}
+                      {fmtInt(p.reposts ?? 0)}
                     </td>
                     <td className="py-3 px-3 text-right">
                       <span className="inline-block font-bold text-emerald-600">
-                        {p.engagementRate != null ? `${p.engagementRate.toFixed(2)}%` : "—"}
+                        {p.engagementRate != null ? `${Number(p.engagementRate).toFixed(2)}%` : "—"}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-center whitespace-nowrap">

@@ -44,13 +44,15 @@ async function syncLinkedIn() {
         const graph = parsed["@graph"] || [parsed];
         for (const item of graph) {
           if (item["@type"] === "SocialMediaPosting") {
+            const reactions = item.interactionStatistic?.userInteractionCount || 0;
             recentPosts.push({
               title: item.headline || (item.text ? item.text.slice(0, 100) + "..." : "LinkedIn Post"),
               text: item.text || "",
               date: item.datePublished,
               url: item.mainEntityOfPage || item.url,
-              reactions: item.interactionStatistic?.userInteractionCount || 0,
-              author: item.author?.name || "Tecnoprism Pvt Ltd",
+              reactions,
+              likes: reactions,
+              author: "Tecnoprism",
             });
           } else if (item["@type"] === "Organization") {
             companyMeta = {

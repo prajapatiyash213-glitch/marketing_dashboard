@@ -355,7 +355,8 @@ export function parseLinkedInSheet(rows, context = {}) {
         const date = parseDateCell(dateRaw, { dayFirst: false });
         const title = String(row[colMap.title] || "").trim();
         const link = String(row[colMap.link] || "").trim();
-        const author = String(row[colMap.author] || "").trim();
+        const rawAuthor = String(row[colMap.author] || "").trim();
+        const author = "Tecnoprism";
         const postType = String(row[colMap.postType] || "Organic").trim();
         const contentType = String(row[colMap.contentType] || "").trim();
         const impressions = parseNumber(row[colMap.impressions]) || 0;
@@ -366,7 +367,8 @@ export function parseLinkedInSheet(rows, context = {}) {
         const comments = parseNumber(row[colMap.comments]) || 0;
         const reposts = parseNumber(row[colMap.reposts]) || 0;
         const engagements = likes + comments + reposts;
-        const engagementRate = parsePercent(row[colMap.engagementRate]) ?? (impressions ? (engagements / impressions) * 100 : 0);
+        const rawEngRate = row[colMap.engagementRate];
+        const engagementRate = parsePercent(rawEngRate) ?? (impressions ? (((engagements + clicks) / impressions) * 100) : 0);
 
         records.push({
           id: `${fileName}::${sheetName}::${i}`,
@@ -375,6 +377,7 @@ export function parseLinkedInSheet(rows, context = {}) {
           title,
           link,
           author,
+          postedBy: rawAuthor || "Tecnoprism",
           date,
           postType,
           contentType: contentType || (link.includes("video") || views > 0 ? "Video" : "Post"),
@@ -383,6 +386,7 @@ export function parseLinkedInSheet(rows, context = {}) {
           clicks,
           ctr,
           likes,
+          reactions: likes,
           comments,
           reposts,
           engagements,

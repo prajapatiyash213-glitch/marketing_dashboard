@@ -122,6 +122,9 @@ describe("detectChannelSheet", () => {
     expect(out.records[0].subType).toBe("post");
     expect(out.records[0].title).toBe("Enterprise AI Announcement");
     expect(out.records[0].impressions).toBe(716);
+    expect(out.records[0].likes).toBe(28);
+    expect(out.records[0].author).toBe("Tecnoprism");
+    expect(out.records[0].postedBy).toBe("Shashank Jha");
   });
 
   it("detects and parses LinkedIn New followers sheet", () => {
