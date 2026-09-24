@@ -679,6 +679,7 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     const comments = metricRows.length > 0 ? metricRows.reduce((acc, r) => acc + (r.comments || 0), 0) : combinedPosts.reduce((acc, p) => acc + (p.comments || 0), 0);
     const reposts = metricRows.length > 0 ? metricRows.reduce((acc, r) => acc + (r.reposts || 0), 0) : combinedPosts.reduce((acc, p) => acc + (p.reposts || 0), 0);
     const impressions = sum(platforms, "impressions") || combinedPosts.reduce((acc, p) => acc + (p.impressions || 0), 0);
+    const uniqueImpressions = metricRows.reduce((acc, r) => acc + (r.uniqueImpressions || 0), 0);
     const engagements = sum(platforms, "engagements") || (reactions + comments + reposts);
     const clicks = sum(platforms, "clicks") || combinedPosts.reduce((acc, p) => acc + (p.clicks || 0), 0);
 
