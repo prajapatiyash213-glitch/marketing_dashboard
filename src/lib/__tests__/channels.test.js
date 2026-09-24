@@ -95,4 +95,59 @@ describe("detectChannelSheet", () => {
   it("leaves lead sheets alone", () => {
     expect(detectChannelSheet([["Name", "Company", "Stage"], ["Meera", "Arcelia", "Qualified"]], ctx)).toBeNull();
   });
+
+  it("detects and parses LinkedIn Metrics sheet", () => {
+    const rows = [
+      ["Disclaimer text..."],
+      ["Date", "Impressions (total)", "Impressions (organic)", "Clicks (total)", "Reactions (total)", "Comments (total)", "Reposts (total)", "Engagement rate (total)"],
+      ["08/22/2026", 76, 76, 2, 5, 1, 2, "10.5%"],
+    ];
+    const out = detectChannelSheet(rows, { fileName: "tecnoprism_content_30D.xls", sheetName: "Metrics" });
+    expect(out).not.toBeNull();
+    expect(out.channel).toBe("social");
+    expect(out.records[0].impressions).toBe(76);
+    expect(out.records[0].engagements).toBe(8); // 5 + 1 + 2
+    expect(out.records[0].clicks).toBe(2);
+  });
+
+  it("detects and parses LinkedIn All posts sheet", () => {
+    const rows = [
+      ["Disclaimer text..."],
+      ["Post title", "Post link", "Post type", "Posted by", "Created date", "Impressions", "Clicks", "Likes", "Engagement rate"],
+      ["Enterprise AI Announcement", "https://linkedin.com/post/1", "Organic", "Shashank Jha", "09/15/2026", 716, 13, 28, "6.14%"],
+    ];
+    const out = detectChannelSheet(rows, { fileName: "tecnoprism_content_30D.xls", sheetName: "All posts" });
+    expect(out).not.toBeNull();
+    expect(out.channel).toBe("social");
+    expect(out.records[0].subType).toBe("post");
+    expect(out.records[0].title).toBe("Enterprise AI Announcement");
+    expect(out.records[0].impressions).toBe(716);
+  });
+
+  it("detects and parses LinkedIn New followers sheet", () => {
+    const rows = [
+      ["Date", "Sponsored followers", "Organic followers", "Auto-invited followers", "Total followers"],
+      ["08/22/2026", 0, 4, 0, 4],
+    ];
+    const out = detectChannelSheet(rows, { fileName: "tecnoprism_followers.xls", sheetName: "New followers" });
+    expect(out).not.toBeNull();
+    expect(out.channel).toBe("social");
+    expect(out.records[0].subType).toBe("followerGrowth");
+    expect(out.records[0].newFollowers).toBe(4);
+  });
+
+  it("detects and parses LinkedIn Demographics sheet", () => {
+    const rows = [
+      ["Seniority", "Total followers"],
+      ["Senior", 9659],
+      ["Entry", 8188],
+    ];
+    const out = detectChannelSheet(rows, { fileName: "tecnoprism_followers.xls", sheetName: "Seniority" });
+    expect(out).not.toBeNull();
+    expect(out.channel).toBe("social");
+    expect(out.records[0].subType).toBe("demographic");
+    expect(out.records[0].category).toBe("seniority");
+    expect(out.records[0].count).toBe(9659);
+  });
 });
+

@@ -242,8 +242,269 @@ function withDerived(r, channel) {
   return r;
 }
 
+/** Specialized parser for LinkedIn Page Analytics exports (Content & Followers). */
+export function parseLinkedInSheet(rows, context = {}) {
+  if (!rows || !rows.length) return null;
+  const fileName = context.fileName || "";
+  const sheetName = context.sheetName || "";
+
+  // 1. LinkedIn Content "Metrics" sheet (Daily engagement metrics)
+  for (let r = 0; r < Math.min(rows.length, 5); r++) {
+    const rawHeader = rows[r] || [];
+    const headerNorm = rawHeader.map((c) => String(c || "").toLowerCase().trim());
+    if (
+      headerNorm.includes("impressions (total)") ||
+      (headerNorm.includes("impressions (organic)") && headerNorm.includes("reactions (total)"))
+    ) {
+      const colMap = {};
+      headerNorm.forEach((h, idx) => {
+        if (h.includes("date")) colMap.date = idx;
+        else if (h === "impressions (total)") colMap.impressions = idx;
+        else if (h === "impressions (organic)") colMap.organicImpressions = idx;
+        else if (h === "impressions (sponsored)") colMap.sponsoredImpressions = idx;
+        else if (h.includes("unique impressions")) colMap.uniqueImpressions = idx;
+        else if (h === "clicks (total)") colMap.clicks = idx;
+        else if (h === "clicks (organic)") colMap.organicClicks = idx;
+        else if (h === "reactions (total)") colMap.reactions = idx;
+        else if (h === "comments (total)") colMap.comments = idx;
+        else if (h === "reposts (total)") colMap.reposts = idx;
+        else if (h === "engagement rate (total)") colMap.engagementRate = idx;
+        else if (h === "engagement rate (organic)") colMap.organicEngagementRate = idx;
+      });
+
+      const records = [];
+      for (let i = r + 1; i < rows.length; i++) {
+        const row = rows[i] || [];
+        if (isRowEmpty(row)) continue;
+        const dateRaw = colMap.date != null ? row[colMap.date] : null;
+        const date = parseDateCell(dateRaw, { dayFirst: false });
+        const impressions = parseNumber(row[colMap.impressions]) || 0;
+        const organicImpressions = parseNumber(row[colMap.organicImpressions]) || 0;
+        const sponsoredImpressions = parseNumber(row[colMap.sponsoredImpressions]) || 0;
+        const uniqueImpressions = parseNumber(row[colMap.uniqueImpressions]) || 0;
+        const clicks = parseNumber(row[colMap.clicks]) || 0;
+        const organicClicks = parseNumber(row[colMap.organicClicks]) || 0;
+        const reactions = parseNumber(row[colMap.reactions]) || 0;
+        const comments = parseNumber(row[colMap.comments]) || 0;
+        const reposts = parseNumber(row[colMap.reposts]) || 0;
+        const engagements = reactions + comments + reposts;
+        const engagementRate = parsePercent(row[colMap.engagementRate]) ?? (impressions ? (engagements / impressions) * 100 : 0);
+        const organicEngagementRate = parsePercent(row[colMap.organicEngagementRate]) ?? 0;
+
+        records.push({
+          id: `${fileName}::${sheetName}::${i}`,
+          platform: "LinkedIn",
+          subType: "metric",
+          date,
+          impressions,
+          organicImpressions,
+          sponsoredImpressions,
+          uniqueImpressions,
+          clicks,
+          organicClicks,
+          reactions,
+          comments,
+          reposts,
+          engagements,
+          engagementRate,
+          organicEngagementRate,
+          file: fileName,
+          sheet: sheetName,
+        });
+      }
+
+      if (records.length) {
+        return {
+          channel: "social",
+          records,
+          mapping: { headerRow: r, header: rawHeader.map(String), map: colMap, dayFirst: { dayFirst: false } },
+        };
+      }
+    }
+  }
+
+  // 2. LinkedIn "All posts" sheet (Individual post performance)
+  for (let r = 0; r < Math.min(rows.length, 5); r++) {
+    const rawHeader = rows[r] || [];
+    const headerNorm = rawHeader.map((c) => String(c || "").toLowerCase().trim());
+    if (headerNorm.includes("post title") && (headerNorm.includes("post link") || headerNorm.includes("click through rate (ctr)"))) {
+      const colMap = {};
+      headerNorm.forEach((h, idx) => {
+        if (h === "post title") colMap.title = idx;
+        else if (h === "post link") colMap.link = idx;
+        else if (h === "post type") colMap.postType = idx;
+        else if (h === "posted by") colMap.author = idx;
+        else if (h === "created date") colMap.date = idx;
+        else if (h === "audience") colMap.audience = idx;
+        else if (h === "impressions") colMap.impressions = idx;
+        else if (h === "views") colMap.views = idx;
+        else if (h === "clicks") colMap.clicks = idx;
+        else if (h.includes("click through rate") || h === "ctr") colMap.ctr = idx;
+        else if (h === "likes" || h === "reactions") colMap.likes = idx;
+        else if (h === "comments") colMap.comments = idx;
+        else if (h === "reposts") colMap.reposts = idx;
+        else if (h === "engagement rate") colMap.engagementRate = idx;
+        else if (h === "content type") colMap.contentType = idx;
+      });
+
+      const records = [];
+      for (let i = r + 1; i < rows.length; i++) {
+        const row = rows[i] || [];
+        if (isRowEmpty(row)) continue;
+        const dateRaw = colMap.date != null ? row[colMap.date] : null;
+        const date = parseDateCell(dateRaw, { dayFirst: false });
+        const title = String(row[colMap.title] || "").trim();
+        const link = String(row[colMap.link] || "").trim();
+        const author = String(row[colMap.author] || "").trim();
+        const postType = String(row[colMap.postType] || "Organic").trim();
+        const contentType = String(row[colMap.contentType] || "").trim();
+        const impressions = parseNumber(row[colMap.impressions]) || 0;
+        const views = parseNumber(row[colMap.views]) || 0;
+        const clicks = parseNumber(row[colMap.clicks]) || 0;
+        const ctr = parsePercent(row[colMap.ctr]) ?? (impressions ? (clicks / impressions) * 100 : 0);
+        const likes = parseNumber(row[colMap.likes]) || 0;
+        const comments = parseNumber(row[colMap.comments]) || 0;
+        const reposts = parseNumber(row[colMap.reposts]) || 0;
+        const engagements = likes + comments + reposts;
+        const engagementRate = parsePercent(row[colMap.engagementRate]) ?? (impressions ? (engagements / impressions) * 100 : 0);
+
+        records.push({
+          id: `${fileName}::${sheetName}::${i}`,
+          platform: "LinkedIn",
+          subType: "post",
+          title,
+          link,
+          author,
+          date,
+          postType,
+          contentType: contentType || (link.includes("video") || views > 0 ? "Video" : "Post"),
+          impressions,
+          views,
+          clicks,
+          ctr,
+          likes,
+          comments,
+          reposts,
+          engagements,
+          engagementRate,
+          file: fileName,
+          sheet: sheetName,
+        });
+      }
+
+      if (records.length) {
+        return {
+          channel: "social",
+          records,
+          mapping: { headerRow: r, header: rawHeader.map(String), map: colMap, dayFirst: { dayFirst: false } },
+        };
+      }
+    }
+  }
+
+  // 3. LinkedIn "New followers" sheet (Daily follower growth)
+  for (let r = 0; r < Math.min(rows.length, 5); r++) {
+    const rawHeader = rows[r] || [];
+    const headerNorm = rawHeader.map((c) => String(c || "").toLowerCase().trim());
+    if (headerNorm.includes("organic followers") && (headerNorm.includes("total followers") || headerNorm.includes("auto-invited followers"))) {
+      const colMap = {};
+      headerNorm.forEach((h, idx) => {
+        if (h === "date") colMap.date = idx;
+        else if (h.includes("organic")) colMap.organic = idx;
+        else if (h.includes("sponsored")) colMap.sponsored = idx;
+        else if (h.includes("auto-invited")) colMap.autoInvited = idx;
+        else if (h.includes("total")) colMap.total = idx;
+      });
+
+      const records = [];
+      for (let i = r + 1; i < rows.length; i++) {
+        const row = rows[i] || [];
+        if (isRowEmpty(row)) continue;
+        const dateRaw = colMap.date != null ? row[colMap.date] : null;
+        const date = parseDateCell(dateRaw, { dayFirst: false });
+        const organic = parseNumber(row[colMap.organic]) || 0;
+        const sponsored = parseNumber(row[colMap.sponsored]) || 0;
+        const autoInvited = parseNumber(row[colMap.autoInvited]) || 0;
+        const newFollowers = parseNumber(row[colMap.total]) || (organic + sponsored + autoInvited);
+
+        records.push({
+          id: `${fileName}::${sheetName}::${i}`,
+          platform: "LinkedIn",
+          subType: "followerGrowth",
+          date,
+          organic,
+          sponsored,
+          autoInvited,
+          newFollowers,
+          file: fileName,
+          sheet: sheetName,
+        });
+      }
+
+      if (records.length) {
+        return {
+          channel: "social",
+          records,
+          mapping: { headerRow: r, header: rawHeader.map(String), map: colMap, dayFirst: { dayFirst: false } },
+        };
+      }
+    }
+  }
+
+  // 4. LinkedIn Follower Demographics sheets (Location, Job function, Seniority, Industry, Company size)
+  for (let r = 0; r < Math.min(rows.length, 3); r++) {
+    const rawHeader = rows[r] || [];
+    const headerNorm = rawHeader.map((c) => String(c || "").toLowerCase().trim());
+    if (headerNorm.includes("total followers") && rawHeader.length >= 2) {
+      const sNorm = sheetName.toLowerCase().trim();
+      let category = "other";
+      if (sNorm.includes("seniority") || headerNorm.some((h) => h.includes("seniority"))) category = "seniority";
+      else if (sNorm.includes("function") || headerNorm.some((h) => h.includes("job function"))) category = "function";
+      else if (sNorm.includes("location") || headerNorm.some((h) => h.includes("location"))) category = "location";
+      else if (sNorm.includes("industry") || headerNorm.some((h) => h.includes("industry"))) category = "industry";
+      else if (sNorm.includes("company size") || sNorm.includes("size") || headerNorm.some((h) => h.includes("company size"))) category = "companySize";
+
+      const totalIdx = headerNorm.indexOf("total followers");
+      const labelIdx = totalIdx === 0 ? 1 : 0;
+
+      const records = [];
+      for (let i = r + 1; i < rows.length; i++) {
+        const row = rows[i] || [];
+        if (isRowEmpty(row)) continue;
+        const label = String(row[labelIdx] || "").trim();
+        const count = parseNumber(row[totalIdx]);
+        if (!label || count == null) continue;
+
+        records.push({
+          id: `${fileName}::${sheetName}::${i}`,
+          platform: "LinkedIn",
+          subType: "demographic",
+          category,
+          label,
+          count,
+          file: fileName,
+          sheet: sheetName,
+        });
+      }
+
+      if (records.length) {
+        return {
+          channel: "social",
+          records,
+          mapping: { headerRow: r, header: rawHeader.map(String), map: { label: labelIdx, count: totalIdx }, dayFirst: { dayFirst: false } },
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 /** Tries every schema in turn. Order matters only where columns overlap. */
 export function detectChannelSheet(rows, context) {
+  const linkedIn = parseLinkedInSheet(rows, context);
+  if (linkedIn) return linkedIn;
+
   for (const schema of Object.values(CHANNEL_SCHEMAS)) {
     const parsed = parseChannelSheet(rows, schema, context);
     if (parsed) return parsed;

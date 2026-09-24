@@ -11,7 +11,8 @@
     "preview": "vite preview --port 4173",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "sync:social": "node scripts/sync-linkedin.mjs"
   },
   "dependencies": {
     "react": "18.3.1",

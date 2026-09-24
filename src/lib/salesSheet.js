@@ -16,6 +16,15 @@ const asText = (v) => {
  * the company field to column index 4 regardless of what matching decided.
  */
 export function parseSalesSheet(rows, { fileName, sheetName, overrides = {} } = {}) {
+  // Reject social / LinkedIn analytics sheets so they are not misclassified as leads
+  const sNorm = String(sheetName || "").toLowerCase().trim();
+  if (
+    /^(metrics|all posts|new followers|seniority|job function|company size|location|industry)$/i.test(sNorm) ||
+    /tecnoprism_content|tecnoprism_followers|linkedin/i.test(String(fileName || ""))
+  ) {
+    return null;
+  }
+
   const detected = detectHeaderRow(rows);
   if (!detected) return null;
 

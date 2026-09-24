@@ -19,7 +19,7 @@ import { siteById } from "./lib/segments.js";
 function Dashboard() {
   const data = useData();
   const effectiveWeeks = data.weeks || [];
-  const d = useDashboard({ leads: data.leads, weeks: effectiveWeeks, channels: data.channels });
+  const d = useDashboard({ leads: data.leads, weeks: effectiveWeeks, channels: data.channels, liveLinkedIn: data.liveLinkedIn });
   const [view, setView] = useState("overview");
   const [filters, setFilters] = useState({ file: "All", stage: "All", status: "All", query: "" });
 

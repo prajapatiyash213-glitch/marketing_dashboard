@@ -1,0 +1,32 @@
+name: Weekly LinkedIn Profile Sync
+
+on:
+  schedule:
+    # Runs every Monday at 09:00 UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync LinkedIn Profile
+        run: node scripts/sync-linkedin.mjs
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/master/linkedin_live.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "[Automated] Weekly LinkedIn profile sync [skip ci]" && git push)

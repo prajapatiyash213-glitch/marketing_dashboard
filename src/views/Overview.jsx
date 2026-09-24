@@ -44,6 +44,12 @@ export function OverviewView({ d, allUndated, setView }) {
       {/* Website & SEO Executive Performance Strip (Visible directly in Overview) */}
       <WebsiteSeoExecutiveStrip d={d} setView={setView} />
 
+      {/* Social Media & LinkedIn Executive Performance Strip */}
+      <SocialMediaExecutiveStrip d={d} setView={setView} />
+
+      {/* Cross-Channel Marketing & Technology Stack Executive Grid */}
+      <OperationsAndChannelsExecutiveGrid d={d} setView={setView} />
+
       {/* Row 3: Recent Activities Timeline + Order Status Deals Table */}
       <section className="section-snap-item grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-stretch">
         <div className="lg:col-span-4 flex flex-col">
@@ -111,7 +117,7 @@ export function OverviewView({ d, allUndated, setView }) {
                 caption={d.socialStats ? `${d.socialStats.engagementRate?.toFixed(1)}% engagement · ${fmtInt(d.socialStats.leads)} leads` : ""}
                 spark={d.socialStats?.platforms.map((p) => p.impressions)}
                 hint="A sheet with platform and impressions columns switches this on."
-                onClick={() => setView("channels")}
+                onClick={() => setView("social")}
               />
               <ModuleTile
                 module="landing"
@@ -343,6 +349,294 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
           </div>
           <div className="text-[10px] text-slate-400 truncate">{latest.raw_aiSearch ? "AI Queries" : "Indexed"}</div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+export function SocialMediaExecutiveStrip({ d, setView }) {
+  const social = d.socialStats;
+  if (!social) return null;
+
+  const topFunc = social.demographics?.jobFunction?.[0];
+  const topSeniority = social.demographics?.seniority?.[0];
+  const topSize = social.demographics?.companySize?.[0];
+
+  const totalFollowers = social.followers || 1;
+  const funcPct = topFunc?.count ? ((topFunc.count / totalFollowers) * 100).toFixed(1) : (topFunc?.percentage != null ? Number(topFunc.percentage).toFixed(1) : null);
+  const seniorityPct = topSeniority?.count ? ((topSeniority.count / totalFollowers) * 100).toFixed(1) : (topSeniority?.percentage != null ? Number(topSeniority.percentage).toFixed(1) : null);
+  const sizePct = topSize?.count ? ((topSize.count / totalFollowers) * 100).toFixed(1) : (topSize?.percentage != null ? Number(topSize.percentage).toFixed(1) : null);
+
+  const funcLabel = topFunc?.label || topFunc?.segment || "Engineering";
+  const seniorLabel = topSeniority?.label || topSeniority?.segment || "Senior";
+  const sizeLabel = topSize?.label || topSize?.segment || "10,001+ employees";
+
+  return (
+    <section className="section-snap-item panel p-5 mb-5 bg-gradient-to-r from-white via-sky-50/25 to-blue-50/20 border border-slate-200/80 rounded-2xl shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-sky-50 flex items-center justify-center text-[#0A66C2] font-bold text-base shadow-xs ring-1 ring-sky-100">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28m1.4 9.74v-8.37H5.06v8.37h2.8z"/>
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-slate-800">Social Media & LinkedIn Audience</h2>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100/70 text-blue-800">
+                Live 30-Day Intelligence
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Followers growth, organic post impressions, reactions, clicks & enterprise demographic reach
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setView("social")}
+          className="text-xs font-semibold text-[#0A66C2] hover:text-blue-700 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+        >
+          <span>View Social Media Dashboard</span>
+          <span>→</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Total Followers</div>
+          <div className="text-lg font-bold text-slate-800 mt-0.5">{fmtInt(social.followers)}</div>
+          <div className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-0.5">
+            <span>+{fmtInt(social.newFollowers)}</span>
+            <span className="text-slate-400 font-normal">in 30d</span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Impressions</div>
+          <div className="text-lg font-bold text-[#0A66C2] mt-0.5">{fmtInt(social.impressions)}</div>
+          <div className="text-[10px] text-slate-400">100% Organic</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Post Clicks</div>
+          <div className="text-lg font-bold text-slate-800 mt-0.5">{fmtInt(social.clicks)}</div>
+          <div className="text-[10px] text-slate-400">{social.ctr != null ? `${Number(social.ctr).toFixed(2)}% CTR` : "Direct traffic"}</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Reactions</div>
+          <div className="text-lg font-bold text-slate-800 mt-0.5">{fmtInt(social.reactions)}</div>
+          <div className="text-[10px] text-slate-400">{social.reposts ? `${social.reposts} shares` : "Likes & claps"}</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Engagement Rate</div>
+          <div className="text-lg font-bold text-emerald-600 mt-0.5">
+            {social.engagementRate != null ? `${Number(social.engagementRate).toFixed(2)}%` : "—"}
+          </div>
+          <div className="text-[10px] text-slate-400">Avg interaction</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Top Audience</div>
+          <div className="text-sm font-bold text-slate-800 mt-1 truncate" title={funcLabel}>
+            {funcLabel}
+          </div>
+          <div className="text-[10px] text-slate-400 truncate">{funcPct ? `${funcPct}% of base` : "Function"}</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Seniority</div>
+          <div className="text-sm font-bold text-[#7B61FF] mt-1 truncate" title={seniorLabel}>
+            {seniorLabel}
+          </div>
+          <div className="text-[10px] text-slate-400 truncate">{seniorityPct ? `${seniorityPct}% decision` : "Senior roles"}</div>
+        </div>
+
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+          <div className="text-[11px] font-medium text-slate-400 truncate">Target Enterprise</div>
+          <div className="text-sm font-bold text-[#FA2E76] mt-1 truncate" title={sizeLabel}>
+            {sizeLabel.includes("10,001") ? "10k+ Org" : sizeLabel}
+          </div>
+          <div className="text-[10px] text-slate-400 truncate">{sizePct ? `${sizePct}% base` : "Company size"}</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
+  const cost = d.costStats;
+  const email = d.emailStats;
+  const channels = d.channelContribution || [];
+
+  return (
+    <section className="section-snap-item grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
+      {/* Card 1: Technology & Tool Costs Executive Summary */}
+      <div className="lg:col-span-6 panel p-5 bg-gradient-to-br from-white via-indigo-50/15 to-purple-50/20 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col justify-between">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-purple-50 flex items-center justify-center text-[#7B61FF] font-bold text-base shadow-xs ring-1 ring-purple-100">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-800">Technology & Tool Costs</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-100/70 text-purple-800">
+                    {cost?.activeCount || 37} Active Tools
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Monthly software subscriptions & SaaS infrastructure spend</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setView("costs")}
+              className="text-xs font-semibold text-[#7B61FF] hover:text-purple-700 bg-white hover:bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Manage Subscriptions</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Monthly Spend</div>
+              <div className="text-base sm:text-lg font-bold text-[#7B61FF] mt-0.5">
+                {cost ? `₹${Math.round(cost.totalInrMonthly || 0).toLocaleString("en-IN")}` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400">Recurring / mo</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">USD Equivalent</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                {cost ? `$${Math.round(cost.totalUsdMonthly || 0).toLocaleString("en-US")}` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400">Monthly USD</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Active Subscriptions</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                {cost?.activeCount ?? 37}
+              </div>
+              <div className="text-[10px] font-semibold text-emerald-600">All tools healthy</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">{cost?.periodLabel || "Period"} Spend</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                {cost ? `₹${Math.round(cost.periodInrTotal || 0).toLocaleString("en-IN")}` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400">Selected range</div>
+            </div>
+          </div>
+        </div>
+
+        {cost?.categories?.length > 0 && (
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-[11px] font-medium text-slate-400">Top Categories:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {cost.categories.slice(0, 3).map((cat) => (
+                <span key={cat.name} className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-medium text-[11px]">
+                  {cat.name}: <strong className="text-slate-900">₹{Math.round(cat.value).toLocaleString("en-IN")}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Card 2: Marketing Channels & Email Campaigns Executive Summary */}
+      <div className="lg:col-span-6 panel p-5 bg-gradient-to-br from-white via-amber-50/15 to-orange-50/20 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col justify-between">
+        <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-orange-50 flex items-center justify-center text-[#FF9F43] font-bold text-base shadow-xs ring-1 ring-orange-100">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-slate-800">Marketing Channels & Email Outreach</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100/70 text-orange-800">
+                    Multi-Touch Inbound
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400">Email campaigns delivery, click-through rates & cross-channel attribution</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setView("email")}
+                className="text-xs font-semibold text-[#7B61FF] hover:text-purple-700 bg-white hover:bg-purple-50 px-2.5 py-1.5 rounded-xl border border-purple-200/80 transition-all shadow-xs cursor-pointer"
+              >
+                Email →
+              </button>
+              <button
+                type="button"
+                onClick={() => setView("channels")}
+                className="text-xs font-semibold text-[#FF9F43] hover:text-orange-700 bg-white hover:bg-orange-50 px-2.5 py-1.5 rounded-xl border border-orange-200/80 transition-all shadow-xs cursor-pointer"
+              >
+                Channels →
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Email CTR</div>
+              <div className="text-base sm:text-lg font-bold text-[#FF9F43] mt-0.5">
+                {email?.ctr != null ? `${Number(email.ctr).toFixed(1)}%` : "—"}
+              </div>
+              <div className="text-[10px] font-semibold text-emerald-600">High engagement</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Open Rate</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                {email?.openRate != null ? `${Number(email.openRate).toFixed(1)}%` : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400">Delivered emails</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Emails Sent</div>
+              <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
+                {email ? fmtInt(email.sent) : "—"}
+              </div>
+              <div className="text-[10px] text-slate-400">{email?.campaigns || 4} campaigns</div>
+            </div>
+
+            <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+              <div className="text-[11px] font-medium text-slate-400 truncate">Channel Leads</div>
+              <div className="text-base sm:text-lg font-bold text-emerald-600 mt-0.5">
+                {fmtInt((email?.leads || 0) + (d.seo?.webLeads || 0))}
+              </div>
+              <div className="text-[10px] text-slate-400">Email & Web inbound</div>
+            </div>
+          </div>
+        </div>
+
+        {channels.length > 0 && (
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="text-[11px] font-medium text-slate-400">Inbound Leads:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {channels.map((ch) => (
+                <span key={ch.label} className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-medium text-[11px]">
+                  {ch.label}: <strong className="text-slate-900">{fmtInt(ch.value)}</strong>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

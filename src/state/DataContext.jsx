@@ -8,7 +8,7 @@ import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-export const MASTER_DATASET_VERSION = "2026-09-22-v13-ai-search-visibility";
+export const MASTER_DATASET_VERSION = "2026-09-23-v15-live-linkedin-sync";
 
 export const MASTER_FILES = [
   "/master/Imagine 26 - Leads Database (1).xlsx",
@@ -18,19 +18,31 @@ export const MASTER_FILES = [
   "/master/Tools_And_Costs_Cleaned.xlsx",
   "/master/Leads Sheet.xlsx",
   "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
-  "/master/Website Visitors Leads Sheet.xlsx"
+  "/master/Website Visitors Leads Sheet.xlsx",
+  "/master/tecnoprism_content_30D_1790061710570.xls",
+  "/master/tecnoprism_followers_1790061783804.xls"
 ];
 
 export function DataProvider({ children }) {
   const [leads, setLeads] = useState([]);
   const [weeks, setWeeks] = useState([]);
   const [channels, setChannels] = useState({ email: [], social: [], landing: [], cost: [] });
+  const [liveLinkedIn, setLiveLinkedIn] = useState(null);
   const [files, setFiles] = useState([]);
   const [rawSheets, setRawSheets] = useState({});
   const [isSample, setIsSample] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problems, setProblems] = useState([]);
   const [restored, setRestored] = useState(false);
+
+  useEffect(() => {
+    fetch("/master/linkedin_live.json")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) setLiveLinkedIn(data);
+      })
+      .catch(() => null);
+  }, []);
 
   const workerRef = useRef(null);
   const pending = useRef(new Map());
@@ -267,6 +279,7 @@ export function DataProvider({ children }) {
       leads,
       weeks,
       channels,
+      liveLinkedIn,
       files,
       rawSheets,
       isSample,
@@ -280,7 +293,7 @@ export function DataProvider({ children }) {
       clearAll,
       dismissProblems: () => setProblems([]),
     }),
-    [leads, weeks, channels, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll]
+    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
