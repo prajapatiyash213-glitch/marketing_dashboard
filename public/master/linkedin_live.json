@@ -1,14 +1,23 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24832,
+  "followers": 24865,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5018,
-  "lastSynced": "2026-09-24T13:49:13.011Z",
-  "employees": 231,
+  "growthSinceExport": 5051,
+  "lastSynced": "2026-09-28T17:24:31.956Z",
+  "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
   "recentPosts": [
+    {
+      "title": "A question every CIO, COO, CTO and Transformation Leader should ask:\nIf we already have the technolo...",
+      "text": "A question every CIO, COO, CTO and Transformation Leader should ask:\nIf we already have the technology, strategy, and vision, what's still missing?\n\nAI. Automation. Data. Platforms.\nMost enterprises already have them.\nYet transformation initiatives continue to stall.\nPilots remain pilots.\nAnd expected business outcomes never fully materialize.\nWhy?\n\nBecause accountability for the outcome is often fragmented across multiple stakeholders.\nThat's the gap.\n\nAnd that's why the Forward Deployed Engineer (#FDE) model is gaining attention. It's changing how organizations deliver AI and automation by bringing ownership closer to the problem and accountability closer to the outcome.\n\nIs lack of technology really the challenge, or is it lack of ownership?\nWhat about your enterprise?\nCurious to hear your perspective. 👇\n\n#Tecnoprism #ForwardDeployedEngineer #AI #Transformation",
+      "date": "2026-09-28T12:54:22.635Z",
+      "url": "https://www.linkedin.com/posts/tecnoprism_who-actually-owns-the-business-outcomes-activity-7510321005114843136-qSrT",
+      "reactions": 11,
+      "likes": 11,
+      "author": "Tecnoprism"
+    },
     {
       "title": "Forward Deployed Engineers by Tecnoprism. Designed to solve. Built to scale.",
       "text": "What changes when outcomes become the starting point?\n\nAn FDE is not renamed staff augmentation. A Forward Deployed Engineer brings embedded technical ownership to a measurable operational outcome within the existing ecosystem.\n\nTraditional delivery models separate discovery, architecture, development, deployment and adoption across teams, creating handoffs and diluted accountability. FDEs own context, alignment and outcomes while writing production code and building within the customer environment.\n\nTecnoprism's Forward Deployed Engineers (FDEs) are embeded directly in the existing workflow, along with process owners, users, and technology teams, ensuring every solution stays connected to the business outcome it was created to achieve.\nAI expertise. Automation expertise. Engineering expertise.\nAll embedded where value is created.\n\nWatch the video to learn more.\n\nForward Deployed Engineers by Tecnoprism. Designed to solve. Built to scale.\n\n#FDE #EnterpriseAI #ForwardDeployedEngineers #BusinessOutcomes #Tecnoprism #EnterpriseTechnology #ForwardDeployedEngineering #AITransformation #EngineeringLeadership #AI",
@@ -77,8 +86,8 @@
       "text": "Automation has evolved fast.\nEnterprises today are running thousands of automations…\nprocessing millions of workflows…\nsaving billions of hours across industries.\n\nBut when we looked deeper at real enterprise environments, we saw something no one was fixing.\n👉 Discovery was still manual\n👉 Documentation was slowing everything down\n👉 Failures were being caught after the damage\n\nSo, we at Tecnoprism, didn’t try to improve it.\nWe rebuilt the model.\n\nIntroducing Automation CoE\nPowered by two intelligent agents:\n1. ARIA — understands your processes from videos and builds everything from PDDs to test cases\n2. AURA — ensures your automation ecosystem runs without surprises\n\nThis is not another automation layer.\nThis is the shift to intelligent, self-aware automation.\n\nWatch what we’ve built 👇 and leave your thoughts in comment.\n\nWant to know more? Visit our website www.automationcoe.com\n\n#AutomationCoE #AI #EnterpriseAI #Automation #Innovation #NewLaunch #LaunchVideo",
       "date": "2026-07-01T03:00:05.428Z",
       "url": "https://www.linkedin.com/posts/tecnoprism_introducing-automation-coe-activity-7477918928061501441-gDnt",
-      "reactions": 222,
-      "likes": 222,
+      "reactions": 223,
+      "likes": 223,
       "author": "Tecnoprism"
     },
     {
@@ -88,15 +97,6 @@
       "url": "https://www.linkedin.com/posts/tecnoprism_ai-automation-imagine2026-activity-7477706326840623104-_XWz",
       "reactions": 174,
       "likes": 174,
-      "author": "Tecnoprism"
-    },
-    {
-      "title": "Executives think AI is under control.\nThe teams running it disagree.\n\nA recent industry survey of 1,...",
-      "text": "Executives think AI is under control.\nThe teams running it disagree.\n\nA recent industry survey of 1,000 IT professionals found something uncomfortable:\n29% of leaders believe AI risk is managed.\nOnly 7% of the people actually running it agree.\n\nAnd the gap doesn’t stop there.\nAI adoption inside enterprises is moving nearly twice as fast as the controls needed to manage it.\n\nSo while leadership sees scale and efficiency, the ground reality looks very different. Teams are juggling multiple AI tools, disconnected workflows, limited visibility, and no clear ownership. Things work, until they don’t. And when they don’t, there’s rarely a clear fallback.\n\nThis isn’t an AI problem.\nIt’s a management problem.\nOr more accurately, a perception problem.\n\nBecause when leadership assumes everything is “under control,” the hard questions stop getting asked.\nWho owns our automation?\nHow are failures handled?\nWhere is the visibility across systems?\nWhat happens when something breaks mid-process?\n\nIn most cases, there isn’t a clear answer.\nThat’s where the real risk sits.\nNot in the model, not in the technology, but in the gap between what leadership believes and what teams experience every day.\n\nThis is exactly why Automation COEs are starting to become critical. Not as innovation hubs, but as a way to bring structure, visibility, and accountability into how automation actually runs in an enterprise.\n\nBecause scaling AI without control doesn’t create efficiency.\nIt creates blind spots.\nAnd blind spots at scale don’t stay invisible for long.\n\nCurious to know, does this gap exist in your organization too?\n\n#Automation #AI #AutomationCOE #Management #Tecnoprism",
-      "date": "2026-06-29T07:51:27.698Z",
-      "url": "https://www.linkedin.com/posts/tecnoprism_automation-ai-automationcoe-activity-7477267478222585856-8tnF",
-      "reactions": 21,
-      "likes": 21,
       "author": "Tecnoprism"
     }
   ]
