@@ -50,9 +50,13 @@ export function SocialMediaView({ d }) {
       return {
         ...social.exportTotals,
         isExport: true,
-        scopeLabel: "30-Day Export Snapshot (4 Posts)",
+        isFiltered: false,
+        allTimePostsCount: social.exportTotals.postsCount || 4,
+        scopeLabel: `30-Day Export Snapshot (${social.exportTotals.postsCount || 4} Posts)`,
       };
     }
+    const totalAvailable = social.allPosts?.length || social.liveTotals?.allTimePostsCount || 10;
+    const isFiltered = posts.length < totalAvailable;
     return {
       impressions: social.liveTotals?.impressions ?? social.impressions,
       uniqueImpressions: social.liveTotals?.uniqueImpressions ?? social.uniqueImpressions,
@@ -65,8 +69,12 @@ export function SocialMediaView({ d }) {
       engagementRate: social.liveTotals?.engagementRate ?? social.engagementRate,
       ctr: social.liveTotals?.ctr ?? social.ctr,
       postsCount: posts.length,
+      allTimePostsCount: totalAvailable,
       isExport: false,
-      scopeLabel: "Live Full Profile Feed (10 Posts)",
+      isFiltered,
+      scopeLabel: isFiltered
+        ? `Active Time Window (${posts.length} of ${totalAvailable} Posts)`
+        : `Live Full Profile Feed (${totalAvailable} Posts)`,
     };
   }, [metricScope, social, posts.length]);
 
@@ -203,7 +211,7 @@ export function SocialMediaView({ d }) {
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            🟢 Live Full Feed ({posts.length} Posts)
+            🟢 {currentMetrics.isFiltered ? `Selected Window (${posts.length} Posts)` : `Live Feed (${posts.length} Posts)`}
           </button>
           {social.exportTotals?.impressions > 0 && (
             <button
@@ -267,7 +275,13 @@ export function SocialMediaView({ d }) {
         <div className="panel p-3.5 border-l-4 border-l-sky-500 flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Published Posts</div>
           <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(currentMetrics.postsCount)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">{currentMetrics.isExport ? "30-Day Export Window" : "100% Organic Live Profile Feed"}</div>
+          <div className="text-[11px] text-slate-400 mt-1">
+            {currentMetrics.isExport
+              ? "30-Day Export Window"
+              : (currentMetrics.isFiltered
+                ? `${posts.length} in period · ${currentMetrics.allTimePostsCount} total`
+                : "100% Organic Live Profile Feed")}
+          </div>
         </div>
       </div>
 
@@ -279,7 +293,7 @@ export function SocialMediaView({ d }) {
             {/* Daily Impressions & Engagements Trend */}
             <Panel
               title="Daily Impressions & Engagements"
-              note="Organic content reach and member interactions over 30 days"
+              note={currentMetrics.isFiltered ? "Organic content reach and member interactions in selected time window" : "Organic content reach and member interactions across active timeline"}
             >
               <div style={{ height: 280 }}>
                 {social.timeline?.length ? (
@@ -331,7 +345,7 @@ export function SocialMediaView({ d }) {
             {/* Daily Follower Growth Trend */}
             <Panel
               title="Daily Follower Acquisition"
-              note="Organic and auto-invited follower additions (+686 new followers)"
+              note={`Organic and auto-invited follower additions (+${fmtInt(social.newFollowers)} in selected period)`}
             >
               <div style={{ height: 280 }}>
                 {social.timeline?.length ? (
@@ -366,7 +380,7 @@ export function SocialMediaView({ d }) {
           {/* Spotlight & High-Level Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {/* Top Post Spotlight Card */}
-            {topPost && (
+            {topPost ? (
               <div className="panel p-5 bg-gradient-to-br from-white to-slate-50 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between gap-2">
@@ -412,6 +426,12 @@ export function SocialMediaView({ d }) {
                     </a>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div className="panel p-5 bg-white border border-slate-200/80 shadow-xs flex flex-col items-center justify-center text-center">
+                <span className="text-2xl mb-2">📅</span>
+                <div className="text-sm font-semibold text-slate-700">No Posts in Period</div>
+                <div className="text-xs text-slate-400 mt-1">Switch to a broader time frame or "All time" to view content performance.</div>
               </div>
             )}
 
@@ -533,7 +553,14 @@ export function SocialMediaView({ d }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {posts.map((p, idx) => (
+                {posts.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="py-8 text-center text-slate-400 font-medium">
+                      No posts published within the selected time window. Switch date range or select "All time" to view all published content.
+                    </td>
+                  </tr>
+                ) : (
+                  posts.map((p, idx) => (
                   <tr key={p.id || idx} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 max-w-md">
                       <div className="font-semibold text-slate-800 line-clamp-2" title={p.title}>
@@ -594,7 +621,7 @@ export function SocialMediaView({ d }) {
                       )}
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
