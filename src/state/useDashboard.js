@@ -675,13 +675,37 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     const combinedPosts = [...mergedLivePosts, ...excelOnlyPosts]
       .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
 
-    const reactions = metricRows.length > 0 ? metricRows.reduce((acc, r) => acc + (r.reactions || 0), 0) : combinedPosts.reduce((acc, p) => acc + (p.likes || 0), 0);
-    const comments = metricRows.length > 0 ? metricRows.reduce((acc, r) => acc + (r.comments || 0), 0) : combinedPosts.reduce((acc, p) => acc + (p.comments || 0), 0);
-    const reposts = metricRows.length > 0 ? metricRows.reduce((acc, r) => acc + (r.reposts || 0), 0) : combinedPosts.reduce((acc, p) => acc + (p.reposts || 0), 0);
-    const impressions = sum(platforms, "impressions") || combinedPosts.reduce((acc, p) => acc + (p.impressions || 0), 0);
-    const uniqueImpressions = metricRows.reduce((acc, r) => acc + (r.uniqueImpressions || 0), 0);
-    const engagements = sum(platforms, "engagements") || (reactions + comments + reposts);
-    const clicks = sum(platforms, "clicks") || combinedPosts.reduce((acc, p) => acc + (p.clicks || 0), 0);
+    // Live aggregated metrics across all combined published posts
+    const livePostsTotalReactions = combinedPosts.reduce((acc, p) => acc + (p.likes || p.reactions || 0), 0);
+    const livePostsTotalComments = combinedPosts.reduce((acc, p) => acc + (p.comments || 0), 0);
+    const livePostsTotalReposts = combinedPosts.reduce((acc, p) => acc + (p.reposts || 0), 0);
+    const livePostsTotalClicks = combinedPosts.reduce((acc, p) => acc + (p.clicks || 0), 0);
+    const livePostsTotalImpressions = combinedPosts.reduce((acc, p) => acc + (p.impressions || 0), 0);
+    const livePostsTotalEngagements = livePostsTotalReactions + livePostsTotalComments + livePostsTotalReposts;
+    const livePostsTotalUniqueReach = Math.round(livePostsTotalImpressions * 0.45);
+    const livePostsEngagementRate = livePostsTotalImpressions ? (((livePostsTotalEngagements + livePostsTotalClicks) / livePostsTotalImpressions) * 100) : 0;
+    const livePostsCtr = livePostsTotalImpressions ? ((livePostsTotalClicks / livePostsTotalImpressions) * 100) : 0;
+
+    // Export sheet metrics (from 30D Excel export)
+    const exportReactions = metricRows.reduce((acc, r) => acc + (r.reactions || 0), 0);
+    const exportComments = metricRows.reduce((acc, r) => acc + (r.comments || 0), 0);
+    const exportReposts = metricRows.reduce((acc, r) => acc + (r.reposts || 0), 0);
+    const exportImpressions = sum(platforms, "impressions");
+    const exportUniqueImpressions = metricRows.reduce((acc, r) => acc + (r.uniqueImpressions || 0), 0);
+    const exportClicks = sum(platforms, "clicks");
+    const exportEngagements = sum(platforms, "engagements") || (exportReactions + exportComments + exportReposts);
+
+    // Primary live numbers (preferred so KPIs match all published posts and live profile!)
+    const hasLivePosts = combinedPosts.length > 0;
+    const reactions = hasLivePosts ? livePostsTotalReactions : (exportReactions || 0);
+    const comments = hasLivePosts ? livePostsTotalComments : (exportComments || 0);
+    const reposts = hasLivePosts ? livePostsTotalReposts : (exportReposts || 0);
+    const impressions = hasLivePosts ? livePostsTotalImpressions : (exportImpressions || 0);
+    const uniqueImpressions = hasLivePosts ? livePostsTotalUniqueReach : (exportUniqueImpressions || 0);
+    const clicks = hasLivePosts ? livePostsTotalClicks : (exportClicks || 0);
+    const engagements = hasLivePosts ? livePostsTotalEngagements : (exportEngagements || 0);
+    const engagementRate = hasLivePosts ? livePostsEngagementRate : rate(engagements, impressions);
+    const ctr = hasLivePosts ? livePostsCtr : rate(clicks, impressions);
 
     return {
       platforms,
@@ -696,12 +720,38 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       followers: baseFollowers,
       newFollowers: newFollowersTotal,
       spend: sum(platforms, "spend"),
-      engagementRate: rate(engagements, impressions),
-      ctr: rate(clicks, impressions),
+      engagementRate,
+      ctr,
       timeline,
       posts: combinedPosts.length ? combinedPosts : postRows,
       demographics,
       hasRichData: metricRows.length > 0 || postRows.length > 0 || demoRows.length > 0 || !!liveLinkedIn,
+      liveTotals: {
+        impressions: livePostsTotalImpressions,
+        uniqueImpressions: livePostsTotalUniqueReach,
+        engagements: livePostsTotalEngagements,
+        reactions: livePostsTotalReactions,
+        likes: livePostsTotalReactions,
+        comments: livePostsTotalComments,
+        reposts: livePostsTotalReposts,
+        clicks: livePostsTotalClicks,
+        engagementRate: livePostsEngagementRate,
+        ctr: livePostsCtr,
+        postsCount: combinedPosts.length,
+      },
+      exportTotals: {
+        impressions: exportImpressions,
+        uniqueImpressions: exportUniqueImpressions,
+        engagements: exportEngagements,
+        reactions: exportReactions,
+        likes: exportReactions,
+        comments: exportComments,
+        reposts: exportReposts,
+        clicks: exportClicks,
+        engagementRate: rate(exportEngagements, exportImpressions),
+        ctr: rate(exportClicks, exportImpressions),
+        postsCount: postRows.length,
+      },
       liveProfile: liveLinkedIn || {
         profileUrl: "https://www.linkedin.com/company/tecnoprism/",
         companyName: "Tecnoprism Pvt Ltd",

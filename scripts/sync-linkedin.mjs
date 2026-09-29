@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 const LINKEDIN_URL = "https://www.linkedin.com/company/tecnoprism/";
 
-async function syncLinkedIn() {
+export async function syncLinkedIn() {
   console.log(`[LinkedIn Sync] Fetching ${LINKEDIN_URL}...`);
   try {
     const res = await fetch(LINKEDIN_URL, {
@@ -117,4 +117,6 @@ async function syncLinkedIn() {
   }
 }
 
-syncLinkedIn();
+if (process.argv[1] && process.argv[1].replace(/\\/g, "/").includes("scripts/sync-linkedin.mjs")) {
+  syncLinkedIn();
+}

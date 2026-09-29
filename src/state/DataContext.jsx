@@ -35,14 +35,35 @@ export function DataProvider({ children }) {
   const [problems, setProblems] = useState([]);
   const [restored, setRestored] = useState(false);
 
-  useEffect(() => {
-    fetch("/master/linkedin_live.json")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data) setLiveLinkedIn(data);
-      })
-      .catch(() => null);
+  const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
+
+  const syncLiveLinkedIn = useCallback(async () => {
+    setSyncingLinkedIn(true);
+    try {
+      const res = await fetch("/api/sync-linkedin", { method: "POST" }).catch(() => null);
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json && json.followers) {
+          setLiveLinkedIn(json);
+          return json;
+        }
+      }
+      const snapRes = await fetch(`/master/linkedin_live.json?t=${Date.now()}`);
+      if (snapRes.ok) {
+        const snap = await snapRes.json();
+        if (snap) setLiveLinkedIn(snap);
+        return snap;
+      }
+    } catch (e) {
+      console.error("Live sync failed", e);
+    } finally {
+      setSyncingLinkedIn(false);
+    }
   }, []);
+
+  useEffect(() => {
+    syncLiveLinkedIn();
+  }, [syncLiveLinkedIn]);
 
   const workerRef = useRef(null);
   const pending = useRef(new Map());
@@ -291,9 +312,11 @@ export function DataProvider({ children }) {
       loadSample,
       loadExactSeo,
       clearAll,
+      syncLiveLinkedIn,
+      syncingLinkedIn,
       dismissProblems: () => setProblems([]),
     }),
-    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll]
+    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll, syncLiveLinkedIn, syncingLinkedIn]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

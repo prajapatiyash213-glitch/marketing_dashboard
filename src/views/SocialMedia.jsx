@@ -17,12 +17,15 @@ import {
 import { fmtInt } from "../lib/numbers.js";
 import { MODULES } from "../lib/palette.js";
 import { prettyDate } from "../lib/dates.js";
+import { useData } from "../state/DataContext.jsx";
 
 const AXIS = { fontSize: 11, fill: "#94A3B8" };
 const GRID = "#F1F5F9";
 
 export function SocialMediaView({ d }) {
   const social = d.socialStats;
+  const { syncLiveLinkedIn, syncingLinkedIn } = useData();
+  const [metricScope, setMetricScope] = useState("live"); // "live" | "export"
   const [activeTab, setActiveTab] = useState("overview"); // "overview" | "posts" | "demographics"
   const [postSort, setPostSort] = useState("impressions"); // "impressions" | "engagements" | "ctr" | "date"
   const [selectedDemoTab, setSelectedDemoTab] = useState("seniority"); // "seniority" | "function" | "location" | "industry" | "companySize"
@@ -41,6 +44,31 @@ export function SocialMediaView({ d }) {
     if (!social?.posts?.length) return null;
     return [...social.posts].sort((a, b) => (b.impressions || 0) - (a.impressions || 0))[0];
   }, [social?.posts]);
+
+  const currentMetrics = useMemo(() => {
+    if (metricScope === "export" && social.exportTotals?.impressions) {
+      return {
+        ...social.exportTotals,
+        isExport: true,
+        scopeLabel: "30-Day Export Snapshot (4 Posts)",
+      };
+    }
+    return {
+      impressions: social.liveTotals?.impressions ?? social.impressions,
+      uniqueImpressions: social.liveTotals?.uniqueImpressions ?? social.uniqueImpressions,
+      engagements: social.liveTotals?.engagements ?? social.engagements,
+      reactions: social.liveTotals?.reactions ?? social.reactions,
+      likes: social.liveTotals?.reactions ?? social.reactions,
+      comments: social.liveTotals?.comments ?? social.comments,
+      reposts: social.liveTotals?.reposts ?? social.reposts,
+      clicks: social.liveTotals?.clicks ?? social.clicks,
+      engagementRate: social.liveTotals?.engagementRate ?? social.engagementRate,
+      ctr: social.liveTotals?.ctr ?? social.ctr,
+      postsCount: posts.length,
+      isExport: false,
+      scopeLabel: "Live Full Profile Feed (10 Posts)",
+    };
+  }, [metricScope, social, posts.length]);
 
   if (!social || (!social.impressions && !social.followers && !social.posts?.length)) {
     return (
@@ -77,7 +105,7 @@ export function SocialMediaView({ d }) {
             </span>
             <div>
               <h2 className="text-xl font-bold tracking-tight text-slate-800">LinkedIn Analytics & Content Intelligence</h2>
-              <p className="text-xs text-slate-500">Tecnoprism Enterprise Page · 30-Day Content & Follower Performance</p>
+              <p className="text-xs text-slate-500">Tecnoprism Enterprise Page · Live Feed & 30-Day Content Intelligence</p>
             </div>
           </div>
         </div>
@@ -122,12 +150,24 @@ export function SocialMediaView({ d }) {
               </span>
             </div>
             <p className="text-xs text-blue-100/90 mt-0.5">
-              Live follower base: <strong className="text-white font-extrabold">{fmtInt(social.followers)} followers</strong> (~25K) · Automated weekly profile review enabled
+              Live follower base: <strong className="text-white font-extrabold">{fmtInt(social.followers)} followers</strong> (~25K) · {social.liveProfile?.lastSynced ? `Synced ${prettyDate(new Date(social.liveProfile.lastSynced))}` : "Real-time active sync"}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={syncLiveLinkedIn}
+            disabled={syncingLinkedIn}
+            className="flex items-center gap-1.5 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-white px-3.5 py-2 text-xs font-bold border border-white/30 backdrop-blur-sm transition-all cursor-pointer disabled:opacity-50"
+            title="Fetch real-time followers, posts, and engagement directly from LinkedIn"
+          >
+            <svg className={`w-3.5 h-3.5 ${syncingLinkedIn ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            {syncingLinkedIn ? "Syncing..." : "Sync Live Now"}
+          </button>
           <div className="text-right hidden sm:block">
             <div className="text-xs font-semibold text-blue-100">Growth Surge</div>
             <div className="text-sm font-black text-emerald-300">+{fmtInt(social.newFollowers)} followers</div>
@@ -146,6 +186,41 @@ export function SocialMediaView({ d }) {
         </div>
       </div>
 
+      {/* Scope Selector: Live Full Feed vs 30D Export */}
+      <div className="flex items-center justify-between gap-3 flex-wrap bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-xl text-xs">
+        <div className="flex items-center gap-2 text-slate-600 font-medium">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Metric Source:</span>
+          <strong className="text-slate-900 font-bold">{currentMetrics.scopeLabel}</strong>
+        </div>
+        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setMetricScope("live")}
+            className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer ${
+              metricScope === "live"
+                ? "bg-[#0077B5] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            🟢 Live Full Feed ({posts.length} Posts)
+          </button>
+          {social.exportTotals?.impressions > 0 && (
+            <button
+              type="button"
+              onClick={() => setMetricScope("export")}
+              className={`px-3 py-1 rounded-md font-bold transition-all cursor-pointer ${
+                metricScope === "export"
+                  ? "bg-[#0077B5] text-white shadow-xs"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              📄 30-Day Export Only
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* 6-Metric Executive KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="panel p-3.5 border-l-4 border-l-[#0077B5] flex flex-col justify-between">
@@ -159,40 +234,40 @@ export function SocialMediaView({ d }) {
 
         <div className="panel p-3.5 border-l-4 border-l-[#7B61FF] flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Impressions</div>
-          <div className="text-2xl font-black text-[#7B61FF] font-display mt-1">{fmtInt(social.impressions)}</div>
+          <div className="text-2xl font-black text-[#7B61FF] font-display mt-1">{fmtInt(currentMetrics.impressions)}</div>
           <div className="text-[11px] text-slate-400 mt-1">
-            {social.uniqueImpressions ? `${fmtInt(social.uniqueImpressions)} unique reach` : "Total views"}
+            {currentMetrics.uniqueImpressions ? `${fmtInt(currentMetrics.uniqueImpressions)} unique reach` : "Total views"}
           </div>
         </div>
 
         <div className="panel p-3.5 border-l-4 border-l-[#FA2E76] flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Engagements</div>
-          <div className="text-2xl font-black text-[#FA2E76] font-display mt-1">{fmtInt(social.engagements)}</div>
+          <div className="text-2xl font-black text-[#FA2E76] font-display mt-1">{fmtInt(currentMetrics.engagements)}</div>
           <div className="text-[11px] text-slate-400 mt-1">
-            {fmtInt(social.reactions || 0)} likes · {fmtInt(social.reposts || 0)} reposts
+            {fmtInt(currentMetrics.reactions || 0)} likes · {fmtInt(currentMetrics.reposts || 0)} reposts
           </div>
         </div>
 
         <div className="panel p-3.5 border-l-4 border-l-[#10B981] flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Engagement Rate</div>
           <div className="text-2xl font-black text-emerald-600 font-display mt-1">
-            {social.engagementRate != null ? `${social.engagementRate.toFixed(2)}%` : "—"}
+            {currentMetrics.engagementRate != null ? `${currentMetrics.engagementRate.toFixed(2)}%` : "—"}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">High B2B interaction</div>
         </div>
 
         <div className="panel p-3.5 border-l-4 border-l-[#FF9F43] flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Link Clicks</div>
-          <div className="text-2xl font-black text-[#FF9F43] font-display mt-1">{fmtInt(social.clicks)}</div>
+          <div className="text-2xl font-black text-[#FF9F43] font-display mt-1">{fmtInt(currentMetrics.clicks)}</div>
           <div className="text-[11px] text-slate-400 mt-1">
-            CTR: {social.ctr != null ? `${social.ctr.toFixed(2)}%` : "—"}
+            CTR: {currentMetrics.ctr != null ? `${currentMetrics.ctr.toFixed(2)}%` : "—"}
           </div>
         </div>
 
         <div className="panel p-3.5 border-l-4 border-l-sky-500 flex flex-col justify-between">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Published Posts</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(posts.length)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">100% Organic Delivery</div>
+          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(currentMetrics.postsCount)}</div>
+          <div className="text-[11px] text-slate-400 mt-1">{currentMetrics.isExport ? "30-Day Export Window" : "100% Organic Live Profile Feed"}</div>
         </div>
       </div>
 
