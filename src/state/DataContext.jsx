@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-09-30-v23-fix-future-date";
+const MASTER_DATASET_VERSION = "2026-09-30-v24-website-dropoffs";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -63,6 +63,7 @@ const MASTER_FILES = [
   "/master/Leads Sheet.xlsx",
   "/master/CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
   "/master/Website Visitors Leads Sheet.xlsx",
+  "/master/Website Visitors Leads Sheet(Drop-offs).csv",
   "/master/tecnoprism_content_30D_1790061710570.xls",
   "/master/tecnoprism_followers_1790061783804.xls"
 ];
@@ -70,7 +71,7 @@ const MASTER_FILES = [
 export function DataProvider({ children }) {
   const [leads, setLeads] = useState([]);
   const [weeks, setWeeks] = useState([]);
-  const [channels, setChannels] = useState({ email: [], social: [], landing: [], cost: [] });
+  const [channels, setChannels] = useState({ email: [], social: [], landing: [], cost: [], dropoffs: [] });
   const [liveLinkedIn, setLiveLinkedIn] = useState(null);
   const [files, setFiles] = useState([]);
   const [rawSheets, setRawSheets] = useState({});
@@ -138,7 +139,7 @@ export function DataProvider({ children }) {
       if (!data) {
         setLeads([]);
         setWeeks([]);
-        setChannels({ email: [], social: [], landing: [], cost: [] });
+        setChannels({ email: [], social: [], landing: [], cost: [], dropoffs: [] });
         setFiles([]);
         setRawSheets({});
         return;
@@ -205,7 +206,7 @@ export function DataProvider({ children }) {
       });
       setFiles((prev) => (isSample ? [] : prev).filter((f) => !names.has(f.name)).concat(results.map((r) => r.file)));
       setChannels((prev) => {
-        const next = { email: [], social: [], landing: [], cost: [] };
+        const next = { email: [], social: [], landing: [], cost: [], dropoffs: [] };
         for (const key of Object.keys(next)) {
           const hasIncoming = results.some((r) => r.channels?.[key]?.length > 0);
           if (!hasIncoming && prev[key]?.length > 0) {
@@ -246,7 +247,7 @@ export function DataProvider({ children }) {
           setLeads(deduplicateLeads((saved.leads || []).map(sanitizeLead)));
           let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
           setWeeks(cleanWeeks);
-          setChannels(saved.channels || { email: [], social: [], landing: [], cost: [] });
+          setChannels(saved.channels || { email: [], social: [], landing: [], cost: [], dropoffs: [] });
           setFiles(saved.files || []);
           setIsSample(false);
           setRestored(true);
@@ -276,7 +277,7 @@ export function DataProvider({ children }) {
       if (alive) {
         setLeads([]);
         setWeeks([]);
-        setChannels({ email: [], social: [], landing: [], cost: [] });
+        setChannels({ email: [], social: [], landing: [], cost: [], dropoffs: [] });
         setFiles([]);
         setIsSample(false);
         setRestored(true);
@@ -330,7 +331,7 @@ export function DataProvider({ children }) {
 
   const clearAll = useCallback(() => {
     setLeads([]); setWeeks([]); setFiles([]); setRawSheets({});
-    setChannels({ email: [], social: [], landing: [], cost: [] });
+    setChannels({ email: [], social: [], landing: [], cost: [], dropoffs: [] });
     setIsSample(false); setProblems([]);
     clearDataset();
   }, []);

@@ -109,7 +109,7 @@ export function parseDateCell(v, { dayFirst = true } = {}) {
     const t = Date.parse(s);
     if (!isNaN(t)) {
       const d = new Date(t);
-      return utcDay(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+      return fromLocalDate(d);
     }
   }
   return null;

@@ -265,7 +265,7 @@ export function formatDropoffRecord(r) {
 
   if (brandNorm.includes("acoe") || brandNorm.includes("automation") || pvNorm.includes("automationcoe.com")) {
     siteId = "automationcoe.com";
-  } else if (brandNorm.includes("tecnoprism") || brandNorm.includes("techno") || pvNorm.includes("tecnoprism.com")) {
+  } else if (brandNorm.includes("tecnoprism") || brandNorm.includes("tecoprism") || brandNorm.includes("techno") || pvNorm.includes("tecnoprism.com")) {
     siteId = "tecnoprism.com";
   }
 

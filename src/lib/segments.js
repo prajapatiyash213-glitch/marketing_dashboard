@@ -8,7 +8,7 @@ import { norm } from "./fieldMap.js";
  * Add your own properties here; everything downstream reads this list.
  */
 export const SITES = [
-  { id: "tecnoprism.com", label: "Tecnoprism", match: /tecnoprism|techno ?prism/i, color: "#2D7DD2" },
+  { id: "tecnoprism.com", label: "Tecnoprism", match: /tecnoprism|tecoprism|techno ?prism/i, color: "#2D7DD2" },
   {
     id: "automationcoe.com",
     label: "automationCOE",

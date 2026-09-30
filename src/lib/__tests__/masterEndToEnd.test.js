@@ -16,6 +16,7 @@ describe("Master Dataset End-to-End Processing", () => {
     "Leads Sheet.xlsx",
     "CFO_Event_Live_Lead_Sheet_CEO_Final_Mapped.xlsx",
     "Website Visitors Leads Sheet.xlsx",
+    "Website Visitors Leads Sheet(Drop-offs).csv",
     "tecnoprism_content_30D_1790061710570.xls",
     "tecnoprism_followers_1790061783804.xls",
   ];
@@ -104,6 +105,9 @@ describe("Master Dataset End-to-End Processing", () => {
     expect(channels.email.length).toBeGreaterThanOrEqual(4);
     const totalSent = channels.email.reduce((sum, r) => sum + (r.sent || 0), 0);
     expect(totalSent).toBeGreaterThan(1000);
+
+    // 6. Website Drop-offs Verification
+    expect(channels.dropoffs?.length).toBe(12);
   });
 
   it("verifies social demographics and follower calculations match expectations", () => {
