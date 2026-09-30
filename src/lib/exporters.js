@@ -11,7 +11,7 @@ const LEAD_COLUMNS = [
   ["Source", (l) => l.source],
   ["Lead status", (l) => l.status],
   ["Value", (l) => l.value],
-  ["Date", (l) => (l.date ? dayKey(l.date) : "")],
+  ["Date", (l) => (l.date ? (l.hasYear === false ? l.dateText : dayKey(l.date)) : "")],
   ["Email", (l) => l.email],
   ["Phone", (l) => l.phone],
   ["Source file", (l) => l.file],

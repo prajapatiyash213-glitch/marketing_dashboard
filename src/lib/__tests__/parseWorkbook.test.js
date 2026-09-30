@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import * as XLSX from "xlsx";
-import { parseWorkbook } from "../parseWorkbook.js";
+import { parseWorkbook, deduplicateLeads } from "../parseWorkbook.js";
 import { dayKey } from "../dates.js";
 
 /** Builds a real xlsx buffer so the test exercises SheetJS, not a stand-in. */
@@ -132,6 +132,68 @@ describe("parseWorkbook end to end", () => {
     expect(out.leads[0].name).toBe("Robert Link");
     expect(out.leads[0].site).toBe("tecnoprism.com");
     expect(out.file.sheets[0].kind).toBe("leads");
+  });
+
+  it("for Leads Sheet.xlsx, only considers the Website tab and ignores other tabs", () => {
+    const websiteLeads = [
+      ["Name", "Company", "Stage", "Source", "Date"],
+      ["Nihal Solanki", "NA", "Discovery", "Chatbot - Manual", "2026-08-31"],
+      ["Neil Pandya", "New York Life", "Closed Lost", "Chatbot - AI", "2026-09-16"],
+    ];
+    const dashboardRows = [
+      ["Name", "Company", "Stage", "Source", "Date"],
+      ["Dash User 1", "Acme Corp", "Discovery", "Direct", "2026-08-31"],
+    ];
+    const mainLeadsRows = [
+      ["Name", "Company", "Stage", "Source", "Date"],
+      ["Main User 1", "Beta Corp", "Qualified", "Referral", "2026-08-31"],
+    ];
+    const cfoRows = [
+      ["Name", "Company", "Stage", "Source", "Date"],
+      ["CFO User 1", "Gamma Corp", "Won", "CFO Event", "2026-08-31"],
+    ];
+
+    const out = parseWorkbook(
+      workbook({
+        Dashboard: dashboardRows,
+        "Main Leads Sheet": mainLeadsRows,
+        Website: websiteLeads,
+        "CFO Sheet": cfoRows,
+      }),
+      "Leads Sheet.xlsx"
+    );
+
+    // Only the 2 leads from the Website tab are imported!
+    expect(out.leads).toHaveLength(2);
+    expect(out.leads.map((l) => l.name)).toEqual(["Nihal Solanki", "Neil Pandya"]);
+    expect(out.file.leadCount).toBe(2);
+
+    // Verify other sheets are marked ignored
+    const dashboardSheet = out.file.sheets.find((s) => s.sheet === "Dashboard");
+    expect(dashboardSheet.kind).toBe("ignored");
+
+    const mainSheet = out.file.sheets.find((s) => s.sheet === "Main Leads Sheet");
+    expect(mainSheet.kind).toBe("ignored");
+
+    const cfoSheet = out.file.sheets.find((s) => s.sheet === "CFO Sheet");
+    expect(cfoSheet.kind).toBe("ignored");
+
+    const websiteSheet = out.file.sheets.find((s) => s.sheet === "Website");
+    expect(websiteSheet.kind).toBe("leads");
+    expect(websiteSheet.count).toBe(2);
+  });
+
+  it("deduplicates leads by email or by name and company", () => {
+    const raw = [
+      { name: "Alice Smith", email: "alice@acme.com", company: "Acme" },
+      { name: "Alice Smith", email: "ALICE@acme.com", company: "Acme Corp" }, // duplicate email
+      { name: "Bob Jones", email: "", company: "Beta Tech" },
+      { name: "Bob Jones", email: "none", company: "Beta Tech" }, // duplicate name::company
+      { name: "Charlie", email: "charlie@test.com", company: "Gamma" },
+    ];
+    const deduped = deduplicateLeads(raw);
+    expect(deduped).toHaveLength(3);
+    expect(deduped.map((l) => l.name)).toEqual(["Alice Smith", "Bob Jones", "Charlie"]);
   });
 });
 

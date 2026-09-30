@@ -1,7 +1,7 @@
 import { detectHeaderRow, mapHeaders, identifiable } from "./fieldMap.js";
 import { normalizeStage } from "./stages.js";
 import { parseCurrency } from "./numbers.js";
-import { parseDateCell, detectDayFirst, prettyDate, dayKey, fromLocalDate } from "./dates.js";
+import { parseDateCell, detectDayFirst, prettyDate, dayKey, fromLocalDate, utcDay, hasExplicitYear } from "./dates.js";
 import { detectPipeline, detectSite } from "./segments.js";
 
 const asText = (v) => {
@@ -65,7 +65,13 @@ export function parseSalesSheet(rows, { fileName, sheetName, overrides = {} } = 
 
     const stageText = text("stage");
     const status = text("status");
-    const date = parseDateCell(raw("date"), { dayFirst: dayFirst.dayFirst });
+    const rawDateVal = raw("date");
+    const withYear = hasExplicitYear(rawDateVal);
+    let date = parseDateCell(rawDateVal, { dayFirst: dayFirst.dayFirst });
+    const nowYear = new Date().getUTCFullYear();
+    if (date && date.getUTCFullYear() > nowYear) {
+      date = utcDay(nowYear, date.getUTCMonth(), date.getUTCDate());
+    }
     if (!date) undated++;
 
     const explicitPipeline = text("pipeline");
@@ -90,7 +96,8 @@ export function parseSalesSheet(rows, { fileName, sheetName, overrides = {} } = 
       email,
       phone: text("phone"),
       date,
-      dateText: date ? prettyDate(date) : "",
+      dateText: date ? prettyDate(date, { withYear }) : "",
+      hasYear: withYear,
       file: fileName,
       sheet: sheetName,
     });

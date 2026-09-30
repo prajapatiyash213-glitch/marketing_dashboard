@@ -43,7 +43,7 @@ function DataContract({ module }) {
   );
 }
 
-function ChannelPanel({ module, connected, children, note }) {
+function ChannelPanel({ module, connected, children, note, right }) {
   const m = MODULES[module];
   return (
     <Panel
@@ -54,6 +54,7 @@ function ChannelPanel({ module, connected, children, note }) {
         </span>
       }
       note={note}
+      right={right}
       className={connected ? "" : "opacity-95"}
     >
       {connected ? children : <DataContract module={module} />}
@@ -125,8 +126,8 @@ export function ChannelsView({ d, setView }) {
                 <span className="ml-2 text-xs font-semibold text-[#6C5CE7]">
                   ({cost.activeCount || cost.tools} active ·{" "}
                   {cost.factor !== 1
-                    ? `₹${(cost.periodInrTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} + $${(cost.periodUsdTotal || 0).toFixed(2)} USD`
-                    : `₹${(cost.totalInrMonthly || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo + $${(cost.totalUsdMonthly || 0).toFixed(2)}/mo USD`}
+                    ? `₹${(cost.combinedPeriodInrTotal || cost.periodInrTotal || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (incl. $${(cost.periodUsdTotal || 0).toFixed(2)} USD in INR)`
+                    : `₹${(cost.combinedTotalInrMonthly || cost.totalInrMonthly || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo (incl. $${(cost.totalUsdMonthly || 0).toFixed(2)} USD in INR)`}
                   )
                 </span>
               )}
@@ -210,7 +211,20 @@ export function ChannelsView({ d, setView }) {
 
         <div className="lg:col-span-2">
           <ChannelPanel module="landing" connected={Boolean(landing)}
-            note={landing ? `${fmtInt(landing.sessions)} sessions · ${landing.conversionRate?.toFixed(2)}% convert` : "Not connected yet"}>
+            note={landing ? `${fmtInt(landing.sessions)} sessions · ${landing.conversionRate?.toFixed(2)}% convert` : "Not connected yet"}
+            right={
+              setView && (
+                <button
+                  type="button"
+                  onClick={() => setView("dropoffs")}
+                  className="btn !py-1 !px-2.5 !text-xs !font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 bg-white transition-colors cursor-pointer shadow-2xs flex items-center gap-1"
+                >
+                  <span>Website Drop-offs</span>
+                  <span>➔</span>
+                </button>
+              )
+            }
+          >
             {landing && (
               <table className="w-full border-collapse text-sm">
                 <thead>

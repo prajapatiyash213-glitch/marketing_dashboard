@@ -56,6 +56,7 @@ function Dashboard() {
     statuses,
     onExportCsv: exportCsv,
     onExportXlsx: exportXlsx,
+    onRemoveDuplicates: data.removeDuplicateLeads,
     files: data.files,
     onFiles: data.importFiles,
     busy: data.busy,

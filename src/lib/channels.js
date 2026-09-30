@@ -90,6 +90,29 @@ export const CHANNEL_SCHEMAS = {
       D("status", "Status", ["status", "state"]),
     ],
   },
+  dropoffs: {
+    id: "dropoffs",
+    label: "Website drop-offs",
+    required: ["pageVisited"],
+    defs: [
+      D("pageVisited", "Page Visited", ["page visited", "pages visited", "page visit", "url visited", "pages", "page"]),
+      D("firstName", "First Name", ["first name", "fname"]),
+      D("lastName", "Last Name", ["last name", "lname"]),
+      D("title", "Title", ["title", "job title", "designation", "role"]),
+      D("company", "Company Name", ["company name", "company", "account"]),
+      D("companyForEmails", "Company Name for Emails", ["company name for emails", "company for emails"]),
+      D("email", "Email", ["email", "email address", "work email"]),
+      D("brand", "Brand", ["brand", "website", "site", "business unit"]),
+      D("ownership", "Ownership", ["ownership", "owner", "rep", "assigned to"]),
+      D("leadDate", "Lead Date", ["lead date", "date", "created", "created on", "visit date"]),
+      D("leadSource", "Lead Source", ["lead source", "source"]),
+      D("leadStage", "Lead Stage", ["lead stage", "stage"]),
+      D("dateOfConnect", "Date of Connect", ["date of connect", "connect date"]),
+      D("comments", "Comments", ["comments", "notes", "remark", "remarks"]),
+      D("followup2Date", "Follow-up 2 Date", ["follow-up 2 date", "followup 2 date", "followup date"]),
+      D("leadStatus", "Lead Status", ["lead status", "status"]),
+    ],
+  },
 };
 
 const MONTHLY_MULTIPLIER = { monthly: 12, month: 12, quarterly: 4, quarter: 4, annual: 1, annually: 1, yearly: 1, year: 1 };
@@ -107,7 +130,7 @@ export function annualise(amount, cycle) {
 const isRowEmpty = (row) => row.every((c) => c === null || c === undefined || String(c).trim() === "");
 
 /** Finds a header row that satisfies a schema's required columns. */
-function findHeader(rows, schema, depth = 10) {
+function findHeader(rows, schema, context = {}, depth = 10) {
   for (let r = 0; r < Math.min(rows.length, depth); r++) {
     const rawCells = rows[r] || [];
     // If any cell is super long (> 120 chars), it's a data cell (e.g. tech stack, notes, bio), not a header row
@@ -123,6 +146,17 @@ function findHeader(rows, schema, depth = 10) {
     if (schema.id === "cost" && !map.monthlyCost && !map.costPerCycle) {
       continue;
     }
+
+    // For dropoff sheets, require at least one dropoff-specific indicator (ownership, connect date, email-for-company)
+    // or explicit dropoff naming to avoid misidentifying sales lead sheets that happen to have a "page visited" column.
+    if (schema.id === "dropoffs") {
+      const isDropoffName = /drop-?off|exit/i.test(context.sheetName || "") || /drop-?off|exit/i.test(context.fileName || "");
+      const hasDropoffIndicator = Boolean(map.ownership || map.dateOfConnect || map.companyForEmails);
+      if (!isDropoffName && !hasDropoffIndicator) {
+        continue;
+      }
+    }
+
     return { headerRow: r, header, map };
   }
   return null;
@@ -134,7 +168,7 @@ const PERCENT = new Set(["bounce", "openRate", "clickRate", "ctor", "bounceRate"
 
 /** Parses a sheet against one schema, or returns null if it does not fit. */
 export function parseChannelSheet(rows, schema, context = {}) {
-  const found = findHeader(rows, schema);
+  const found = findHeader(rows, schema, context);
   if (!found) return null;
   const { headerRow, header, map } = found;
 
@@ -237,6 +271,24 @@ function withDerived(r, channel) {
       status,
       amount,
       annual: annualise(amount, r.cycle),
+    };
+  }
+  if (channel === "dropoffs") {
+    const rawPages = String(r.pageVisited || "").trim();
+    const pages = rawPages
+      .split(/[\r\n;]+/)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const lastPage = pages.length ? pages[pages.length - 1] : rawPages;
+    const name = [r.firstName, r.lastName].filter(Boolean).join(" ").trim() || r.company || "Visitor";
+    const leadDateParsed = r.leadDate ? parseDateCell(r.leadDate, { dayFirst: true }) : null;
+    return {
+      ...r,
+      name,
+      pagesVisited: pages,
+      pageCount: pages.length,
+      lastPage,
+      date: leadDateParsed,
     };
   }
   return r;

@@ -12,6 +12,7 @@ import {
 import { fmtInt, fmtMoneyCompact, pct } from "../lib/numbers.js";
 import { MODULES, CATEGORICAL } from "../lib/palette.js";
 import { pipelineColor } from "../lib/segments.js";
+import { getSeoMetricHealth } from "../lib/seoHealth.js";
 
 /**
  * Modern Lector SaaS overview matching the reference UI mockup:
@@ -134,17 +135,17 @@ export function OverviewView({ d, allUndated, setView }) {
                 headline={
                   d.costStats
                     ? d.costStats.factor !== 1
-                      ? `₹${Math.round(d.costStats.periodInrTotal || 0).toLocaleString("en-IN")}`
-                      : `₹${Math.round(d.costStats.totalInrMonthly || 0).toLocaleString("en-IN")}/mo`
+                      ? `₹${Math.round(d.costStats.combinedPeriodInrTotal || d.costStats.periodInrTotal || 0).toLocaleString("en-IN")}`
+                      : `₹${Math.round(d.costStats.combinedTotalInrMonthly || d.costStats.totalInrMonthly || 0).toLocaleString("en-IN")}/mo`
                     : "—"
                 }
                 caption={
                   d.costStats
-                    ? `${d.costStats.activeCount || d.costStats.tools} active · $${Math.round((d.costStats.factor !== 1 ? d.costStats.periodUsdTotal : d.costStats.totalUsdMonthly) || 0)} USD`
+                    ? `${d.costStats.activeCount || d.costStats.tools} active · incl. converted USD ($${Math.round((d.costStats.factor !== 1 ? d.costStats.periodUsdTotal : d.costStats.totalUsdMonthly) || 0)})`
                     : ""
                 }
                 spark={d.costStats?.categories.map((c) => c.value)}
-                hint="Exact software subscriptions and SaaS costs."
+                hint="Exact software subscriptions and SaaS costs in INR."
                 onClick={() => setView("costs")}
               />
             </section>
@@ -268,6 +269,19 @@ export function SiteCompareStrip({ sites }) {
 export function WebsiteSeoExecutiveStrip({ d, setView }) {
   const latest = d.seo.latest || {};
   const bounceDisplay = d.seo.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (latest.bounce != null ? `${latest.bounce}%` : "—");
+  const trend = d.seoTrend || [];
+  const latestWeek = trend[trend.length - 1] || latest || {};
+  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : null;
+
+  const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
+  const usersHealth = getSeoMetricHealth("users", latestWeek.users, prevWeek?.users);
+  const currentBounce = latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce);
+  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce);
+  const asHealth = getSeoMetricHealth("as", latest.as, prevWeek?.as);
+  const daHealth = getSeoMetricHealth("da", latest.da, prevWeek?.da);
+  const keywordsHealth = getSeoMetricHealth("keywords", latest.keywords, prevWeek?.keywords);
+  const backlinksHealth = getSeoMetricHealth("backlinks", latest.backlinks, prevWeek?.backlinks);
+  const aiSearchHealth = getSeoMetricHealth("aiSearch", latest.aiSearch, prevWeek?.aiSearch);
 
   return (
     <section className="section-snap-item panel p-5 mb-5 bg-gradient-to-r from-white via-cyan-50/20 to-blue-50/20 border border-slate-200/80 rounded-2xl shadow-xs">
@@ -288,66 +302,76 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setView("websites")}
-          className="text-xs font-semibold text-[#00C2FF] hover:text-cyan-700 bg-white hover:bg-cyan-50 px-3 py-1.5 rounded-xl border border-cyan-200/80 transition-all shadow-xs cursor-pointer"
-        >
-          View Full Weekly Matrix & Deep Dive →
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView("dropoffs")}
+            className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1"
+          >
+            <span>Website Drop-offs</span>
+            <span>→</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("websites")}
+            className="text-xs font-semibold text-[#00C2FF] hover:text-cyan-700 bg-white hover:bg-cyan-50 px-3 py-1.5 rounded-xl border border-cyan-200/80 transition-all shadow-xs cursor-pointer"
+          >
+            View Weekly Matrix →
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${viewsHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">GA4 Views</div>
-          <div className="text-lg font-bold text-slate-800 mt-0.5">{fmtInt(d.seo.views)}</div>
-          <div className="text-[10px] text-slate-400">Period total</div>
+          <div className={`text-lg font-bold mt-0.5 ${viewsHealth.textClass}`}>{fmtInt(d.seo.views)}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{viewsHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${usersHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Total Users</div>
-          <div className="text-lg font-bold text-slate-800 mt-0.5">{fmtInt(d.seo.users)}</div>
-          <div className="text-[10px] text-slate-400">Unique visitors</div>
+          <div className={`text-lg font-bold mt-0.5 ${usersHealth.textClass}`}>{fmtInt(d.seo.users)}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{usersHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${bounceHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Bounce Rate</div>
-          <div className="text-lg font-bold text-slate-800 mt-0.5">{bounceDisplay}</div>
-          <div className="text-[10px] text-slate-400">Period average</div>
+          <div className={`text-lg font-bold mt-0.5 ${bounceHealth.textClass}`}>{bounceDisplay}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{bounceHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${asHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">SEMrush Score</div>
-          <div className="text-lg font-bold text-[#7B61FF] mt-0.5">{latest.as ?? "—"}</div>
-          <div className="text-[10px] text-slate-400">Authority Score</div>
+          <div className={`text-lg font-bold mt-0.5 ${asHealth.textClass}`}>{latest.as ?? "—"}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{asHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${daHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Domain Auth</div>
-          <div className="text-lg font-bold text-[#0E7C86] mt-0.5">{latest.da ?? "—"}</div>
-          <div className="text-[10px] text-slate-400">DAPA Checker</div>
+          <div className={`text-lg font-bold mt-0.5 ${daHealth.textClass}`}>{latest.da ?? "—"}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{daHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${keywordsHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Top 20 KW</div>
-          <div className="text-lg font-bold text-[#FF9F43] mt-0.5">{latest.keywords ?? "—"}</div>
-          <div className="text-[10px] text-slate-400">Ranked queries</div>
+          <div className={`text-lg font-bold mt-0.5 ${keywordsHealth.textClass}`}>{latest.keywords ?? "—"}</div>
+          <div className="text-[10px] text-slate-400 mt-1">{keywordsHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${backlinksHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Backlinks</div>
-          <div className="text-lg font-bold text-slate-800 mt-0.5" title={latest.raw_backlinks || ""}>
+          <div className={`text-lg font-bold mt-0.5 ${backlinksHealth.textClass}`} title={latest.raw_backlinks || ""}>
             {latest.backlinks != null ? fmtInt(latest.backlinks) : "—"}
           </div>
-          <div className="text-[10px] text-slate-400 truncate">{latest.raw_backlinks ? "DF/NF detail" : "Indexed"}</div>
+          <div className="text-[10px] text-slate-400 mt-1 truncate">{backlinksHealth.badgeText}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
+        <div className={`bg-white rounded-xl p-3 border-l-4 ${aiSearchHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">AI Search</div>
-          <div className="text-lg font-bold text-[#FA2E76] mt-0.5" title={latest.raw_aiSearch || ""}>
+          <div className={`text-lg font-bold mt-0.5 ${aiSearchHealth.textClass}`} title={latest.raw_aiSearch || ""}>
             {latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—"}
           </div>
-          <div className="text-[10px] text-slate-400 truncate">{latest.raw_aiSearch ? "AI Queries" : "Indexed"}</div>
+          <div className="text-[10px] text-slate-400 mt-1 truncate">{aiSearchHealth.badgeText}</div>
         </div>
       </div>
     </section>
@@ -505,19 +529,21 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
-              <div className="text-[11px] font-medium text-slate-400 truncate">Monthly Spend</div>
+              <div className="text-[11px] font-medium text-slate-400 truncate">Total Monthly Spend</div>
               <div className="text-base sm:text-lg font-bold text-[#7B61FF] mt-0.5">
-                {cost ? `₹${Math.round(cost.totalInrMonthly || 0).toLocaleString("en-IN")}` : "—"}
+                {cost ? `₹${Math.round(cost.combinedTotalInrMonthly || cost.totalInrMonthly || 0).toLocaleString("en-IN")}` : "—"}
               </div>
-              <div className="text-[10px] text-slate-400">Recurring / mo</div>
+              <div className="text-[10px] text-slate-400">All tools (INR + USD)</div>
             </div>
 
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
-              <div className="text-[11px] font-medium text-slate-400 truncate">USD Equivalent</div>
+              <div className="text-[11px] font-medium text-slate-400 truncate">USD in INR</div>
               <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
-                {cost ? `$${Math.round(cost.totalUsdMonthly || 0).toLocaleString("en-US")}` : "—"}
+                {cost ? `₹${Math.round(cost.convertedUsdInrMonthly || ((cost.totalUsdMonthly || 0) * 84)).toLocaleString("en-IN")}` : "—"}
               </div>
-              <div className="text-[10px] text-slate-400">Monthly USD</div>
+              <div className="text-[10px] text-cyan-700 font-medium">
+                ${Math.round(cost?.totalUsdMonthly || 0)} USD @ ₹84/$
+              </div>
             </div>
 
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
@@ -531,9 +557,9 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
               <div className="text-[11px] font-medium text-slate-400 truncate">{cost?.periodLabel || "Period"} Spend</div>
               <div className="text-base sm:text-lg font-bold text-slate-800 mt-0.5">
-                {cost ? `₹${Math.round(cost.periodInrTotal || 0).toLocaleString("en-IN")}` : "—"}
+                {cost ? `₹${Math.round(cost.combinedPeriodInrTotal || cost.periodInrTotal || 0).toLocaleString("en-IN")}` : "—"}
               </div>
-              <div className="text-[10px] text-slate-400">Selected range</div>
+              <div className="text-[10px] text-slate-400">Selected range (in INR)</div>
             </div>
           </div>
         </div>

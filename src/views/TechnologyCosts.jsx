@@ -3,9 +3,16 @@ import { Panel, EmptyState, Kpi, KpiBand } from "../components/primitives.jsx";
 import { RankedBars } from "../components/visuals.jsx";
 import { CATEGORICAL } from "../lib/palette.js";
 import { downloadSampleSheet } from "../lib/sampleTemplates.js";
-import { SmtpRenewalModal, SmtpDirectRenewalCard } from "../components/SmtpRenewalModal.jsx";
+import {
+  RENEWAL_PLANS,
+  ToolRenewalBanner,
+  ToolRenewalModal,
+  isRenewalDueNextMonth,
+  isRenewalExpired,
+} from "../components/SmtpRenewalModal.jsx";
+import { USD_TO_INR } from "../state/useDashboard.js";
 
-/** Formats currency exactly with its appropriate symbol without currency conversion or estimation. */
+/** Formats currency exactly with its appropriate symbol. */
 function fmtMoneyExact(amount, currency) {
   if (amount == null || !Number.isFinite(amount)) return "—";
   const symbol = currency === "USD" ? "$" : "₹";
@@ -14,12 +21,21 @@ function fmtMoneyExact(amount, currency) {
 
 export function TechnologyCostsView({ d }) {
   const { costStats: cost } = d;
-  const [showSmtpModal, setShowSmtpModal] = useState(false);
+  const [selectedRenewalIndex, setSelectedRenewalIndex] = useState(0);
+  const [showRenewalModal, setShowRenewalModal] = useState(false);
+  const [modalPlan, setModalPlan] = useState(RENEWAL_PLANS[0]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const rows = cost?.rows || [];
+
+  // Filter renewals strictly to those coming up in NEXT MONTH:
+  // "agar next month me koi renewal aa raha to khali usko hi represent karna hai kisi aur ko nahi."
+  // "fir jab uska renewal month chala jaye to vo nahi dikhna chahiye."
+  const dueRenewals = useMemo(() => {
+    return RENEWAL_PLANS.filter((p) => isRenewalDueNextMonth(p.renewal));
+  }, []);
 
   const categories = useMemo(() => {
     if (!rows.length) return ["All"];
@@ -58,12 +74,14 @@ export function TechnologyCostsView({ d }) {
     return s === "ad hoc" || s === "adhoc" || c === "irregular";
   }), [rows]);
 
+  // Include all active subscriptions converted to INR in category spend breakdown
   const inrCategoryData = useMemo(() => {
     const map = new Map();
     const factor = cost?.factor ?? 1;
-    for (const r of activeRows.filter((r) => r.currency !== "USD")) {
+    for (const r of activeRows) {
       const cat = r.category || "Uncategorised";
-      const val = (r.monthlyCost ?? (r.cycle?.toLowerCase() === "monthly" ? r.costPerCycle : 0) ?? 0) * factor;
+      const rawVal = (r.monthlyCost ?? (r.cycle?.toLowerCase() === "monthly" ? r.costPerCycle : 0) ?? 0) * factor;
+      const val = r.currency === "USD" ? rawVal * USD_TO_INR : rawVal;
       map.set(cat, (map.get(cat) || 0) + val);
     }
     return Array.from(map, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
@@ -78,6 +96,21 @@ export function TechnologyCostsView({ d }) {
     return Array.from(map, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
   }, [rows]);
 
+  const handleOpenRenewal = (plan) => {
+    setModalPlan(plan);
+    setShowRenewalModal(true);
+  };
+
+  const handleJumpToRenewal = (toolName) => {
+    const idx = dueRenewals.findIndex(
+      (p) => p.tool.toLowerCase().includes(toolName.toLowerCase()) || toolName.toLowerCase().includes(p.tool.toLowerCase())
+    );
+    if (idx >= 0) {
+      setSelectedRenewalIndex(idx);
+      document.getElementById("renewal-banner-section")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   if (!cost) {
     return (
       <div className="space-y-6">
@@ -88,11 +121,20 @@ export function TechnologyCostsView({ d }) {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setShowSmtpModal(true)}
-                className="btn !py-2 !px-3.5 !text-xs !font-bold text-[#625AF8] hover:text-white hover:bg-[#625AF8] border border-indigo-200 bg-indigo-50/80 flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+                onClick={() => {
+                  if (dueRenewals.length > 0) {
+                    setModalPlan(dueRenewals[0]);
+                    setShowRenewalModal(true);
+                  }
+                }}
+                className={`btn !py-2 !px-3.5 !text-xs !font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all ${
+                  dueRenewals.length > 0
+                    ? "text-[#5B9B00] hover:text-white hover:bg-[#5B9B00] border border-emerald-200 bg-emerald-50/80"
+                    : "text-slate-500 bg-slate-50 border border-slate-200"
+                }`}
               >
-                <span className="h-2 w-2 rounded-full bg-[#625AF8] animate-pulse" />
-                SMTP Renewal
+                <span className={`h-2 w-2 rounded-full ${dueRenewals.length > 0 ? "bg-[#5B9B00] animate-pulse" : "bg-slate-300"}`} />
+                {dueRenewals.length > 0 ? `Renewal Due Next Month (${dueRenewals.length})` : "Renewals Up-To-Date"}
               </button>
               <button
                 type="button"
@@ -113,7 +155,11 @@ export function TechnologyCostsView({ d }) {
             No tool spend or software cost sheets have been loaded yet.
           </EmptyState>
         </Panel>
-        <SmtpRenewalModal isOpen={showSmtpModal} onClose={() => setShowSmtpModal(false)} />
+        <ToolRenewalModal
+          isOpen={showRenewalModal}
+          onClose={() => setShowRenewalModal(false)}
+          selectedPlan={modalPlan}
+        />
       </div>
     );
   }
@@ -121,23 +167,29 @@ export function TechnologyCostsView({ d }) {
   const factor = cost.factor ?? 1;
   const isScaled = factor !== 1;
 
+  // Native totals
   const currentInr = isScaled ? cost.periodInrTotal : cost.totalInrMonthly;
   const currentUsd = isScaled ? cost.periodUsdTotal : cost.totalUsdMonthly;
 
+  // Converted USD to INR
+  const currentConvertedUsdInr = currentUsd * USD_TO_INR;
+  // Combined Grand Total in INR
+  const currentCombinedInr = currentInr + currentConvertedUsdInr;
+
   return (
     <div className="space-y-6">
-      {/* Top Exact KPI Band */}
+      {/* Top Exact KPI Band - Converted USD to INR */}
       <KpiBand>
         <Kpi
-          figure={`₹${currentInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          label="Total (INR, active)"
-          detail={`Across ${activeRows.filter((r) => r.currency !== "USD").length} active INR subscriptions`}
+          figure={`₹${currentCombinedInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          label="Total Cost (INR, all active)"
+          detail={`Combined INR + USD converted @ ₹${USD_TO_INR.toFixed(2)}/$ (${activeRows.length} tools)`}
           accent="#6C5CE7"
         />
         <Kpi
-          figure={`$${currentUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          label="Total (USD, active)"
-          detail={`Across ${activeRows.filter((r) => r.currency === "USD").length} active USD subscription`}
+          figure={`₹${currentConvertedUsdInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          label="USD Subscriptions (in INR)"
+          detail={`$${currentUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} converted @ ₹${USD_TO_INR.toFixed(2)}/$ · 1 active (Apollo.io)`}
           accent="#00C2FF"
         />
         <Kpi
@@ -160,51 +212,23 @@ export function TechnologyCostsView({ d }) {
         />
       </KpiBand>
 
-      {/* Direct SMTP Provider Renewal Card Section */}
-      <div className="rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-50/70 via-purple-50/30 to-white p-6 shadow-sm">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="max-w-xl space-y-3 text-left">
-            <div className="flex items-center gap-2">
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#5B9B00] text-white tracking-wide uppercase shadow-2xs">
-                5% OFF Special Renewal
-              </span>
-              <span className="text-xs text-slate-400 font-medium">Netcore / Pepipost SMTP API</span>
-            </div>
-            <h2 className="text-xl font-black text-slate-900 font-display">
-              SMTP Provider — Direct Renewal Card
-            </h2>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Direct renewal card for bulk email marketing server. Re-charges <strong>75,000 email credits</strong> with <strong>3 Months validity</strong> at <strong>₹5,851.62</strong> (5% OFF from standard ₹6,159.60).
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
-              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Monthly Equivalent</span>
-                <span className="text-sm font-bold text-slate-800 font-mono">₹1,950.54 / mo</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Total Savings</span>
-                <span className="text-sm font-bold text-[#5B9B00] font-mono">₹307.98 (5% OFF)</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/90 border border-slate-200/70 shadow-2xs">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase block">Email Service</span>
-                <span className="text-xs font-semibold text-indigo-700 truncate block">marketing@tecnoprism.com</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Direct Renewal Card (Exact from user screenshot) */}
-          <div className="shrink-0">
-            <SmtpDirectRenewalCard onGetNow={() => setShowSmtpModal(true)} />
-          </div>
-        </div>
+      {/* Direct Renewal Card Section matching user reference Image 1
+          Strictly represents ONLY the renewal due NEXT MONTH. Disappears once passed. */}
+      <div id="renewal-banner-section">
+        <ToolRenewalBanner
+          plans={RENEWAL_PLANS}
+          activeIndex={selectedRenewalIndex}
+          onSelectIndex={setSelectedRenewalIndex}
+          onGetNow={handleOpenRenewal}
+        />
       </div>
 
-      {/* Visual Breakdowns: Exact Category Spend & Billing Cycles */}
+      {/* Visual Breakdowns: Exact Category Spend (INR, all active) & Billing Cycles */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <div className="lg:col-span-7">
           <Panel
             title="Spend by Category (INR, Active)"
-            note="Totals from active recurring software"
+            note={`Totals in INR including converted USD subscriptions (@ ₹${USD_TO_INR.toFixed(2)}/$)`}
           >
             <RankedBars
               rows={inrCategoryData}
@@ -253,19 +277,30 @@ export function TechnologyCostsView({ d }) {
         </div>
       </div>
 
-      {/* Exact Table (Matching the user's Excel sheet) */}
+      {/* Exact Table (Matching user spreadsheet with USD converted to INR) */}
       <Panel
         title="Technology & Tool Subscriptions"
-        note={`${filteredRows.length} of ${rows.length} records shown`}
+        note={`${filteredRows.length} of ${rows.length} records shown · USD amounts converted to INR at ₹${USD_TO_INR.toFixed(2)}/$`}
         right={
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowSmtpModal(true)}
-              className="btn !py-1.5 !px-3 !text-xs !font-bold text-[#625AF8] hover:text-white hover:bg-[#625AF8] border border-indigo-200 bg-indigo-50/80 flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all"
+              onClick={() => {
+                if (dueRenewals.length > 0) {
+                  setModalPlan(dueRenewals[0]);
+                  setShowRenewalModal(true);
+                }
+              }}
+              className={`btn !py-1.5 !px-3 !text-xs !font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-all ${
+                dueRenewals.length > 0
+                  ? "text-[#5B9B00] hover:text-white hover:bg-[#5B9B00] border border-emerald-200 bg-emerald-50/80"
+                  : "text-slate-500 bg-slate-50 border border-slate-200"
+              }`}
             >
-              <span className="h-2 w-2 rounded-full bg-[#625AF8] animate-pulse" />
-              SMTP Renewal
+              <span className={`h-2 w-2 rounded-full ${dueRenewals.length > 0 ? "bg-[#5B9B00] animate-pulse" : "bg-slate-300"}`} />
+              {dueRenewals.length > 0
+                ? `Renewal Due Next Month (${dueRenewals.length})`
+                : "Renewals Up-To-Date"}
             </button>
             <button
               type="button"
@@ -342,7 +377,7 @@ export function TechnologyCostsView({ d }) {
           </div>
         </div>
 
-        {/* Data Table */}
+        {/* Data Table with USD to INR conversion */}
         <div className="overflow-x-auto rounded-xl border border-slate-200/80 shadow-2xs">
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-[#1E293B] text-slate-200 text-[11px] font-bold">
@@ -350,11 +385,11 @@ export function TechnologyCostsView({ d }) {
                 <th className="p-3">Tool</th>
                 <th className="p-3">Category</th>
                 <th className="p-3">Owner</th>
-                <th className="p-3 text-right">Monthly Cost</th>
+                <th className="p-3 text-right">Monthly Cost (INR)</th>
                 <th className="p-3">Billing Cycle</th>
                 <th className="p-3 text-center">Seats</th>
-                <th className="p-3">Renewal</th>
-                <th className="p-3 text-right">Cost per Cycle</th>
+                <th className="p-3">Renewal Schedule</th>
+                <th className="p-3 text-right">Cost per Cycle (INR)</th>
                 <th className="p-3 text-center">Currency</th>
                 <th className="p-3 text-center">Status</th>
               </tr>
@@ -370,6 +405,15 @@ export function TechnologyCostsView({ d }) {
                 filteredRows.map((r, i) => {
                   const isCancelled = String(r.status || "").toLowerCase() === "cancelled";
                   const isAdhoc = String(r.status || "").toLowerCase() === "ad hoc" || String(r.status || "").toLowerCase() === "adhoc";
+                  const isUsd = r.currency === "USD";
+                  const rawMonthly = isScaled ? r.periodCost : r.monthlyCost;
+                  const inrMonthly = rawMonthly != null ? (isUsd ? rawMonthly * USD_TO_INR : rawMonthly) : null;
+                  const rawCycleCost = r.costPerCycle;
+                  const inrCycleCost = rawCycleCost != null ? (isUsd ? rawCycleCost * USD_TO_INR : rawCycleCost) : null;
+
+                  // Check if this tool is strictly due next month or expired
+                  const isDueNext = isRenewalDueNextMonth(r.renewal);
+                  const isExpired = isRenewalExpired(r.renewal);
 
                   return (
                     <tr
@@ -404,13 +448,26 @@ export function TechnologyCostsView({ d }) {
                       </td>
 
                       {/* Owner */}
-                      <td className="p-3 text-slate-600 font-mono text-[11px] max-w-[220px] truncate" title={r.owner || ""}>
+                      <td className="p-3 text-slate-600 font-mono text-[11px] max-w-[200px] truncate" title={r.owner || ""}>
                         {r.owner || "—"}
                       </td>
 
-                      {/* Monthly Cost */}
-                      <td className="p-3 text-right font-mono font-bold text-slate-800">
-                        {fmtMoneyExact(isScaled ? r.periodCost : r.monthlyCost, r.currency)}
+                      {/* Monthly Cost (INR) */}
+                      <td className="p-3 text-right">
+                        {inrMonthly != null ? (
+                          <div>
+                            <span className="font-mono font-bold text-slate-800 block">
+                              ₹{inrMonthly.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            {isUsd && (
+                              <span className="text-[10px] text-cyan-700 font-mono block font-medium">
+                                (${rawMonthly?.toFixed(2)} USD @ ₹{USD_TO_INR.toFixed(2)})
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
                       </td>
 
                       {/* Billing Cycle */}
@@ -433,30 +490,69 @@ export function TechnologyCostsView({ d }) {
                         {r.seats != null && r.seats !== "" ? r.seats : "—"}
                       </td>
 
-                      {/* Renewal */}
-                      <td className="p-3 text-slate-600 font-mono text-[11px]">
-                        {r.renewal || "—"}
+                      {/* Renewal Schedule: Exclusively highlights renewals due next month */}
+                      <td className="p-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-mono text-[11px] ${
+                            isExpired
+                              ? "text-slate-400 line-through"
+                              : isDueNext
+                              ? "text-[#5B9B00] font-bold"
+                              : "text-slate-600"
+                          }`}>
+                            {r.renewal || "—"}
+                          </span>
+                          {isDueNext && (
+                            <button
+                              type="button"
+                              onClick={() => handleJumpToRenewal(r.tool)}
+                              className="text-[9px] font-extrabold text-white bg-[#5B9B00] hover:bg-[#4d8200] px-2 py-0.5 rounded shadow-2xs transition-all cursor-pointer uppercase tracking-wider whitespace-nowrap"
+                              title={`Renewal due next month! Click to view ${r.tool} renewal card`}
+                            >
+                              Renew Next Mo ➔
+                            </button>
+                          )}
+                          {isExpired && (
+                            <span className="text-[10px] text-slate-400 italic">
+                              (Expired)
+                            </span>
+                          )}
+                        </div>
                       </td>
 
-                      {/* Cost per Cycle */}
-                      <td className="p-3 text-right font-mono font-bold text-slate-800">
-                        {fmtMoneyExact(r.costPerCycle, r.currency)}
+                      {/* Cost per Cycle (INR) */}
+                      <td className="p-3 text-right">
+                        {inrCycleCost != null ? (
+                          <div>
+                            <span className="font-mono font-bold text-slate-800 block">
+                              ₹{inrCycleCost.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                            {isUsd && (
+                              <span className="text-[10px] text-cyan-700 font-mono block font-medium">
+                                (${rawCycleCost?.toFixed(2)} USD)
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
                       </td>
 
                       {/* Currency */}
                       <td className="p-3 text-center">
-                        {r.currency ? (
+                        {isUsd ? (
                           <span
-                            className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                              r.currency === "USD"
-                                ? "bg-cyan-50 text-cyan-700 border border-cyan-200/60"
-                                : "bg-violet-50 text-violet-700 border border-violet-200/60"
-                            }`}
+                            className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200/70"
+                            title="USD converted into INR at ₹84.00/$"
                           >
-                            {r.currency}
+                            USD → INR
+                          </span>
+                        ) : r.currency === "INR" ? (
+                          <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-50 text-violet-700 border border-violet-200/60">
+                            INR
                           </span>
                         ) : (
-                          "—"
+                          <span className="text-slate-400">—</span>
                         )}
                       </td>
 
@@ -480,35 +576,51 @@ export function TechnologyCostsView({ d }) {
               )}
             </tbody>
 
-            {/* Exact Totals Footer Rows */}
+            {/* Exact Converted Totals Footer Rows */}
             <tfoot className="border-t-2 border-slate-300 bg-slate-50 text-xs font-bold text-slate-900">
               <tr>
                 <td colSpan={3} className="p-3 text-right text-slate-600 uppercase tracking-wide text-[11px]">
-                  Total (INR, active)
+                  Native INR Subscriptions
                 </td>
-                <td className="p-3 text-right font-mono text-sm font-black text-slate-900 bg-amber-50/60">
+                <td className="p-3 text-right font-mono text-sm font-black text-slate-900 bg-amber-50/50">
                   ₹{currentInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
                 <td colSpan={6} className="p-3 text-slate-400 font-normal text-[11px]">
-                  Sum of active INR subscriptions
+                  Active tools natively billed in INR
                 </td>
               </tr>
               <tr>
-                <td colSpan={3} className="p-3 text-right text-slate-600 uppercase tracking-wide text-[11px]">
-                  Total (USD, active)
+                <td colSpan={3} className="p-3 text-right text-cyan-800 uppercase tracking-wide text-[11px]">
+                  USD Converted to INR (@ ₹{USD_TO_INR.toFixed(2)}/$)
                 </td>
-                <td className="p-3 text-right font-mono text-sm font-black text-slate-900 bg-amber-50/60">
-                  ${currentUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <td className="p-3 text-right font-mono text-sm font-black text-cyan-800 bg-cyan-50/70">
+                  ₹{currentConvertedUsdInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
-                <td colSpan={6} className="p-3 text-slate-400 font-normal text-[11px]">
-                  Sum of active USD subscriptions (Apollo.io)
+                <td colSpan={6} className="p-3 text-cyan-700 font-medium text-[11px]">
+                  Converted from ${currentUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD (Apollo.io)
+                </td>
+              </tr>
+              <tr className="bg-purple-50/70 border-t border-purple-200/70">
+                <td colSpan={3} className="p-3 text-right text-[#6C5CE7] uppercase tracking-wide text-[11px] font-black">
+                  Combined Total Spend (INR)
+                </td>
+                <td className="p-3 text-right font-mono text-base font-black text-[#6C5CE7] bg-purple-100/60">
+                  ₹{currentCombinedInr.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td colSpan={6} className="p-3 text-[#6C5CE7] font-semibold text-[11px]">
+                  Grand total across all {activeRows.length} active software commitments
                 </td>
               </tr>
             </tfoot>
           </table>
         </div>
       </Panel>
-      <SmtpRenewalModal isOpen={showSmtpModal} onClose={() => setShowSmtpModal(false)} />
+
+      <ToolRenewalModal
+        isOpen={showRenewalModal}
+        onClose={() => setShowRenewalModal(false)}
+        selectedPlan={modalPlan}
+      />
     </div>
   );
 }

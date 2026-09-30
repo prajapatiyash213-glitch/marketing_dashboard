@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { buildSampleData } from "./sampleData.js";
 import { downloadBlob } from "./exporters.js";
 import { EXACT_SEO_RAW_MATRIX } from "./exactSeoData.js";
+import { EXACT_SAMPLE_DROPOFFS } from "./dropoffData.js";
 
 const iso = (d) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d || ""));
 
@@ -83,6 +84,17 @@ export const SAMPLE_CATEGORIES = [
     badgeBg: "bg-indigo-50 text-[#6C5CE7] border-indigo-200/60",
     description: "Exact software stack subscriptions, monthly costs, cycles, renewals, seats, and active currencies.",
     columns: ["Tool", "Category", "Owner", "Monthly Cost", "Billing Cycle", "Seats", "Renewal", "Cost per Cycle", "Currency", "Status"],
+  },
+  {
+    id: "dropoffs",
+    name: "Website Drop-offs & Exit Leads",
+    fileName: "Website_Dropoffs.xlsx",
+    sheetName: "Website Dropoffs",
+    color: "#FA2E76",
+    badge: "Drop-offs",
+    badgeBg: "bg-rose-50 text-[#FA2E76] border-rose-200/60",
+    description: "Visitor drop-offs capturing multi-line pages visited, brand, owner, lead dates, connect dates, and stages.",
+    columns: ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Lead Status"],
   },
 ];
 
@@ -249,20 +261,44 @@ export function buildSampleWorkbook(categoryId = "all") {
     XLSX.utils.book_append_sheet(wb, ws, "Subscriptions");
   };
 
+  const addDropoffsSheet = () => {
+    const rows = EXACT_SAMPLE_DROPOFFS.map((r) => ({
+      "First Name": r.firstName,
+      "Last Name": r.lastName,
+      "Title": r.title,
+      "Company Name": r.company,
+      "Company Name for Emails": r.companyForEmails,
+      "Email": r.email,
+      "Page Visited": r.pageVisited,
+      "Brand": r.brand,
+      "Ownership": r.ownership,
+      "Lead Date": r.leadDate,
+      "Lead Source": r.leadSource,
+      "Lead Stage": r.leadStage,
+      "Date of Connect": r.dateOfConnect,
+      "Comments": r.comments,
+      "Lead Status": r.leadStatus,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Website Dropoffs");
+  };
+
   if (categoryId === "leads") addLeadsSheet();
   else if (categoryId === "seo") addSeoSheet();
   else if (categoryId === "email") addEmailSheet();
   else if (categoryId === "social") addSocialSheet();
   else if (categoryId === "landing") addLandingSheet();
   else if (categoryId === "cost") addCostSheet();
+  else if (categoryId === "dropoffs") addDropoffsSheet();
   else {
-    // Master workbook: all 6 sheets
+    // Master workbook: all 7 sheets
     addLeadsSheet();
     addSeoSheet();
     addEmailSheet();
     addSocialSheet();
     addLandingSheet();
     addCostSheet();
+    addDropoffsSheet();
   }
 
   return wb;

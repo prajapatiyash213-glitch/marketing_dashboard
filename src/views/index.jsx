@@ -100,7 +100,7 @@ export function PipelineView({ d, allUndated }) {
   );
 }
 
-export function LeadsView({ d, filters, setFilters, statuses, onExportCsv, onExportXlsx }) {
+export function LeadsView({ d, filters, setFilters, statuses, onExportCsv, onExportXlsx, onRemoveDuplicates }) {
   return (
     <Panel
       title="Every lead, in one table"
@@ -115,6 +115,7 @@ export function LeadsView({ d, filters, setFilters, statuses, onExportCsv, onExp
         setFilters={setFilters}
         onExportCsv={onExportCsv}
         onExportXlsx={onExportXlsx}
+        onRemoveDuplicates={onRemoveDuplicates}
       />
     </Panel>
   );
@@ -184,6 +185,7 @@ export function SourcesView({ files, onFiles, busy, onClear, onReloadMaster, has
                     {f.sheets.map((s) => {
                       if (s.kind === "seo") return `${s.sheet} — ${fmtInt(s.count)} weeks`;
                       if (s.kind === "leads") return `${s.sheet} — ${fmtInt(s.count)} leads`;
+                      if (s.kind === "ignored") return `${s.sheet} — ignored (only website leads considered)`;
                       if (s.label) return `${s.sheet} — ${fmtInt(s.count)} rows, read as ${s.label.toLowerCase()}`;
                       return `${s.sheet} — not recognised`;
                     }).join(" · ")}

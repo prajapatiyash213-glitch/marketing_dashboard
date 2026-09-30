@@ -1,6 +1,7 @@
 import { PipelineView, LeadsView, SourcesView } from "./index.jsx";
 import { OverviewView } from "./Overview.jsx";
 import { WebsitesView } from "./Websites.jsx";
+import { WebsiteDropoffsView } from "./WebsiteDropoffs.jsx";
 import { ChannelsView } from "./Channels.jsx";
 import { TechnologyCostsView } from "./TechnologyCosts.jsx";
 import { EmailCampaignsView } from "./EmailCampaigns.jsx";
@@ -14,6 +15,7 @@ export default function ViewRouter({ view, ...props }) {
   switch (view) {
     case "pipeline": return <PipelineView {...props} />;
     case "websites": return <WebsitesView {...props} />;
+    case "dropoffs": return <WebsiteDropoffsView {...props} />;
     case "channels": return <ChannelsView {...props} />;
     case "social": return <SocialMediaView {...props} />;
     case "email": return <EmailCampaignsView {...props} />;

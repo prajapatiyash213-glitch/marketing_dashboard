@@ -9,6 +9,7 @@ import {
 } from "recharts";
 import { fmtInt } from "../lib/numbers.js";
 import { MODULES } from "../lib/palette.js";
+import { getSeoMetricHealth } from "../lib/seoHealth.js";
 
 /** Comprehensive Website & SEO analytics across all 11 metrics. */
 export function WebsitesView({ d, onLoadExactSeo }) {
@@ -53,80 +54,234 @@ export function WebsitesView({ d, onLoadExactSeo }) {
   }
   const compare = Array.from(byLabel.values()).sort((a, b) => a.sort - b.sort);
 
+  const trend = d.seoTrend || [];
+  // Use aggregated weekly trend so multi-site weeks are cleanly merged rather than cross-comparing different sites
+  const latestWeek = trend[trend.length - 1] || latest || {};
+  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : null;
+
+  // Dynamic SEO metric evaluation: Good (Green), Bad (Red), Natural (Black)
+  const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
+  const usersHealth = getSeoMetricHealth("users", latestWeek.users, prevWeek?.users);
+  const currentBounce = latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce);
+  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce);
+  const asHealth = getSeoMetricHealth("as", latest.as, prevWeek?.as);
+  const daHealth = getSeoMetricHealth("da", latest.da, prevWeek?.da);
+  const keywordsHealth = getSeoMetricHealth("keywords", latest.keywords, prevWeek?.keywords);
+  const leadsHealth = getSeoMetricHealth("webLeads", d.seo.webLeads, prevWeek?.seoLeads);
+  const downloadsHealth = getSeoMetricHealth("downloads", d.seo.downloads, prevWeek?.downloads);
+  const paHealth = getSeoMetricHealth("pa", latest.pa, prevWeek?.pa);
+  const backlinksHealth = getSeoMetricHealth("backlinks", latest.backlinks, prevWeek?.backlinks);
+  const aiSearchHealth = getSeoMetricHealth("aiSearch", latest.aiSearch, prevWeek?.aiSearch);
+
   return (
     <>
       <SiteCompareStrip sites={sites} />
 
+      {/* Dynamic SEO Health Status Bar */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs">
+        <div className="flex items-center gap-2 text-slate-700 font-semibold">
+          <span className="font-bold text-slate-900">SEO Metric Health Evaluation:</span>
+          <span className="text-slate-500 font-normal">Week-over-week performance & industry benchmarks</span>
+        </div>
+        <div className="flex items-center gap-2 text-[11px] font-bold">
+          <span className="inline-flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Green = Good / Growing
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-slate-800 bg-white px-2 py-0.5 rounded-md border border-slate-200">
+            <span className="h-2 w-2 rounded-full bg-slate-500" />
+            Black = Natural Baseline / Stable
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+            <span className="h-2 w-2 rounded-full bg-rose-500" />
+            Red = Dropping / Needs Attention
+          </span>
+        </div>
+      </div>
+
       {/* 11-Metric Executive KPI Band */}
       <div className="mb-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="panel p-3.5 border-l-4 border-l-[#00C2FF] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">GA4 Views</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(d.seo.views)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">{d.periodWeeks.length} weeks in period</div>
+        <div className={`panel p-3.5 border-l-4 ${viewsHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">GA4 Views</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${viewsHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${viewsHealth.dotClass}`} />
+              {viewsHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${viewsHealth.textClass}`}>{fmtInt(d.seo.views)}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">{d.periodWeeks.length} wks in period</span>
+            {viewsHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${viewsHealth.status === "good" ? "text-emerald-600" : viewsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {viewsHealth.diffText}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#7B61FF] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total Users</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(d.seo.users)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Unique visitors</div>
+        <div className={`panel p-3.5 border-l-4 ${usersHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Total Users</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${usersHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${usersHealth.dotClass}`} />
+              {usersHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${usersHealth.textClass}`}>{fmtInt(d.seo.users)}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Unique visitors</span>
+            {usersHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${usersHealth.status === "good" ? "text-emerald-600" : usersHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {usersHealth.diffText}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#FA2E76] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Bounce Rate</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{bounceDisplay}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Period average</div>
+        <div
+          onClick={() => setView?.("dropoffs")}
+          title="Click to view detailed Website Drop-offs & Exits"
+          className={`panel p-3.5 border-l-4 ${bounceHealth.borderClass} flex flex-col justify-between shadow-xs transition-all cursor-pointer hover:shadow-md group`}
+        >
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate group-hover:text-rose-600 transition-colors">
+              Bounce Rate ➔
+            </span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${bounceHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${bounceHealth.dotClass}`} />
+              {bounceHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${bounceHealth.textClass}`}>{bounceDisplay}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Period average</span>
+            <span className="text-[10px] font-bold text-rose-600 group-hover:underline">Drop-offs</span>
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#FF9F43] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">SEMrush AS</div>
-          <div className="text-2xl font-black text-[#FF9F43] font-display mt-1">{latest.as ?? "—"}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Authority Score</div>
+        <div className={`panel p-3.5 border-l-4 ${asHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">SEMrush AS</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${asHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${asHealth.dotClass}`} />
+              {asHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${asHealth.textClass}`}>{latest.as ?? "—"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Authority Score</span>
+            {asHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{asHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#10B981] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Domain Auth</div>
-          <div className="text-2xl font-black text-[#10B981] font-display mt-1">{latest.da ?? "—"}</div>
-          <div className="text-[11px] text-slate-400 mt-1">DAPA Checker</div>
+        <div className={`panel p-3.5 border-l-4 ${daHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Domain Auth</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${daHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${daHealth.dotClass}`} />
+              {daHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${daHealth.textClass}`}>{latest.da ?? "—"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">DAPA Checker</span>
+            {daHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{daHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#6C5CE7] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Top 20 Keywords</div>
-          <div className="text-2xl font-black text-[#6C5CE7] font-display mt-1">{latest.keywords ?? "—"}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Ranked queries</div>
+        <div className={`panel p-3.5 border-l-4 ${keywordsHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Top 20 KW</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${keywordsHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${keywordsHealth.dotClass}`} />
+              {keywordsHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${keywordsHealth.textClass}`}>{latest.keywords ?? "—"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Ranked queries</span>
+            {keywordsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{keywordsHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-[#0E7C86] flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Inbound Leads</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(d.seo.webLeads)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">{d.seo.efficiency.toFixed(2)}% visit conversion</div>
+        <div className={`panel p-3.5 border-l-4 ${leadsHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Inbound Leads</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${leadsHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${leadsHealth.dotClass}`} />
+              {leadsHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${leadsHealth.textClass}`}>{fmtInt(d.seo.webLeads)}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">{d.seo.efficiency.toFixed(2)}% conv</span>
+            {leadsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{leadsHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-sky-400 flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Downloads</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{fmtInt(d.seo.downloads)}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Resource fills</div>
+        <div className={`panel p-3.5 border-l-4 ${downloadsHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Downloads</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${downloadsHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${downloadsHealth.dotClass}`} />
+              {downloadsHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${downloadsHealth.textClass}`}>{fmtInt(d.seo.downloads)}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Resource fills</span>
+            {downloadsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{downloadsHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-indigo-400 flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Page Authority</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1">{latest.pa ?? "—"}</div>
-          <div className="text-[11px] text-slate-400 mt-1">Homepage PA</div>
+        <div className={`panel p-3.5 border-l-4 ${paHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Page Authority</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${paHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${paHealth.dotClass}`} />
+              {paHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${paHealth.textClass}`}>{latest.pa ?? "—"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate">Homepage PA</span>
+            {paHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{paHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-amber-500 flex flex-col justify-between">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Backlinks</div>
-          <div className="text-2xl font-black text-slate-800 font-display mt-1" title={latest.raw_backlinks || ""}>
+        <div className={`panel p-3.5 border-l-4 ${backlinksHealth.borderClass} flex flex-col justify-between shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">Backlinks</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${backlinksHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${backlinksHealth.dotClass}`} />
+              {backlinksHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${backlinksHealth.textClass}`} title={latest.raw_backlinks || ""}>
             {latest.backlinks != null ? fmtInt(latest.backlinks) : "—"}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1 truncate">{latest.raw_backlinks || "Total indexed links"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate" title={latest.raw_backlinks || "Total indexed links"}>{latest.raw_backlinks || "Total indexed links"}</span>
+            {backlinksHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{backlinksHealth.diffText}</span>}
+          </div>
         </div>
 
-        <div className="panel p-3.5 border-l-4 border-l-pink-500 flex flex-col justify-between col-span-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">AI Search Visibility</div>
-          <div className="text-2xl font-black text-[#FA2E76] font-display mt-1" title={latest.raw_aiSearch || ""}>
+        <div className={`panel p-3.5 border-l-4 ${aiSearchHealth.borderClass} flex flex-col justify-between col-span-2 shadow-xs transition-all`}>
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide truncate">AI Search Visibility</span>
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 ${aiSearchHealth.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${aiSearchHealth.dotClass}`} />
+              {aiSearchHealth.shortBadge}
+            </span>
+          </div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${aiSearchHealth.textClass}`} title={latest.raw_aiSearch || ""}>
             {latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—"}
           </div>
-          <div className="text-[11px] text-slate-400 mt-1 truncate">{latest.raw_aiSearch || "AI query referrals"}</div>
+          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span className="truncate" title={latest.raw_aiSearch || "AI query referrals"}>{latest.raw_aiSearch || "AI query referrals"}</span>
+            {aiSearchHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{aiSearchHealth.diffText}</span>}
+          </div>
         </div>
       </div>
 
@@ -209,7 +364,12 @@ export function WebsitesView({ d, onLoadExactSeo }) {
       <div className="mt-6 panel p-5">
         <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
           <div>
-            <h2 className="text-base font-bold text-slate-800">Weekly SEO Matrix</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-slate-800">Weekly SEO Matrix</h2>
+              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                {d.periodWeeks.length} weeks active
+              </span>
+            </div>
             <p className="text-xs text-slate-400 mt-0.5">
               Exact 11 key metrics tracking across {d.periodWeeks.length} weeks in selected date range
             </p>
@@ -233,11 +393,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
                 onClick={() => setTableMode("horizontal")}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                   tableMode === "horizontal"
-                    ? "bg-white text-[#FA2E76] shadow-xs"
+                    ? "bg-white text-[#FA2E76] shadow-xs font-bold"
                     : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                Original Matrix (11×45)
+                Original Matrix (11 × {d.periodWeeks.length})
               </button>
             </div>
 
@@ -295,42 +455,54 @@ export function WebsitesView({ d, onLoadExactSeo }) {
             </table>
           </div>
         ) : (
-          /* Horizontal Original Spreadsheet Matrix matching uploaded file */
+          /* Horizontal Original Spreadsheet Matrix dynamically rendered from loaded weeks */
           <div className="mt-4 overflow-x-auto section-scroll rounded-xl border border-slate-200/80 max-h-[520px]">
             <table className="w-full text-left text-xs border-collapse min-w-[1400px]">
               <thead>
                 <tr className="bg-[#BAE6FD] text-slate-800 text-[11px] font-bold border-b border-sky-300 sticky top-0 shadow-xs">
-                  {EXACT_SEO_RAW_MATRIX[0].map((h, i) => (
-                    <th
-                      key={i}
-                      className={`p-2.5 whitespace-nowrap border-r border-sky-300 ${
-                        i === 0 ? "sticky left-0 bg-[#A5F3FC] z-20" : ""
-                      }`}
-                    >
-                      {h}
+                  <th className="p-2.5 whitespace-nowrap border-r border-sky-300 sticky left-0 bg-[#A5F3FC] z-20">Category</th>
+                  <th className="p-2.5 whitespace-nowrap border-r border-sky-300 sticky left-[110px] bg-[#BAE6FD] z-20">Key Metrics</th>
+                  {d.periodWeeks.map((w, i) => (
+                    <th key={`${w.site}-${w.sort}-${i}`} className="p-2.5 text-right whitespace-nowrap border-r border-sky-300">
+                      {w.label}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
-                {EXACT_SEO_RAW_MATRIX.slice(1).map((row, rIdx) => (
-                  <tr key={rIdx} className="hover:bg-sky-50/50 transition-colors">
-                    {row.map((cell, cIdx) => (
-                      <td
-                        key={cIdx}
-                        className={`p-2 text-slate-700 whitespace-nowrap border-r border-slate-100 ${
-                          cIdx === 0
-                            ? "sticky left-0 bg-slate-50 font-bold z-10 border-r-2 border-r-slate-200"
-                            : cIdx === 1
-                            ? "font-semibold text-slate-800 bg-slate-50/60"
-                            : "text-right"
-                        } ${
-                          cell && String(cell).includes("%") ? "bg-amber-50/20" : ""
-                        }`}
-                      >
-                        {cell || "—"}
-                      </td>
-                    ))}
+                {[
+                  { key: "views", label: "Traffic (GA4) - Views", fmt: (w) => fmtInt(w.views) },
+                  { key: "users", label: "Traffic (GA4) - Total Users", fmt: (w) => fmtInt(w.users) },
+                  { key: "bounce", label: "Bounce Rate", fmt: (w) => (w.bounce != null ? `${w.bounce}%` : "—") },
+                  { key: "as", label: "Authority Score (SEMrush)", fmt: (w) => (w.as ?? "—") },
+                  { key: "da", label: "Domain Authority (DAPA Checker)", fmt: (w) => (w.da ?? "—") },
+                  { key: "seoLeads", label: "Leads (forms+chatbot)", fmt: (w) => fmtInt(w.seoLeads) },
+                  { key: "downloads", label: "Downloads", fmt: (w) => fmtInt(w.downloads) },
+                  { key: "pa", label: "Page Authority (Homepage)", fmt: (w) => (w.pa ?? "—") },
+                  { key: "keywords", label: "KW Ranking (top 20)", fmt: (w) => (w.keywords ?? "—") },
+                  { key: "backlinks", label: "Backlinks", fmt: (w) => (w.raw_backlinks || (w.backlinks != null ? fmtInt(w.backlinks) : "—")) },
+                  { key: "aiSearch", label: "AI Search", fmt: (w) => (w.raw_aiSearch || (w.aiSearch != null ? fmtInt(w.aiSearch) : "—")) },
+                ].map((rowDef, rIdx) => (
+                  <tr key={rowDef.key} className="hover:bg-sky-50/50 transition-colors">
+                    <td className="p-2 text-slate-700 whitespace-nowrap border-r-2 border-r-slate-200 sticky left-0 bg-slate-50 font-bold z-10">
+                      {rIdx === 0 ? "Website + SEO" : ""}
+                    </td>
+                    <td className="p-2 font-semibold text-slate-800 bg-slate-50/60 whitespace-nowrap border-r border-slate-100 sticky left-[110px] z-10">
+                      {rowDef.label}
+                    </td>
+                    {d.periodWeeks.map((w, cIdx) => {
+                      const val = rowDef.fmt(w);
+                      return (
+                        <td
+                          key={cIdx}
+                          className={`p-2 text-slate-700 whitespace-nowrap border-r border-slate-100 text-right ${
+                            val && String(val).includes("%") ? "bg-amber-50/20 font-medium" : ""
+                          }`}
+                        >
+                          {val}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>

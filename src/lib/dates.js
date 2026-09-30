@@ -18,7 +18,34 @@ export const fromLocalDate = (d) => {
 export const addDays = (d, n) => new Date(d.getTime() + n * 86400000);
 export const dayKey = (d) =>
   `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
-export const prettyDate = (d) => (d ? `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}` : "—");
+export const prettyDate = (d, opts = {}) => {
+  if (!d) return "—";
+  const withYear = typeof opts === "boolean" ? opts : (opts.withYear !== false);
+  if (!withYear) return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
+
+export function hasExplicitYear(v) {
+  if (v === null || v === undefined || v === "") return false;
+  if (v instanceof Date) return true;
+  if (typeof v === "number") return true;
+  const s = String(v).trim();
+  if (!s) return false;
+
+  // 4-digit year like 19xx or 20xx anywhere (e.g. 2026, 2025, 17.07.2026, 2026-07-03)
+  if (/\b(?:19|20)\d{2}\b/.test(s)) return true;
+
+  // 3-part numeric date: d/m/yy, d.m.yy, d-m-yy, m/d/yy (e.g. 5/13/26, 1/9/26, 22.07.26)
+  if (/^\d{1,2}[/.-]\d{1,2}[/.-]\d{2,4}$/.test(s)) return true;
+
+  // Day-Month-Year with 2-digit or 4-digit year: 20-Aug-26, 4-Sep-26, 24-Nov-25, 2-Dec-25
+  if (/^\d{1,2}[\s-][A-Za-z]{3,9}\.?[\s-]\d{2,4}$/.test(s)) return true;
+
+  // Month-Day-Year: Aug-20-26, Aug 20 26
+  if (/^[A-Za-z]{3,9}\.?[\s-]\d{1,2}[\s-]\d{2,4}$/.test(s)) return true;
+
+  return false;
+}
 
 const monthIndex = (word) => MONTHS.findIndex((m) => m.toLowerCase() === word.slice(0, 3).toLowerCase());
 
@@ -65,7 +92,7 @@ export function parseDateCell(v, { dayFirst = true } = {}) {
     }
   }
 
-  m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s*(\d{2,4})?/);
+  m = s.match(/^([A-Za-z]{3,9})\.?[\s-](\d{1,2})(?:,?[\s-](\d{2,4}))?$/);
   if (m) {
     const mi = monthIndex(m[1]);
     if (mi >= 0) {

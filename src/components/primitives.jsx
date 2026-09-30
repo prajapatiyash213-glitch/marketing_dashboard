@@ -1,3 +1,4 @@
+import { Children } from "react";
 import { STAGE_COLOR } from "../lib/stages.js";
 import { fmtInt } from "../lib/numbers.js";
 
@@ -39,24 +40,24 @@ export function Delta({ current, previous, suffix = "vs previous period" }) {
 
 export function Kpi({ figure, label, detail, accent, delta }) {
   return (
-    <div className="flex-1 px-5 py-4" style={{ minWidth: 190 }}>
-      <div className="tnum font-display leading-none" style={{ fontSize: 32, color: accent, letterSpacing: "-0.01em" }}>
+    <div className="flex-1 px-5 py-4 min-w-[170px] overflow-hidden">
+      <div className="tnum font-display leading-tight truncate" style={{ fontSize: 32, color: accent, letterSpacing: "-0.01em" }}>
         {figure}
       </div>
-      <div className="mt-2 text-sm font-medium text-ink">{label}</div>
-      <div className="mt-0.5 text-xs leading-snug text-muted">{detail}</div>
+      <div className="mt-2 text-sm font-medium text-ink truncate">{label}</div>
+      <div className="mt-0.5 text-xs leading-snug text-muted truncate">{detail}</div>
       {delta && <div className="mt-1">{delta}</div>}
     </div>
   );
 }
 
 export function KpiBand({ children }) {
-  const items = Array.isArray(children) ? children.filter(Boolean) : [children];
+  const items = Children.toArray(children).filter(Boolean);
   return (
     <div className="panel mb-4 flex flex-wrap">
       {items.map((item, i) => (
-        <div key={i} className="flex flex-1" style={{ minWidth: 190 }}>
-          {i > 0 && <div className="w-px bg-hair" />}
+        <div key={i} className="flex flex-1 min-w-[170px] overflow-hidden">
+          {i > 0 && <div className="w-px bg-hair shrink-0" />}
           {item}
         </div>
       ))}

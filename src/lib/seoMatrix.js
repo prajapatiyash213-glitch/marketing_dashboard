@@ -33,9 +33,9 @@ export function classifyMetric(raw) {
   if (/domain authority|domain rating|\bda\b|\bdr\b|dapa/.test(s)) return "da";
   if (/keyword|ranking|\bkw\b/.test(s)) return "keywords";
   if (/total users|\busers\b|\bvisitors\b|\bunique\b/.test(s)) return "users";
-  if (/views|traffic|sessions|pageview|ga4|impressions/.test(s)) return "views";
+  if (/(?:ga4|traffic|pageview|sessions|\bviews\b)/.test(s) && !/content impression|impression/i.test(s)) return "views";
   if (/download/.test(s)) return "downloads";
-  if (/(\bleads?\b|\bform\b|chatbot|\benquir|\binquir|\bconversion)/.test(s) && !/leader|developer|engineer|manager|director|vp|executive/i.test(s)) return "seoLeads";
+  if (/(\bleads?\b|\bform\b|chatbot|\benquir|\binquir|\bconversion)/.test(s) && !/leader|developer|engineer|manager|director|vp|executive|dm|warmup|confirm/i.test(s)) return "seoLeads";
   if (/ai search|ai-search|\bai\b/.test(s)) return "aiSearch";
   return null;
 }
@@ -98,12 +98,26 @@ export function parseSeoMatrix(rows, { minWeeks = 3, headerScanDepth = 10, today
     const weekCols = readWeekColumns(row, today, { stringsOnly: false });
     if (weekCols.length < minWeeks) continue;
 
-    const buckets = new Map(weekCols.map((w) => [w.label, { label: w.label, date: w.date, sort: w.sort, site, file: fileName }]));
+    // Use column index w.col as the Map key to avoid overwriting weeks with identical date labels across years
+    const buckets = new Map(weekCols.map((w) => [w.col, { label: w.label, date: w.date, sort: w.sort, site, file: fileName }]));
     const metricsFound = [];
     const labelBoundary = weekCols[0].col;
 
+    let currentCategory = null;
+    const hasCategoryCol = labelBoundary >= 2;
     for (let i = r + 1; i < rows.length; i++) {
       const dataRow = rows[i] || [];
+      if (hasCategoryCol) {
+        const catCell = dataRow[0] != null && String(dataRow[0]).trim() ? String(dataRow[0]).trim() : null;
+        if (catCell) {
+          currentCategory = catCell;
+        }
+        // If we encounter a section that is explicitly NOT website/seo (like Social Media, Q&A Platforms, Google My Business), ignore it
+        if (currentCategory && /(?:social|q&a|google\s*my\s*business|gmb|quora)/i.test(currentCategory) && !/website|seo/i.test(currentCategory)) {
+          continue;
+        }
+      }
+
       let labelCell = null;
       let metric = null;
       for (let c = 0; c < Math.min(dataRow.length, labelBoundary + 1); c++) {
@@ -124,12 +138,14 @@ export function parseSeoMatrix(rows, { minWeeks = 3, headerScanDepth = 10, today
         const raw = dataRow[w.col];
         const val = metric === "bounce" ? parsePercent(raw) : parseNumber(raw);
         if (val !== null) {
-          const target = buckets.get(w.label);
-          target[metric] = val;
-          if (raw !== null && raw !== undefined && typeof raw === "string" && (raw.includes("(") || raw.includes(",") || isNaN(raw.trim()))) {
-            target[`raw_${metric}`] = raw.trim();
+          const target = buckets.get(w.col);
+          if (target) {
+            target[metric] = val;
+            if (raw !== null && raw !== undefined && typeof raw === "string" && (raw.includes("(") || raw.includes(",") || isNaN(raw.trim()))) {
+              target[`raw_${metric}`] = raw.trim();
+            }
+            wrote = true;
           }
-          wrote = true;
         }
       }
       if (wrote) metricsFound.push({ metric, sourceLabel: String(labelCell) });
@@ -160,13 +176,9 @@ export function mergeSeoWeeks(existing, incoming) {
   return Array.from(byKey.values()).sort((a, b) => a.sort - b.sort);
 }
 
-/** Purges legacy/corrupted monthly intervals misclassified as weeks (e.g. from previous monthly sheet parse). */
+/** Ensures only valid weekly data objects are retained. */
 export function sanitizeSeoWeeks(weeks) {
   if (!Array.isArray(weeks)) return [];
-  const BOGUS_MONTHLY_LABELS = new Set([
-    "25-Jul", "25-Aug", "25-Sep", "25-Oct", "25-Nov", "25-Dec",
-    "26-Jan", "26-Feb", "26-Mar", "26-Apr", "26-May", "26-Jun"
-  ]);
-  return weeks.filter((w) => !(w.site === "tecnoprism.com" && BOGUS_MONTHLY_LABELS.has(w.label)));
+  return weeks.filter((w) => w && w.date && !isNaN(w.sort));
 }
 

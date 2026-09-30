@@ -1,12 +1,16 @@
 import { useMemo, useState, useCallback } from "react";
-import { resolveRange, previousWindow, withinRange, bucketOf, fromLocalDate, prettyDate, addDays, startOfWeek } from "../lib/dates.js";
+import { resolveRange, previousWindow, withinRange, bucketOf, fromLocalDate, prettyDate, addDays, startOfWeek, parseDateCell } from "../lib/dates.js";
 import { STAGES, ADVANCED_STAGES } from "../lib/stages.js";
 import { STOCK_METRICS } from "../lib/seoMatrix.js";
 import { SITES, siteById } from "../lib/segments.js";
+import { EXACT_SAMPLE_DROPOFFS, formatDropoffRecord } from "../lib/dropoffData.js";
 
 const GRAIN_WORD = { day: "day", week: "week", month: "month", quarter: "quarter", year: "year" };
 const sum = (rows, key) => rows.reduce((n, r) => n + (r[key] || 0), 0);
 const rate = (part, whole) => (whole ? (part / whole) * 100 : null);
+
+/** Standard USD to INR conversion rate */
+export const USD_TO_INR = 84.0;
 
 /**
  * Every figure the dashboard shows is derived here, once, from three controls:
@@ -34,11 +38,12 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
 
   // Memoised together: a fresh `|| []` on every render would invalidate every
   // memo below it, which is the whole reason they exist.
-  const { email, social, landing, cost } = useMemo(() => ({
+  const { email, social, landing, cost, dropoffs } = useMemo(() => ({
     email: channels?.email || [],
     social: channels?.social || [],
     landing: channels?.landing || [],
     cost: channels?.cost || [],
+    dropoffs: channels?.dropoffs || [],
   }), [channels]);
 
   /* ---- what the data actually covers, per subject ---- */
@@ -54,14 +59,17 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       return min ? { min, max } : null;
     };
     const livePostDates = (liveLinkedIn?.recentPosts || []).map((p) => (p.date ? new Date(p.date) : null)).filter(Boolean);
+    const dropoffList = (channels?.dropoffs && channels.dropoffs.length > 0) ? channels.dropoffs : EXACT_SAMPLE_DROPOFFS;
+    const dropoffDates = dropoffList.map((r) => parseDateCell(r.leadDate || r.date, { dayFirst: true })).filter(Boolean);
     return {
       leads: extent(leads.map((l) => l.date)),
       web: extent(weeks.map((w) => w.date)),
       email: extent(email.map((r) => r.date)),
       social: extent([...social.map((r) => r.date), ...livePostDates]),
       landing: extent(landing.map((r) => r.date)),
+      dropoffs: extent(dropoffDates),
     };
-  }, [leads, weeks, email, social, landing, liveLinkedIn]);
+  }, [leads, weeks, email, social, landing, channels?.dropoffs, liveLinkedIn]);
 
   const bounds = useMemo(() => {
     const all = Object.values(coverage).filter(Boolean);
@@ -354,6 +362,10 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
   const seo = useMemo(() => {
     const views = sum(periodWeeks, "views");
     const users = sum(periodWeeks, "users");
+    const excelUsersSum = periodWeeks.reduce((acc, w) => {
+      if (w.raw_users && /k/i.test(w.raw_users)) return acc;
+      return acc + (w.users || 0);
+    }, 0);
     const webLeads = sum(periodWeeks, "seoLeads");
     const downloads = sum(periodWeeks, "downloads");
     const bounceWeeks = periodWeeks.filter((w) => w.bounce != null);
@@ -384,6 +396,7 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     return {
       views,
       users,
+      excelUsersSum,
       webLeads,
       downloads,
       avgBounce,
@@ -899,6 +912,9 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       .filter((r) => r.currency === "USD")
       .reduce((sum, r) => sum + (r.monthlyCost ?? (r.cycle?.toLowerCase() === "monthly" ? r.costPerCycle : 0) ?? 0), 0);
 
+    const convertedUsdInrMonthly = totalUsdMonthly * USD_TO_INR;
+    const combinedTotalInrMonthly = totalInrMonthly + convertedUsdInrMonthly;
+
     // Date range multiplier / divider rule from the selected range preset
     let factor = 1;
     let periodLabel = "This month";
@@ -947,12 +963,15 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
 
     const periodInrTotal = totalInrMonthly * factor;
     const periodUsdTotal = totalUsdMonthly * factor;
+    const convertedPeriodUsdInr = periodUsdTotal * USD_TO_INR;
+    const combinedPeriodInrTotal = periodInrTotal + convertedPeriodUsdInr;
 
     const byCategory = new Map();
     for (const r of active) {
       const key = r.category || "Uncategorised";
-      const val = (r.monthlyCost ?? r.costPerCycle ?? 0) * factor;
-      byCategory.set(key, (byCategory.get(key) || 0) + val);
+      const rawVal = (r.monthlyCost ?? r.costPerCycle ?? 0) * factor;
+      const inrVal = r.currency === "USD" ? rawVal * USD_TO_INR : rawVal;
+      byCategory.set(key, (byCategory.get(key) || 0) + inrVal);
     }
     const categories = Array.from(byCategory, ([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
@@ -960,10 +979,18 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     const rowsWithPeriod = cost.map((r) => {
       const mCost = r.monthlyCost ?? (r.cycle?.toLowerCase() === "monthly" ? r.costPerCycle : null);
       const periodCost = mCost != null ? mCost * factor : null;
+      const isUsd = r.currency === "USD";
+      const monthlyCostInr = mCost != null ? (isUsd ? mCost * USD_TO_INR : mCost) : null;
+      const periodCostInr = periodCost != null ? (isUsd ? periodCost * USD_TO_INR : periodCost) : null;
+      const costPerCycleInr = r.costPerCycle != null ? (isUsd ? r.costPerCycle * USD_TO_INR : r.costPerCycle) : null;
       return {
         ...r,
         monthlyCost: mCost,
         periodCost,
+        monthlyCostInr,
+        periodCostInr,
+        costPerCycleInr,
+        convertedFromUsd: isUsd,
       };
     });
 
@@ -974,8 +1001,13 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       adhocCount: adhoc.length,
       totalInrMonthly,
       totalUsdMonthly,
+      convertedUsdInrMonthly,
+      combinedTotalInrMonthly,
       periodInrTotal,
       periodUsdTotal,
+      convertedPeriodUsdInr,
+      combinedPeriodInrTotal,
+      usdExchangeRate: USD_TO_INR,
       factor,
       periodLabel,
       periodRule,
@@ -984,6 +1016,82 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       rows: rowsWithPeriod,
     };
   }, [cost, rangeKey, range]);
+
+  /* ---- website drop-off visitors & lead leakage stats ---- */
+  const dropoffStats = useMemo(() => {
+    const rawList = dropoffs.length ? dropoffs : EXACT_SAMPLE_DROPOFFS;
+    const allRecords = rawList.map(formatDropoffRecord);
+
+    // Site filtering (Tecnoprism vs automationCOE)
+    let records = allRecords;
+    if (site !== "All") {
+      records = records.filter((r) => {
+        if (site === "automationcoe.com") {
+          return r.siteId === "automationcoe.com" || /acoe|automation/i.test(r.brand);
+        }
+        if (site === "tecnoprism.com") {
+          return r.siteId === "tecnoprism.com" || /tecnoprism/i.test(r.brand);
+        }
+        return r.siteId === site;
+      });
+    }
+
+    // Timeframe / Range filtering
+    if (rangeActive && range?.from && range?.to) {
+      records = records.filter((r) => {
+        if (!r.parsedDate) return includeUndated;
+        return withinRange(r.parsedDate, range);
+      });
+    }
+
+    const byBrand = new Map();
+    const byOwner = new Map();
+    const byStage = new Map();
+    const pageCounts = new Map();
+    const exitPageCounts = new Map();
+
+    for (const r of records) {
+      const b = r.brand || "Unspecified";
+      byBrand.set(b, (byBrand.get(b) || 0) + 1);
+
+      const o = r.ownership || "Unassigned";
+      byOwner.set(o, (byOwner.get(o) || 0) + 1);
+
+      const s = r.leadStage || "Discovery";
+      byStage.set(s, (byStage.get(s) || 0) + 1);
+
+      for (const p of r.pages || []) {
+        pageCounts.set(p, (pageCounts.get(p) || 0) + 1);
+      }
+
+      if (r.lastPage && r.lastPage !== "—") {
+        exitPageCounts.set(r.lastPage, (exitPageCounts.get(r.lastPage) || 0) + 1);
+      }
+    }
+
+    const brandBreakdown = Array.from(byBrand, ([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+    const topPages = Array.from(pageCounts, ([url, count]) => ({ url, count }))
+      .sort((a, b) => b.count - a.count);
+    const topExitPages = Array.from(exitPageCounts, ([url, count]) => ({ url, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      records,
+      allRecords,
+      totalCount: records.length,
+      portfolioCount: allRecords.length,
+      hasUploadedData: dropoffs.length > 0,
+      brandBreakdown,
+      topPages,
+      topExitPages,
+      byOwner: Array.from(byOwner, ([name, count]) => ({ name, count })),
+      byStage: Array.from(byStage, ([name, count]) => ({ name, count })),
+      activeSite: site,
+      activeRangeKey: rangeKey,
+      rangeLabel: range?.label || rangeKey,
+    };
+  }, [dropoffs, site, range, rangeActive, rangeKey, includeUndated]);
 
   /* ---- how many leads each channel claims, side by side ---- */
   const channelContribution = useMemo(() => {
@@ -1003,6 +1111,7 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     social: social.length > 0,
     landing: landing.length > 0,
     cost: cost.length > 0,
+    dropoffs: dropoffs.length > 0,
   };
 
   /** Plain-language explanation of why a period might look empty. */
@@ -1021,6 +1130,6 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     stageCounts, advanced, conversion, previousConversion, pipelineValue, wonValue, wonCount,
     sources, sourcePie, topSource: sources[0], fileNames, funnel, funnelByPipeline,
     pipelines, pipelineBreakdown, leadTrend, seoTrend, seo, siteBreakdown, sites: SITES,
-    emailStats, socialStats, landingStats, costStats, channelContribution, modulesConnected,
+    emailStats, socialStats, landingStats, costStats, dropoffStats, channelContribution, modulesConnected,
   };
 }

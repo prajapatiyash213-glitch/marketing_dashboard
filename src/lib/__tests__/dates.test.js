@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseDateCell, detectDayFirst, bucketOf, resolveRange, previousWindow, utcDay, dayKey, assignWeekYears } from "../dates.js";
+import { parseDateCell, detectDayFirst, bucketOf, resolveRange, previousWindow, utcDay, dayKey, assignWeekYears, prettyDate, hasExplicitYear } from "../dates.js";
 
 describe("parseDateCell", () => {
   it("reads ISO dates", () => {
@@ -122,3 +122,41 @@ describe("assignWeekYears", () => {
     expect(dates.map(iso)).toEqual(["2024-07-03", "2024-07-10"]);
   });
 });
+
+describe("prettyDate", () => {
+  it("formats date with year by default", () => {
+    expect(prettyDate(utcDay(2026, 6, 17))).toBe("17 Jul 2026");
+  });
+
+  it("omits year when withYear is false", () => {
+    expect(prettyDate(utcDay(2026, 8, 3), { withYear: false })).toBe("3 Sep");
+    expect(prettyDate(utcDay(2026, 9, 30), false)).toBe("30 Oct");
+  });
+
+  it("returns dash for null or undefined", () => {
+    expect(prettyDate(null)).toBe("—");
+    expect(prettyDate(undefined)).toBe("—");
+  });
+});
+
+describe("hasExplicitYear", () => {
+  it("identifies strings with no year", () => {
+    expect(hasExplicitYear("3-Sep")).toBe(false);
+    expect(hasExplicitYear("30-Oct")).toBe(false);
+    expect(hasExplicitYear("Sep-01")).toBe(false);
+    expect(hasExplicitYear("Oct-06")).toBe(false);
+    expect(hasExplicitYear("14-Nov")).toBe(false);
+    expect(hasExplicitYear(null)).toBe(false);
+    expect(hasExplicitYear("")).toBe(false);
+  });
+
+  it("identifies strings and dates with explicit year", () => {
+    expect(hasExplicitYear("17.07.2026")).toBe(true);
+    expect(hasExplicitYear("20-Aug-26")).toBe(true);
+    expect(hasExplicitYear("24-Nov-25")).toBe(true);
+    expect(hasExplicitYear("5/13/26")).toBe(true);
+    expect(hasExplicitYear("2026-07-03")).toBe(true);
+    expect(hasExplicitYear(new Date())).toBe(true);
+  });
+});
+

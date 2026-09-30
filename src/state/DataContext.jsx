@@ -1,18 +1,62 @@
 import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { mergeSeoWeeks, sanitizeSeoWeeks } from "../lib/seoMatrix.js";
-import { MAX_FILE_BYTES } from "../lib/parseWorkbook.js";
+import { MAX_FILE_BYTES, deduplicateLeads } from "../lib/parseWorkbook.js";
 import { saveDataset, loadDataset, clearDataset, onDatasetUpdate } from "../lib/storage.js";
 import { buildSampleData } from "../lib/sampleData.js";
 import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
 
+import { prettyDate } from "../lib/dates.js";
+
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-export const MASTER_DATASET_VERSION = "2026-09-23-v15-live-linkedin-sync";
+const MASTER_DATASET_VERSION = "2026-09-30-v23-fix-future-date";
 
-export const MASTER_FILES = [
+function sanitizeLead(l) {
+  if (!l) return l;
+  const currentYear = new Date().getUTCFullYear();
+  const isWebsiteVisitors = /website\s*visitors/i.test(l.file || "") || /website\s*visitors/i.test(l.sheet || "");
+  const isWebsiteTabNoYear = /leads?\s*sheet/i.test(l.file || "") && /website/i.test(l.sheet || "") && l.hasYear === false;
+  const hasNoExplicitYear = l.hasYear === false || isWebsiteVisitors || isWebsiteTabNoYear;
+
+  let date = l.date;
+  let dateText = l.dateText;
+
+  if (hasNoExplicitYear) {
+    const cleanDateText = date
+      ? prettyDate(date, { withYear: false })
+      : (dateText ? dateText.replace(/\s+\b(?:19|20)\d{2}\b/g, "").trim() : "");
+    return {
+      ...l,
+      hasYear: false,
+      dateText: cleanDateText,
+    };
+  }
+
+  // Normalize future year typos (e.g. 2027 in Pinali sheet -> current year 2026)
+  if (date && date.getUTCFullYear() > currentYear) {
+    date = new Date(Date.UTC(currentYear, date.getUTCMonth(), date.getUTCDate()));
+    dateText = prettyDate(date, { withYear: true });
+    return {
+      ...l,
+      date,
+      dateText,
+    };
+  }
+  if (dateText && /\b202[7-9]\b/.test(dateText)) {
+    dateText = dateText.replace(/\b202[7-9]\b/, String(currentYear));
+    return {
+      ...l,
+      dateText,
+    };
+  }
+
+  return l;
+}
+
+const MASTER_FILES = [
   "/master/Imagine 26 - Leads Database (1).xlsx",
-  "/master/Key Metrics of Marketing (1).xlsx",
+  "/master/Key Metrics of Marketing(Tecnoprism).csv",
   "/master/KPI _ Automation COE (1).xlsx",
   "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
   "/master/Tools_And_Costs_Cleaned.xlsx",
@@ -99,7 +143,7 @@ export function DataProvider({ children }) {
         setRawSheets({});
         return;
       }
-      if (data.leads) setLeads(data.leads);
+      if (data.leads) setLeads(data.leads.map(sanitizeLead));
       if (data.weeks) setWeeks(sanitizeSeoWeeks(data.weeks));
       if (data.channels) setChannels(data.channels);
       if (data.files) setFiles(data.files);
@@ -148,9 +192,9 @@ export function DataProvider({ children }) {
       const hasIncomingSeo = results.some((r) => r.seoWeeks && r.seoWeeks.length > 0);
 
       setLeads((prev) => {
-        if (!hasIncomingLeads && prev.length > 0) return prev;
+        if (!hasIncomingLeads && prev.length > 0) return prev.map(sanitizeLead);
         const kept = (isSample ? [] : prev).filter((l) => !names.has(l.file));
-        return kept.concat(...results.map((r) => r.leads));
+        return deduplicateLeads(kept.concat(...results.map((r) => r.leads))).map(sanitizeLead);
       });
       setWeeks((prev) => {
         if (!hasIncomingSeo && prev.length > 0) return prev;
@@ -199,7 +243,7 @@ export function DataProvider({ children }) {
         const channelCount = Object.values(saved?.channels || {}).reduce((n, r) => n + r.length, 0);
 
         if (hasLatestVersion && !saved.isSample && (saved.leads?.length || saved.weeks?.length || saved.files?.length || channelCount > 0)) {
-          setLeads(saved.leads || []);
+          setLeads(deduplicateLeads((saved.leads || []).map(sanitizeLead)));
           let cleanWeeks = sanitizeSeoWeeks(saved.weeks || []);
           setWeeks(cleanWeeks);
           setChannels(saved.channels || { email: [], social: [], landing: [], cost: [] });
@@ -280,6 +324,10 @@ export function DataProvider({ children }) {
     setIsSample(false);
   }, []);
 
+  const removeDuplicateLeads = useCallback(() => {
+    setLeads((prev) => deduplicateLeads(prev));
+  }, []);
+
   const clearAll = useCallback(() => {
     setLeads([]); setWeeks([]); setFiles([]); setRawSheets({});
     setChannels({ email: [], social: [], landing: [], cost: [] });
@@ -312,11 +360,12 @@ export function DataProvider({ children }) {
       loadSample,
       loadExactSeo,
       clearAll,
+      removeDuplicateLeads,
       syncLiveLinkedIn,
       syncingLinkedIn,
       dismissProblems: () => setProblems([]),
     }),
-    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll, syncLiveLinkedIn, syncingLinkedIn]
+    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll, removeDuplicateLeads, syncLiveLinkedIn, syncingLinkedIn]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
