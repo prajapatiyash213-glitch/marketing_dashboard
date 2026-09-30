@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-09-30-v24-website-dropoffs";
+const MASTER_DATASET_VERSION = "2026-09-30-v25-kpi-automationcoe-2";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -57,7 +57,7 @@ function sanitizeLead(l) {
 const MASTER_FILES = [
   "/master/Imagine 26 - Leads Database (1).xlsx",
   "/master/Key Metrics of Marketing(Tecnoprism).csv",
-  "/master/KPI _ Automation COE (1).xlsx",
+  "/master/KPI _ Automation COE (2).xlsx",
   "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
   "/master/Tools_And_Costs_Cleaned.xlsx",
   "/master/Leads Sheet.xlsx",
