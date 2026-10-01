@@ -96,11 +96,15 @@ export function DataProvider({ children }) {
       const snapRes = await fetch(`/master/linkedin_live.json?t=${Date.now()}`);
       if (snapRes.ok) {
         const snap = await snapRes.json();
-        if (snap) setLiveLinkedIn(snap);
-        return snap;
+        if (snap) {
+          setLiveLinkedIn(snap);
+          return snap;
+        }
       }
+      return null;
     } catch (e) {
       console.error("Live sync failed", e);
+      return null;
     } finally {
       setSyncingLinkedIn(false);
     }

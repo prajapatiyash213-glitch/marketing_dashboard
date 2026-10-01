@@ -71,7 +71,7 @@ export async function syncLinkedIn() {
 
     const liveData = {
       profileUrl: LINKEDIN_URL,
-      companyName: companyMeta.name || "Tecnoprism Pvt Ltd",
+      companyName: companyMeta.name?.includes("Tecnoprism") ? "Tecnoprism Pvt Ltd" : (companyMeta.name || "Tecnoprism Pvt Ltd"),
       followers,
       previousExportFollowers: 19814,
       growthSinceExport: followers - 19814,

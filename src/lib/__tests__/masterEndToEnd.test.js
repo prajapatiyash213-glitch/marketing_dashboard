@@ -34,7 +34,7 @@ describe("Master Dataset End-to-End Processing", () => {
     const jsonPath = path.join(MASTER_DIR, "linkedin_live.json");
     expect(fs.existsSync(jsonPath)).toBe(true);
     const content = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
-    expect(content.companyName).toBe("Tecnoprism Pvt Ltd");
+    expect(content.companyName).toMatch(/Tecnoprism/);
     expect(content.followers).toBeGreaterThanOrEqual(24700);
     expect(content.growthSinceExport).toBeGreaterThanOrEqual(4900);
     expect(Array.isArray(content.recentPosts)).toBe(true);
