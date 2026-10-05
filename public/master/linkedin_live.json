@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24895,
+  "followers": 24910,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5081,
-  "lastSynced": "2026-10-01T11:09:02.842Z",
+  "growthSinceExport": 5096,
+  "lastSynced": "2026-10-05T11:03:00.177Z",
   "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -14,8 +14,8 @@
       "text": "A question every CIO, COO, CTO and Transformation Leader should ask:\nIf we already have the technology, strategy, and vision, what's still missing?\n\nAI. Automation. Data. Platforms.\nMost enterprises already have them.\nYet transformation initiatives continue to stall.\nPilots remain pilots.\nAnd expected business outcomes never fully materialize.\nWhy?\n\nBecause accountability for the outcome is often fragmented across multiple stakeholders.\nThat's the gap.\n\nAnd that's why the Forward Deployed Engineer (#FDE) model is gaining attention. It's changing how organizations deliver AI and automation by bringing ownership closer to the problem and accountability closer to the outcome.\n\nIs lack of technology really the challenge, or is it lack of ownership?\nWhat about your enterprise?\nCurious to hear your perspective. 👇\n\n#Tecnoprism #ForwardDeployedEngineer #AI #Transformation",
       "date": "2026-09-28T12:54:22.635Z",
       "url": "https://www.linkedin.com/posts/tecnoprism_who-actually-owns-the-business-outcomes-activity-7510321005114843136-qSrT",
-      "reactions": 25,
-      "likes": 25,
+      "reactions": 26,
+      "likes": 26,
       "author": "Tecnoprism"
     },
     {
@@ -99,5 +99,237 @@
       "likes": 174,
       "author": "Tecnoprism"
     }
-  ]
+  ],
+  "demographics": {
+    "seniority": [
+      {
+        "label": "Senior",
+        "count": 12143,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "Entry",
+        "count": 7518,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "Director",
+        "count": 2640,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "VP",
+        "count": 1069,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "CXO",
+        "count": 654,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "Manager",
+        "count": 528,
+        "category": "seniority",
+        "isLive": true
+      },
+      {
+        "label": "Owner",
+        "count": 358,
+        "category": "seniority",
+        "isLive": true
+      }
+    ],
+    "jobFunction": [
+      {
+        "label": "Engineering",
+        "count": 9323,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Information Technology",
+        "count": 6525,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Operations",
+        "count": 3017,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Program & Project Management",
+        "count": 2112,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Business Development",
+        "count": 1697,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Consulting",
+        "count": 1345,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Sales",
+        "count": 890,
+        "category": "function",
+        "isLive": true
+      }
+    ],
+    "function": [
+      {
+        "label": "Engineering",
+        "count": 9323,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Information Technology",
+        "count": 6525,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Operations",
+        "count": 3017,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Program & Project Management",
+        "count": 2112,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Business Development",
+        "count": 1697,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Consulting",
+        "count": 1345,
+        "category": "function",
+        "isLive": true
+      },
+      {
+        "label": "Sales",
+        "count": 890,
+        "category": "function",
+        "isLive": true
+      }
+    ],
+    "location": [
+      {
+        "label": "United States",
+        "count": 10586,
+        "category": "location",
+        "isLive": true
+      },
+      {
+        "label": "India",
+        "count": 9517,
+        "category": "location",
+        "isLive": true
+      },
+      {
+        "label": "United Kingdom",
+        "count": 2087,
+        "category": "location",
+        "isLive": true
+      },
+      {
+        "label": "Canada",
+        "count": 1521,
+        "category": "location",
+        "isLive": true
+      },
+      {
+        "label": "United Arab Emirates",
+        "count": 1199,
+        "category": "location",
+        "isLive": true
+      }
+    ],
+    "industry": [
+      {
+        "label": "IT Services and IT Consulting",
+        "count": 13502,
+        "category": "industry",
+        "isLive": true
+      },
+      {
+        "label": "Software Development",
+        "count": 5683,
+        "category": "industry",
+        "isLive": true
+      },
+      {
+        "label": "Financial Services",
+        "count": 2389,
+        "category": "industry",
+        "isLive": true
+      },
+      {
+        "label": "Hospitals and Health Care",
+        "count": 1773,
+        "category": "industry",
+        "isLive": true
+      },
+      {
+        "label": "Banking",
+        "count": 1564,
+        "category": "industry",
+        "isLive": true
+      }
+    ],
+    "companySize": [
+      {
+        "label": "10,001+ employees",
+        "count": 9592,
+        "category": "companySize",
+        "isLive": true
+      },
+      {
+        "label": "1,001-5,000 employees",
+        "count": 6500,
+        "category": "companySize",
+        "isLive": true
+      },
+      {
+        "label": "501-1,000 employees",
+        "count": 3809,
+        "category": "companySize",
+        "isLive": true
+      },
+      {
+        "label": "51-200 employees",
+        "count": 3093,
+        "category": "companySize",
+        "isLive": true
+      },
+      {
+        "label": "2-10 employees",
+        "count": 1916,
+        "category": "companySize",
+        "isLive": true
+      }
+    ],
+    "isLive": true,
+    "liveFollowers": 24910
+  }
 }

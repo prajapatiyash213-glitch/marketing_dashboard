@@ -140,7 +140,7 @@ export function SignIn() {
               </div>
               <div>
                 <span className="font-display text-xl font-black tracking-tight text-white flex items-center">
-                  OmniScope<span className="text-brandPink">.</span>
+                  Tecnoprism M&amp;S<span className="text-brandPink">.</span>
                 </span>
                 <span className="text-[10px] font-bold tracking-widest text-slate-400 uppercase block">
                   Sales & SEO Suite

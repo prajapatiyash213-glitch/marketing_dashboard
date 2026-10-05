@@ -8,10 +8,17 @@ describe("Website Drop-offs Navigation and Metrics", () => {
     expect(dropoffNav).toBeDefined();
     expect(dropoffNav[1]).toMatch(/Website Drop-offs/i);
 
-    // Verify it is positioned logically right below Websites & SEO
-    const websitesIndex = NAV.findIndex(([k]) => k === "websites");
+    // Verify it is positioned right after Pipeline
+    const pipelineIndex = NAV.findIndex(([k]) => k === "pipeline");
     const dropoffsIndex = NAV.findIndex(([k]) => k === "dropoffs");
-    expect(dropoffsIndex).toBe(websitesIndex + 1);
+    expect(dropoffsIndex).toBe(pipelineIndex + 1);
+  });
+
+  it("includes Sales Team pointing to external admin target URL in main navigation", () => {
+    const salesTeamNav = NAV.find(([k]) => k === "sales-team");
+    expect(salesTeamNav).toBeDefined();
+    expect(salesTeamNav[1]).toBe("Sales Team");
+    expect(salesTeamNav[2]).toBe("https://sales-hazel-ten.vercel.app/admin");
   });
 
   it("evaluates drop-off and bounce rate health with strict < 30% rule", () => {

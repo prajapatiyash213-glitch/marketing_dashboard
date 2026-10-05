@@ -84,13 +84,24 @@ function Dashboard() {
                 <circle cx="12" cy="12" r="2.2" fill="#FDE047" />
               </svg>
             </div>
-            <span className="font-display text-base font-extrabold text-[#FA2E76] tracking-tight">OmniScope<span className="text-[#7B61FF]">.</span></span>
-            <label className="sr-only" htmlFor="section">Section</label>
-            <select id="section" className="field !py-1 text-xs" value={view} onChange={(e) => setView(e.target.value)}>
+            <span className="font-display text-base font-extrabold text-[#FA2E76] tracking-tight">Tecnoprism M&amp;S<span className="text-[#7B61FF]">.</span></span>
+            <select
+              id="section"
+              className="field !py-1 text-xs"
+              value={view}
+              onChange={(e) => {
+                const targetNav = NAV.find(([k]) => k === e.target.value);
+                if (targetNav?.[2]) {
+                  window.open(targetNav[2], "_blank", "noopener,noreferrer");
+                } else {
+                  setView(e.target.value);
+                }
+              }}
+            >
               {NAV.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
           </div>
-          <h1 className="hidden text-base font-semibold md:block">{NAV.find(([k]) => k === view)[1]}</h1>
+          <h1 className="hidden text-base font-semibold md:block">{NAV.find(([k]) => k === view)?.[1] || "Overview"}</h1>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
             <AccountMenu />

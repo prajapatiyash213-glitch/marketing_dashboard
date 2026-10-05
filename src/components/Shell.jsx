@@ -6,6 +6,7 @@ import { MODULES } from "../lib/palette.js";
 const ICONS = {
   overview: "M3 12h4l2-6 3 12 2.5-7 1.5 3h5",
   pipeline: MODULES.pipeline.icon,
+  "sales-team": "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75",
   websites: MODULES.web.icon,
   dropoffs: "M22 17l-8.5-8.5-5 5L2 7m20 10h-6m6 0v-6",
   channels: "M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14",
@@ -20,6 +21,7 @@ const ICONS = {
 const ACCENT = {
   overview: "#4C8C86",
   pipeline: MODULES.pipeline.color,
+  "sales-team": "#2563EB",
   websites: MODULES.web.color,
   dropoffs: "#FA2E76",
   channels: "#FF9F43",
@@ -32,14 +34,15 @@ const ACCENT = {
 
 export const NAV = [
   ["overview", "Overview"],
+  ["sales-team", "Sales Team", "https://sales-hazel-ten.vercel.app/admin"],
   ["pipeline", "Pipeline"],
-  ["websites", "Websites & SEO"],
   ["dropoffs", "Website Drop-offs"],
-  ["channels", "Marketing channels"],
+  ["leads", "All leads"],
+  ["websites", "Websites & SEO"],
   ["social", "Social media"],
   ["email", "Email campaigns"],
   ["costs", "Technology & tool costs"],
-  ["leads", "All leads"],
+  ["channels", "Marketing channels"],
   ["sources", "Data sources"],
 ];
 
@@ -47,8 +50,8 @@ export function Sidebar({ view, setView, footer }) {
   return (
     <nav className="no-print hidden w-64 shrink-0 flex-col justify-between border-r border-[#EEF2F7] bg-white text-slate-600 shadow-sm md:flex h-screen overflow-y-auto section-scroll" aria-label="Sections">
       <div>
-        {/* OmniScope brand header */}
-        <div className="mb-6 flex items-center gap-3.5 bg-gradient-to-r from-[#FA2E76] to-[#7B61FF] px-6 py-6 text-white shadow-md rounded-br-2xl min-h-[80px]">
+        {/* Tecnoprism M&S brand header */}
+        <div className="mb-6 flex items-center gap-3 bg-gradient-to-r from-[#FA2E76] to-[#7B61FF] px-5 py-5 text-white shadow-md rounded-br-2xl min-h-[80px]">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/25 backdrop-blur-sm shadow-inner shrink-0 ring-1 ring-white/30">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="36 10" />
@@ -58,11 +61,11 @@ export function Sidebar({ view, setView, footer }) {
             </svg>
           </div>
           <div className="min-w-0 flex-1">
-            <span className="font-display text-2xl font-black tracking-tight leading-tight block text-white">
-              OmniScope<span className="text-yellow-300">.</span>
+            <span className="font-display text-lg font-black tracking-tight leading-tight block text-white whitespace-nowrap">
+              Tecnoprism M&amp;S<span className="text-yellow-300">.</span>
             </span>
             <span className="text-[10px] font-bold tracking-widest text-white/80 block uppercase">
-              Sales & SEO Suite
+              Sales &amp; SEO Suite
             </span>
           </div>
         </div>
@@ -72,8 +75,35 @@ export function Sidebar({ view, setView, footer }) {
         </div>
 
         <ul className="space-y-1.5 px-1">
-          {NAV.map(([key, label]) => {
+          {NAV.map(([key, label, externalUrl]) => {
             const on = view === key;
+            if (externalUrl) {
+              return (
+                <li key={key}>
+                  <a
+                    href={externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-medium text-slate-600 transition-all hover:bg-slate-50 hover:text-slate-900"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition-colors group-hover:bg-white group-hover:text-blue-600 group-hover:shadow-sm">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d={ICONS[key]} />
+                      </svg>
+                    </span>
+                    <span className="flex-1">{label}</span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-600 group-hover:bg-blue-100 transition-colors">
+                      Admin
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </span>
+                  </a>
+                </li>
+              );
+            }
             return (
               <li key={key}>
                 <button

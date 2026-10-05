@@ -13,6 +13,7 @@ import { fmtInt, fmtMoneyCompact, pct } from "../lib/numbers.js";
 import { MODULES, CATEGORICAL } from "../lib/palette.js";
 import { pipelineColor } from "../lib/segments.js";
 import { getSeoMetricHealth } from "../lib/seoHealth.js";
+import { TimeAndTraceabilityWidget } from "../components/TimeAndTraceabilityWidget.jsx";
 
 /**
  * Modern Lector SaaS overview matching the reference UI mockup:
@@ -27,6 +28,9 @@ export function OverviewView({ d, allUndated, setView }) {
 
   return (
     <>
+      {/* Time & Traceability: Qualified Lead Target Calculator (Top Banner) */}
+      <TimeAndTraceabilityWidget d={d} />
+
       {/* Row 1: Dual-wave Performance Area Chart + Traffic Donut Chart */}
       <section className="section-snap-item grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
         <div className="lg:col-span-8 flex flex-col">

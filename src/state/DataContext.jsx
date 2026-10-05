@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-09-30-v25-kpi-automationcoe-2";
+const MASTER_DATASET_VERSION = "2026-10-05-v27-dropoffs-update";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -81,6 +81,8 @@ export function DataProvider({ children }) {
   const [restored, setRestored] = useState(false);
 
   const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
+  const [syncingGoogleSheet, setSyncingGoogleSheet] = useState(false);
+  const [googleSheetMeta, setGoogleSheetMeta] = useState(null);
 
   const syncLiveLinkedIn = useCallback(async () => {
     setSyncingLinkedIn(true);
@@ -234,6 +236,48 @@ export function DataProvider({ children }) {
     setBusy(false);
   }, [getWorker, isSample]);
 
+  const syncLiveGoogleSheet = useCallback(async () => {
+    setSyncingGoogleSheet(true);
+    try {
+      const res = await fetch("/api/sync-google-sheet", { method: "POST" }).catch(() => null);
+      let meta = null;
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json && json.meta) {
+          meta = json.meta;
+          setGoogleSheetMeta(meta);
+        }
+      } else {
+        const metaRes = await fetch(`/master/google_sheet_sync.json?t=${Date.now()}`).catch(() => null);
+        if (metaRes && metaRes.ok) {
+          meta = await metaRes.json();
+          setGoogleSheetMeta(meta);
+        }
+      }
+
+      // Re-fetch the updated master file so weeks in state update immediately
+      const fileRes = await fetch(`/master/KPI _ Automation COE (2).xlsx?t=${Date.now()}`).catch(() => null);
+      if (fileRes && fileRes.ok) {
+        const blob = await fileRes.blob();
+        await importFiles([new File([blob], "KPI _ Automation COE (2).xlsx")]);
+      }
+
+      return meta;
+    } catch (e) {
+      console.error("Google Sheet sync failed", e);
+      return null;
+    } finally {
+      setSyncingGoogleSheet(false);
+    }
+  }, [importFiles]);
+
+  useEffect(() => {
+    fetch(`/master/google_sheet_sync.json?t=${Date.now()}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((m) => { if (m) setGoogleSheetMeta(m); })
+      .catch(() => {});
+  }, []);
+
   // Restore workspace master dataset or automatically upgrade existing users to latest master files:
   useEffect(() => {
     let alive = true;
@@ -368,9 +412,12 @@ export function DataProvider({ children }) {
       removeDuplicateLeads,
       syncLiveLinkedIn,
       syncingLinkedIn,
+      syncLiveGoogleSheet,
+      syncingGoogleSheet,
+      googleSheetMeta,
       dismissProblems: () => setProblems([]),
     }),
-    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll, removeDuplicateLeads, syncLiveLinkedIn, syncingLinkedIn]
+    [leads, weeks, channels, liveLinkedIn, files, rawSheets, isSample, busy, problems, restored, importFiles, reloadMasterDataset, loadSample, loadExactSeo, clearAll, removeDuplicateLeads, syncLiveLinkedIn, syncingLinkedIn, syncLiveGoogleSheet, syncingGoogleSheet, googleSheetMeta]
   );
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

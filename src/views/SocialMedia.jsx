@@ -142,20 +142,26 @@ export function SocialMediaView({ d }) {
         <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200/80 text-xs font-semibold">
           {[
             { id: "overview", label: "Overview & Growth" },
-            { id: "posts", label: `Posts (${posts.length})` },
-            { id: "demographics", label: "Audience Demographics" },
+            { id: "posts", label: `Posts (${posts.length})`, isLive: true },
+            { id: "demographics", label: "Audience Demographics", isLive: true },
           ].map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setActiveTab(t.id)}
-              className={`rounded-lg px-3.5 py-1.5 transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 transition-all cursor-pointer ${
                 activeTab === t.id
                   ? "bg-white text-slate-900 shadow-xs font-bold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              {t.label}
+              <span>{t.label}</span>
+              {t.isLive && (
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -555,8 +561,14 @@ export function SocialMediaView({ d }) {
       {activeTab === "posts" && (
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-sm font-bold text-slate-700">
-              Published Content ({posts.length} Posts)
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm font-bold text-slate-800">
+                Published Content ({posts.length} Posts)
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Feed Synced
+              </span>
             </div>
             <div className="flex items-center gap-2 text-xs">
               <span className="text-slate-400 font-medium">Sort by:</span>
@@ -617,13 +629,20 @@ export function SocialMediaView({ d }) {
                       {prettyDate(p.date)}
                     </td>
                     <td className="py-3 px-3 whitespace-nowrap">
-                      <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${
-                        p.contentType === "Video"
-                          ? "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20"
-                          : "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20"
-                      }`}>
-                        {p.contentType || "Post"}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          p.contentType === "Video"
+                            ? "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20"
+                            : "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20"
+                        }`}>
+                          {p.contentType || "Post"}
+                        </span>
+                        {p.isLive && (
+                          <span className="inline-block rounded px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200/60">
+                            Live
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-3 text-right font-semibold text-slate-800">
                       {fmtInt(p.impressions)}
@@ -704,14 +723,20 @@ export function SocialMediaView({ d }) {
           </div>
 
           <div className="panel p-5 bg-white border border-slate-200 shadow-xs">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-800 capitalize">
-                {selectedDemoTab === "function" || selectedDemoTab === "jobFunction"
-                  ? "Job Function"
-                  : selectedDemoTab.replace(/([A-Z])/g, " $1")} Distribution
-              </h3>
-              <span className="text-xs text-slate-400 font-medium">
-                Total sampled: {fmtInt(currentDemoTotal)} followers
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-sm font-bold text-slate-800 capitalize">
+                  {selectedDemoTab === "function" || selectedDemoTab === "jobFunction"
+                    ? "Job Function"
+                    : selectedDemoTab.replace(/([A-Z])/g, " $1")} Distribution
+                </h3>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Follower Base
+                </span>
+              </div>
+              <span className="text-xs text-slate-500 font-semibold bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/80">
+                Total sampled: <strong className="text-slate-900 font-extrabold">{fmtInt(currentDemoTotal)}</strong> live followers (~25K)
               </span>
             </div>
 

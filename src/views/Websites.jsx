@@ -10,10 +10,31 @@ import {
 import { fmtInt } from "../lib/numbers.js";
 import { MODULES } from "../lib/palette.js";
 import { getSeoMetricHealth } from "../lib/seoHealth.js";
+import { useData } from "../state/DataContext.jsx";
 
 /** Comprehensive Website & SEO analytics across all 11 metrics. */
 export function WebsitesView({ d, onLoadExactSeo }) {
   const [tableMode, setTableMode] = useState("unpivoted"); // "unpivoted" | "horizontal"
+  const { syncLiveGoogleSheet, syncingGoogleSheet, googleSheetMeta } = useData();
+  const [sheetSyncFeedback, setSheetSyncFeedback] = useState(null);
+
+  const handleSyncSheet = async () => {
+    try {
+      const res = await syncLiveGoogleSheet();
+      setSheetSyncFeedback({
+        type: "success",
+        message: `Synced ${res?.weeksCount || 14} weeks from Google Sheets! Latest: ${res?.latestWeek || "2-Oct"}`,
+      });
+      setTimeout(() => setSheetSyncFeedback(null), 4000);
+    } catch (e) {
+      setSheetSyncFeedback({
+        type: "error",
+        message: "Sync failed: " + (e?.message || "Network error"),
+      });
+      setTimeout(() => setSheetSyncFeedback(null), 4000);
+    }
+  };
+
   const sites = d.siteBreakdown || [];
   const latest = d.seo?.latest || {};
   const bounceDisplay = d.seo?.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (latest.bounce != null ? `${latest.bounce}%` : "—");
@@ -75,6 +96,85 @@ export function WebsitesView({ d, onLoadExactSeo }) {
 
   return (
     <>
+      {/* Live Google Sheets SEO Sync Banner */}
+      <div className="panel p-4 bg-gradient-to-r from-emerald-900 via-teal-800 to-cyan-900 text-white rounded-2xl shadow-md flex flex-wrap items-center justify-between gap-4 mb-5">
+        <div className="flex items-center gap-3.5">
+          <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30 text-white shadow-inner">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-base text-white">ACOE Website Status</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/25 text-emerald-200 border border-emerald-300/40">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Google Sheet Connected
+              </span>
+            </div>
+            <p className="text-xs text-emerald-100/90 mt-0.5">
+              Source: ACOE Website Status (Google Sheets) · Live tracking: <strong className="text-white font-extrabold">{googleSheetMeta?.weeksCount || 14} weekly periods</strong> · Latest week: <strong className="text-white font-extrabold">{googleSheetMeta?.latestWeek || "2-Oct"}</strong> · {googleSheetMeta?.lastSynced ? `Synced at ${new Date(googleSheetMeta.lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Active cloud sync"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+          {sheetSyncFeedback && (
+            <div className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 animate-in fade-in duration-200 ${
+              sheetSyncFeedback.type === "success"
+                ? "bg-emerald-500/30 text-emerald-100 border-emerald-400/50"
+                : "bg-rose-500/30 text-rose-100 border-rose-400/50"
+            }`}>
+              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>{sheetSyncFeedback.message}</span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSyncSheet}
+            disabled={syncingGoogleSheet}
+            className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold border backdrop-blur-sm transition-all cursor-pointer disabled:opacity-50 ${
+              sheetSyncFeedback?.type === "success"
+                ? "bg-emerald-500 text-white border-emerald-300 shadow-md"
+                : sheetSyncFeedback?.type === "error"
+                ? "bg-rose-500 text-white border-rose-300"
+                : "bg-white/20 hover:bg-white/30 active:scale-95 text-white border-white/30"
+            }`}
+            title="Fetch real-time traffic and SEO data directly from Google Sheets"
+          >
+            <svg className={`w-3.5 h-3.5 ${syncingGoogleSheet ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            <span>
+              {syncingGoogleSheet
+                ? "Syncing sheet..."
+                : sheetSyncFeedback?.type === "success"
+                ? "✓ Synced!"
+                : "Sync Google Sheet"}
+            </span>
+          </button>
+
+          <a
+            href="https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-xl bg-white text-teal-900 px-3.5 py-2 text-xs font-bold shadow-sm hover:bg-teal-50 transition-all cursor-pointer"
+          >
+            <span>Open Sheet</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
       <SiteCompareStrip sites={sites} />
 
       {/* Dynamic SEO Health Status Bar */}

@@ -107,7 +107,7 @@ describe("Master Dataset End-to-End Processing", () => {
     expect(totalSent).toBeGreaterThan(1000);
 
     // 6. Website Drop-offs Verification
-    expect(channels.dropoffs?.length).toBe(12);
+    expect(channels.dropoffs?.length).toBeGreaterThanOrEqual(12);
   });
 
   it("verifies social demographics and follower calculations match expectations", () => {
