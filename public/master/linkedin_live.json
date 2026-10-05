@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24910,
+  "followers": 24914,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5096,
-  "lastSynced": "2026-10-05T11:03:00.177Z",
+  "growthSinceExport": 5100,
+  "lastSynced": "2026-10-05T17:59:34.241Z",
   "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,19 +104,19 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12143,
+        "count": 12145,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7518,
+        "count": 7519,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Director",
-        "count": 2640,
+        "count": 2641,
         "category": "seniority",
         "isLive": true
       },
@@ -148,19 +148,19 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9323,
+        "count": 9325,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6525,
+        "count": 6526,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3017,
+        "count": 3018,
         "category": "function",
         "isLive": true
       },
@@ -192,19 +192,19 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9323,
+        "count": 9325,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6525,
+        "count": 6526,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3017,
+        "count": 3018,
         "category": "function",
         "isLive": true
       },
@@ -236,13 +236,13 @@
     "location": [
       {
         "label": "United States",
-        "count": 10586,
+        "count": 10587,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9517,
+        "count": 9518,
         "category": "location",
         "isLive": true
       },
@@ -260,7 +260,7 @@
       },
       {
         "label": "United Arab Emirates",
-        "count": 1199,
+        "count": 1200,
         "category": "location",
         "isLive": true
       }
@@ -268,7 +268,7 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13502,
+        "count": 13504,
         "category": "industry",
         "isLive": true
       },
@@ -300,19 +300,19 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9592,
+        "count": 9594,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6500,
+        "count": 6501,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3809,
+        "count": 3810,
         "category": "companySize",
         "isLive": true
       },
@@ -330,6 +330,6 @@
       }
     ],
     "isLive": true,
-    "liveFollowers": 24910
+    "liveFollowers": 24914
   }
 }
