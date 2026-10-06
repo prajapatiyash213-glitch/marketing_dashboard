@@ -241,31 +241,49 @@ export function SiteCompareStrip({ sites }) {
   if (!displaySites.length) return null;
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-      {displaySites.map((s) => (
-        <div key={s.id} className="panel p-4" style={{ borderLeft: `3px solid ${s.color}` }}>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-medium text-ink">{s.label}</div>
-              <div className="mt-1 tnum font-display text-2xl" style={{ color: s.color }}>{fmtInt(s.views)}</div>
-              <div className="text-xs text-muted">views over {s.weeks} weeks</div>
-            </div>
-            <Sparkline values={s.spark} color={s.color} width={110} height={34} />
-          </div>
-          <dl className="mt-3 grid grid-cols-4 gap-2 border-t border-hair pt-3 text-xs">
-            {[
-              ["Web leads", fmtInt(s.webLeads)],
-              ["Convert", s.efficiency != null ? `${s.efficiency.toFixed(2)}%` : "—"],
-              ["Bounce", s.bounce != null ? `${s.bounce.toFixed(0)}%` : "—"],
-              ["Links", fmtInt(s.backlinks)],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt className="text-faint">{label}</dt>
-                <dd className="tnum mt-0.5 text-ink">{value}</dd>
+      {displaySites.map((s) => {
+        const viewDiff = s.previousViews != null && s.previousViews > 0
+          ? ((s.views - s.previousViews) / s.previousViews) * 100
+          : null;
+        return (
+          <div key={s.id} className="panel p-4" style={{ borderLeft: `3px solid ${s.color}` }}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-medium text-ink">{s.label}</div>
+                <div className="flex items-baseline gap-2">
+                  <div className="mt-1 tnum font-display text-2xl" style={{ color: s.color }}>{fmtInt(s.views)}</div>
+                  {viewDiff != null && (
+                    <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${
+                      viewDiff > 0
+                        ? "text-emerald-700 bg-emerald-50 border border-emerald-200/80"
+                        : viewDiff < 0
+                        ? "text-rose-700 bg-rose-50 border border-rose-200/80"
+                        : "text-slate-600 bg-slate-100 border border-slate-200/80"
+                    }`}>
+                      {viewDiff >= 0 ? "+" : ""}{viewDiff.toFixed(1)}% WoW
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-muted">views over {s.weeks} {s.weeks === 1 ? "week" : "weeks"}</div>
               </div>
-            ))}
-          </dl>
-        </div>
-      ))}
+              <Sparkline values={s.spark} color={s.color} width={110} height={34} />
+            </div>
+            <dl className="mt-3 grid grid-cols-4 gap-2 border-t border-hair pt-3 text-xs">
+              {[
+                ["Web leads", fmtInt(s.webLeads)],
+                ["Convert", s.efficiency != null ? `${s.efficiency.toFixed(2)}%` : "—"],
+                ["Bounce", s.bounce != null ? `${s.bounce.toFixed(0)}%` : "—"],
+                ["Links", fmtInt(s.backlinks)],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-faint">{label}</dt>
+                  <dd className="tnum mt-0.5 text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -275,7 +293,10 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
   const bounceDisplay = d.seo.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (latest.bounce != null ? `${latest.bounce}%` : "—");
   const trend = d.seoTrend || [];
   const latestWeek = trend[trend.length - 1] || latest || {};
-  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : null;
+  const priorPeriodWeek = d.previousSeoTrend?.length
+    ? d.previousSeoTrend[d.previousSeoTrend.length - 1]
+    : (d.seo?.previousLatest || null);
+  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek;
 
   const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
   const usersHealth = getSeoMetricHealth("users", latestWeek.users, prevWeek?.users);

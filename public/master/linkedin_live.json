@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24914,
+  "followers": 24918,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5100,
-  "lastSynced": "2026-10-05T17:59:34.241Z",
+  "growthSinceExport": 5104,
+  "lastSynced": "2026-10-06T07:54:20.001Z",
   "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,13 +104,13 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12145,
+        "count": 12147,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7519,
+        "count": 7520,
         "category": "seniority",
         "isLive": true
       },
@@ -148,13 +148,13 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9325,
+        "count": 9326,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6526,
+        "count": 6527,
         "category": "function",
         "isLive": true
       },
@@ -166,19 +166,19 @@
       },
       {
         "label": "Program & Project Management",
-        "count": 2112,
+        "count": 2113,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1697,
+        "count": 1698,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1345,
+        "count": 1346,
         "category": "function",
         "isLive": true
       },
@@ -192,13 +192,13 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9325,
+        "count": 9326,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6526,
+        "count": 6527,
         "category": "function",
         "isLive": true
       },
@@ -210,19 +210,19 @@
       },
       {
         "label": "Program & Project Management",
-        "count": 2112,
+        "count": 2113,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1697,
+        "count": 1698,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1345,
+        "count": 1346,
         "category": "function",
         "isLive": true
       },
@@ -236,25 +236,25 @@
     "location": [
       {
         "label": "United States",
-        "count": 10587,
+        "count": 10589,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9518,
+        "count": 9520,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Kingdom",
-        "count": 2087,
+        "count": 2088,
         "category": "location",
         "isLive": true
       },
       {
         "label": "Canada",
-        "count": 1521,
+        "count": 1522,
         "category": "location",
         "isLive": true
       },
@@ -268,13 +268,13 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13504,
+        "count": 13507,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5683,
+        "count": 5684,
         "category": "industry",
         "isLive": true
       },
@@ -300,36 +300,36 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9594,
+        "count": 9595,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6501,
+        "count": 6502,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3810,
+        "count": 3811,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "51-200 employees",
-        "count": 3093,
+        "count": 3094,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "2-10 employees",
-        "count": 1916,
+        "count": 1917,
         "category": "companySize",
         "isLive": true
       }
     ],
     "isLive": true,
-    "liveFollowers": 24914
+    "liveFollowers": 24918
   }
 }

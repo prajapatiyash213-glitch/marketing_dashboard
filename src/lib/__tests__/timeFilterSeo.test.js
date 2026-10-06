@@ -72,4 +72,35 @@ describe("Time filter calculations for Website + SEO exact matrix", () => {
     expect(leads).toBe(12);
     expect(downloads).toBe(1);
   });
+
+  it("evaluates 7 days (7d) preset comparing against previous 7-day period (red/green instead of baseline)", async () => {
+    const { previousWindow } = await import("../dates.js");
+    const { getSeoMetricHealth } = await import("../seoHealth.js");
+
+    const range = resolveRange("7d", anchor);
+    const prevRange = previousWindow(range);
+
+    const periodWeeks = weeks.filter((w) => withinRange(w.date, range));
+    const previousWeeks = weeks.filter((w) => withinRange(w.date, prevRange));
+
+    expect(periodWeeks).toHaveLength(1);
+    expect(previousWeeks).toHaveLength(1);
+
+    const curWeek = periodWeeks[0];
+    const prevWeek = previousWeeks[0];
+
+    // Views dropped from 680 (24-Jul) to 610 (31-Jul) -> RED (Dropping)
+    const viewsHealth = getSeoMetricHealth("views", curWeek.views, prevWeek.views);
+    expect(viewsHealth.status).toBe("bad");
+    expect(viewsHealth.shortBadge).toBe("Dropping");
+    expect(viewsHealth.borderClass).toContain("rose");
+    expect(viewsHealth.diffText).toContain("-10.3% WoW");
+
+    // Users grew from 163 (24-Jul) to 173 (31-Jul) -> GREEN (Growing)
+    const usersHealth = getSeoMetricHealth("users", curWeek.users, prevWeek.users);
+    expect(usersHealth.status).toBe("good");
+    expect(usersHealth.shortBadge).toBe("Growing");
+    expect(usersHealth.borderClass).toContain("emerald");
+    expect(usersHealth.diffText).toContain("+6.1% WoW");
+  });
 });

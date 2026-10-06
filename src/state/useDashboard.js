@@ -148,6 +148,18 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     () => (previous ? weeks.filter((w) => matchesSegment(w, { pipelineKey: null }) && withinRange(w.date, previous)) : null),
     [weeks, previous, matchesSegment]
   );
+  const effectivePreviousWeeks = useMemo(() => {
+    if (previousWeeks && previousWeeks.length > 0) return previousWeeks;
+    if (!rangeActive || !periodWeeks.length) return [];
+    const minPeriodDate = Math.min(...periodWeeks.map((w) => (w.date ? w.date.getTime() : Infinity)));
+    if (!isFinite(minPeriodDate)) return [];
+    const prior = weeks.filter(
+      (w) => matchesSegment(w, { pipelineKey: null }) && w.date && w.date.getTime() < minPeriodDate
+    );
+    if (!prior.length) return [];
+    const maxPriorDate = Math.max(...prior.map((w) => w.date.getTime()));
+    return prior.filter((w) => w.date && w.date.getTime() === maxPriorDate);
+  }, [previousWeeks, rangeActive, periodWeeks, weeks, matchesSegment]);
   const previousEmail = useMemo(
     () => (previous ? email.filter((r) => r.date && withinRange(r.date, previous)) : null),
     [email, previous]
@@ -319,13 +331,17 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
   };
 
   const seoTrend = useMemo(() => bucketWeeks(periodWeeks), [periodWeeks, grain]); // eslint-disable-line react-hooks/exhaustive-deps
+  const previousSeoTrend = useMemo(
+    () => (effectivePreviousWeeks.length ? bucketWeeks(effectivePreviousWeeks) : []),
+    [effectivePreviousWeeks, grain] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   const siteBreakdown = useMemo(() => {
     const present = Array.from(new Set(weeks.map((w) => w.site)));
     return present.map((id) => {
       const meta = siteById(id);
       const rows = periodWeeks.filter((w) => w.site === id);
-      const prevRows = previousWeeks?.filter((w) => w.site === id) || null;
+      const prevRows = effectivePreviousWeeks.filter((w) => w.site === id);
       const views = sum(rows, "views");
       const leadsFromWeb = sum(rows, "seoLeads");
       const latest = rows[rows.length - 1] || {};
@@ -349,7 +365,7 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
         keywords: latest.keywords ?? null,
         aiSearch: latest.aiSearch ?? null,
         raw_aiSearch: latest.raw_aiSearch ?? null,
-        previousViews: prevRows?.length ? sum(prevRows, "views") : null,
+        previousViews: prevRows.length ? sum(prevRows, "views") : null,
         trend: bucketWeeks(rows),
         spark: rows.map((w) => w.views || 0),
         pipelineLeads: periodLeads.filter((l) => l.site === id).length,
@@ -357,7 +373,7 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     })
     .filter((s) => s.id !== "unassigned" || s.views > 0)
     .sort((a, b) => b.views - a.views);
-  }, [weeks, periodWeeks, previousWeeks, periodLeads, grain]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [weeks, periodWeeks, effectivePreviousWeeks, periodLeads, grain]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const seo = useMemo(() => {
     const views = sum(periodWeeks, "views");
@@ -393,6 +409,29 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       pa: primaryWeek.pa ?? latestWeeks.find((w) => w.pa != null)?.pa ?? null,
     };
 
+    const sortedPrevWeeks = [...effectivePreviousWeeks].sort((a, b) => (a.sort || 0) - (b.sort || 0));
+    const lastPrevDate = sortedPrevWeeks[sortedPrevWeeks.length - 1]?.date;
+    const latestPrevWeeks = lastPrevDate ? sortedPrevWeeks.filter((w) => w.date && w.date.getTime() === lastPrevDate.getTime()) : [];
+    const prevPrimaryWeek = latestPrevWeeks.find((w) => w.site === primaryId) || sortedPrevWeeks[sortedPrevWeeks.length - 1] || {};
+    const totalPrevAiSearch = latestPrevWeeks.reduce((acc, w) => acc + (w.aiSearch || 0), 0);
+
+    const previousLatest = effectivePreviousWeeks.length > 0 ? {
+      ...prevPrimaryWeek,
+      views: sum(latestPrevWeeks, "views"),
+      users: sum(latestPrevWeeks, "users"),
+      aiSearch: totalPrevAiSearch > 0 ? totalPrevAiSearch : (prevPrimaryWeek.aiSearch ?? null),
+      raw_aiSearch: prevPrimaryWeek.raw_aiSearch || latestPrevWeeks.find((w) => w.raw_aiSearch)?.raw_aiSearch || null,
+      keywords: prevPrimaryWeek.keywords ?? latestPrevWeeks.find((w) => w.keywords != null)?.keywords ?? null,
+      backlinks: prevPrimaryWeek.backlinks ?? latestPrevWeeks.find((w) => w.backlinks != null)?.backlinks ?? null,
+      raw_backlinks: prevPrimaryWeek.raw_backlinks || latestPrevWeeks.find((w) => w.raw_backlinks)?.raw_backlinks || null,
+      da: prevPrimaryWeek.da ?? latestPrevWeeks.find((w) => w.da != null)?.da ?? null,
+      as: prevPrimaryWeek.as ?? latestPrevWeeks.find((w) => w.as != null)?.as ?? null,
+      pa: prevPrimaryWeek.pa ?? latestPrevWeeks.find((w) => w.pa != null)?.pa ?? null,
+      bounce: latestPrevWeeks.filter((w) => w.bounce != null).length
+        ? Math.round((latestPrevWeeks.filter((w) => w.bounce != null).reduce((acc, w) => acc + w.bounce, 0) / latestPrevWeeks.filter((w) => w.bounce != null).length) * 10) / 10
+        : null,
+    } : null;
+
     return {
       views,
       users,
@@ -402,14 +441,18 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       avgBounce,
       peak,
       latest,
-      previousViews: previousWeeks?.length ? sum(previousWeeks, "views") : null,
+      previousLatest,
+      previousViews: effectivePreviousWeeks.length ? sum(effectivePreviousWeeks, "views") : null,
+      previousUsers: effectivePreviousWeeks.length ? sum(effectivePreviousWeeks, "users") : null,
+      previousWebLeads: effectivePreviousWeeks.length ? sum(effectivePreviousWeeks, "seoLeads") : null,
+      previousDownloads: effectivePreviousWeeks.length ? sum(effectivePreviousWeeks, "downloads") : null,
       efficiency: rate(webLeads, views) || 0,
       hasTraffic: periodWeeks.some((w) => w.views != null || w.users != null),
       hasBacklinks: periodWeeks.some((w) => w.backlinks != null),
       hasAuthority: periodWeeks.some((w) => w.da != null || w.as != null || w.pa != null),
       hasBounce: periodWeeks.some((w) => w.bounce != null),
     };
-  }, [periodWeeks, previousWeeks, siteBreakdown]);
+  }, [periodWeeks, effectivePreviousWeeks, siteBreakdown]);
 
   /* ---- channels ---- */
   const emailStats = useMemo(() => {
@@ -1152,10 +1195,10 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
     rangeKey, setRangeKey: selectRangeKey, custom, setCustom, grain, setGrain, grainWord: GRAIN_WORD[grain] || grain,
     site, setSite, pipeline, setPipeline, includeUndated, setIncludeUndated,
     range, rangeActive, bounds, previous, coverage, emptyReason,
-    periodLeads, periodWeeks, weeks, previousLeads, undated, excludedByPeriod,
+    periodLeads, periodWeeks, weeks, previousLeads, previousWeeks: effectivePreviousWeeks, undated, excludedByPeriod,
     stageCounts, advanced, conversion, previousConversion, pipelineValue, wonValue, wonCount,
     sources, sourcePie, topSource: sources[0], fileNames, funnel, funnelByPipeline,
-    pipelines, pipelineBreakdown, leadTrend, seoTrend, seo, siteBreakdown, sites: SITES,
+    pipelines, pipelineBreakdown, leadTrend, seoTrend, previousSeoTrend, seo, siteBreakdown, sites: SITES,
     emailStats, socialStats, landingStats, costStats, dropoffStats, channelContribution, modulesConnected,
   };
 }

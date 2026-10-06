@@ -78,7 +78,15 @@ export function WebsitesView({ d, onLoadExactSeo }) {
   const trend = d.seoTrend || [];
   // Use aggregated weekly trend so multi-site weeks are cleanly merged rather than cross-comparing different sites
   const latestWeek = trend[trend.length - 1] || latest || {};
-  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : null;
+
+  // Prior period week for comparison:
+  // If active period contains multiple weeks (e.g. All time or 4 weeks), use previous week in trend.
+  // If active period contains only 1 week (e.g. 7 days preset), compare against the previous 7 days (prior period week).
+  const priorPeriodWeek = d.previousSeoTrend?.length
+    ? d.previousSeoTrend[d.previousSeoTrend.length - 1]
+    : (d.seo?.previousLatest || null);
+
+  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek;
 
   // Dynamic SEO metric evaluation: Good (Green), Bad (Red), Natural (Black)
   const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
@@ -211,7 +219,7 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           </div>
           <div className={`text-2xl font-black font-display mt-1.5 ${viewsHealth.textClass}`}>{fmtInt(d.seo.views)}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">{d.periodWeeks.length} wks in period</span>
+            <span className="truncate">{d.periodWeeks.length} {d.periodWeeks.length === 1 ? "wk" : "wks"} in period</span>
             {viewsHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${viewsHealth.status === "good" ? "text-emerald-600" : viewsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {viewsHealth.diffText}
@@ -256,7 +264,13 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${bounceHealth.textClass}`}>{bounceDisplay}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">Period average</span>
-            <span className="text-[10px] font-bold text-rose-600 group-hover:underline">Drop-offs</span>
+            {bounceHealth.diffText ? (
+              <span className={`text-[10px] font-bold shrink-0 ${bounceHealth.diff < 0 ? "text-emerald-600" : bounceHealth.diff > 0 ? "text-rose-600" : "text-slate-500"}`}>
+                {bounceHealth.diffText}
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-rose-600 group-hover:underline">Drop-offs</span>
+            )}
           </div>
         </div>
 
@@ -271,7 +285,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${asHealth.textClass}`}>{latest.as ?? "—"}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">Authority Score</span>
-            {asHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{asHealth.diffText}</span>}
+            {asHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${asHealth.status === "good" ? "text-emerald-600" : asHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {asHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -286,7 +304,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${daHealth.textClass}`}>{latest.da ?? "—"}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">DAPA Checker</span>
-            {daHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{daHealth.diffText}</span>}
+            {daHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${daHealth.status === "good" ? "text-emerald-600" : daHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {daHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -301,7 +323,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${keywordsHealth.textClass}`}>{latest.keywords ?? "—"}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">Ranked queries</span>
-            {keywordsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{keywordsHealth.diffText}</span>}
+            {keywordsHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${keywordsHealth.status === "good" ? "text-emerald-600" : keywordsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {keywordsHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -316,7 +342,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${leadsHealth.textClass}`}>{fmtInt(d.seo.webLeads)}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">{d.seo.efficiency.toFixed(2)}% conv</span>
-            {leadsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{leadsHealth.diffText}</span>}
+            {leadsHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${leadsHealth.status === "good" ? "text-emerald-600" : leadsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {leadsHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -331,7 +361,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${downloadsHealth.textClass}`}>{fmtInt(d.seo.downloads)}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">Resource fills</span>
-            {downloadsHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{downloadsHealth.diffText}</span>}
+            {downloadsHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${downloadsHealth.status === "good" ? "text-emerald-600" : downloadsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {downloadsHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -346,7 +380,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           <div className={`text-2xl font-black font-display mt-1.5 ${paHealth.textClass}`}>{latest.pa ?? "—"}</div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate">Homepage PA</span>
-            {paHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{paHealth.diffText}</span>}
+            {paHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${paHealth.status === "good" ? "text-emerald-600" : paHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {paHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -363,7 +401,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate" title={latest.raw_backlinks || "Total indexed links"}>{latest.raw_backlinks || "Total indexed links"}</span>
-            {backlinksHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{backlinksHealth.diffText}</span>}
+            {backlinksHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${backlinksHealth.status === "good" ? "text-emerald-600" : backlinksHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {backlinksHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
 
@@ -380,7 +422,11 @@ export function WebsitesView({ d, onLoadExactSeo }) {
           </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
             <span className="truncate" title={latest.raw_aiSearch || "AI query referrals"}>{latest.raw_aiSearch || "AI query referrals"}</span>
-            {aiSearchHealth.diffText && <span className="text-[10px] font-semibold text-slate-500 shrink-0">{aiSearchHealth.diffText}</span>}
+            {aiSearchHealth.diffText && (
+              <span className={`text-[10px] font-bold shrink-0 ${aiSearchHealth.status === "good" ? "text-emerald-600" : aiSearchHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
+                {aiSearchHealth.diffText}
+              </span>
+            )}
           </div>
         </div>
       </div>
