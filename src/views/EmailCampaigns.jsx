@@ -213,6 +213,29 @@ export function EmailCampaignsView({ d }) {
         </div>
       </div>
 
+      {/* Fallback Notice when no broadcasts fall in the active period */}
+      {email.isFallback && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200/90 rounded-2xl text-xs text-amber-900 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="h-6 w-6 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 font-bold shrink-0">
+              ℹ
+            </span>
+            <span>
+              No email broadcasts were sent during <strong>{email.activeRangeLabel || "the selected period"}</strong>. Showing all <strong>{email.campaigns} uploaded campaigns</strong> from history.
+            </span>
+          </div>
+          {d.setRangeKey && (
+            <button
+              type="button"
+              onClick={() => d.setRangeKey("all")}
+              className="px-3 py-1.5 font-bold text-amber-900 bg-white hover:bg-amber-100 border border-amber-300 rounded-xl transition-all cursor-pointer shadow-xs whitespace-nowrap"
+            >
+              Reset to All Time ➔
+            </button>
+          )}
+        </div>
+      )}
+
       {/* KPI Band matching exact metrics */}
       <KpiBand>
         <Kpi

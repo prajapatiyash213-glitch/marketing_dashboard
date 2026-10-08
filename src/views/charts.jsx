@@ -6,6 +6,7 @@ import {
 import { Panel, EmptyState, ChartTooltip, CHART_SERIES, AXIS, shortFile } from "../components/primitives.jsx";
 import { Sparkline } from "../components/visuals.jsx";
 import { fmtInt, pct, fmtMoneyCompact } from "../lib/numbers.js";
+import { useWeeklyUpdates } from "../lib/weeklyUpdates.js";
 
 const GRID = "#F1F5F9";
 const LINE = "#E2E8F0";
@@ -191,7 +192,7 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
       {/* Top row: Title + period pill selector + chart legend */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h2 className="text-base font-bold text-slate-800">Dashboard</h2>
+          <h2 className="text-base font-bold text-slate-800">Leads Dashboard</h2>
           <p className="text-xs text-slate-400 mt-0.5">Overview of {d.range.label}</p>
         </div>
 
@@ -432,90 +433,144 @@ export function TrafficDonutChart({ sources, total }) {
 }
 
 export function GradientStatCards({ d }) {
-  const bounceRate = d.seo.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (d.seo.latest.bounce != null ? `${d.seo.latest.bounce}%` : "—");
+  const [updates] = useWeeklyUpdates();
+
+  const c1 = updates[0] || {};
+  const c2 = updates[1] || {};
+  const c3 = updates[2] || {};
+  const c4 = updates[3] || {};
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {/* Card 1: Hot Pink gradient (Pipeline Leads) */}
-      <div className="card-gradient-pink rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Pipeline Status</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">All Leads</span>
-        </div>
-        <div className="flex items-end justify-between mt-3">
-          <div className="flex items-end gap-1.5 h-9 pb-1">
-            <span className="w-1.5 bg-white/40 rounded-full h-4" />
-            <span className="w-1.5 bg-white/60 rounded-full h-7" />
-            <span className="w-1.5 bg-white rounded-full h-9" />
-            <span className="w-1.5 bg-white/70 rounded-full h-6" />
-            <span className="w-1.5 bg-white/50 rounded-full h-5" />
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-black font-display tracking-tight text-white">
-              {fmtInt(d.periodLeads.length)}
-            </div>
-            <div className="text-[11px] text-white/80 mt-0.5">{fmtInt(d.advanced)} Active & Qualified</div>
-          </div>
+    <div className="panel p-5 sm:p-6">
+      {/* Top Header: Weekly Updates */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-100">
+        <div>
+          <h2 className="text-base font-bold text-slate-800">Weekly Updates</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Execution roadmap, traffic push & operational milestones</p>
         </div>
       </div>
 
-      {/* Card 2: Purple gradient (Page Views & Users) */}
-      <div className="card-gradient-purple rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Page Views</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">Traffic</span>
-        </div>
-        <div className="flex items-end justify-between mt-3">
-          <div className="h-9 w-24">
-            <Sparkline values={d.seoTrend.map((r) => r.views)} color="#FFFFFF" width={96} height={36} />
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-black font-display tracking-tight text-white">
-              {fmtInt(d.seo.views)}
+      {/* 2x2 Grid of Execution Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Card 01: Sales Team Moving To Execution */}
+        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#2952E3] to-[#5946DF]">
+          <div className="flex items-start gap-4 sm:gap-5 flex-1 pr-3 z-10">
+            <span className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none select-none">
+              01
+            </span>
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+                {c1.title}
+              </h3>
+              <p className="text-xs sm:text-[13px] text-white/90 leading-relaxed mt-1.5 max-w-xl">
+                {c1.description}
+              </p>
             </div>
-            <div className="text-[11px] text-white/80 mt-0.5">{fmtInt(d.seo.users)} Users · {fmtInt(d.seo.webLeads)} Leads</div>
           </div>
+          {c1.metric && (
+            <div className="shrink-0 text-right pl-2 z-10">
+              <span className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
+                {c1.metric}
+              </span>
+              {c1.metricLabel && (
+                <div className="text-[11px] sm:text-xs font-bold text-white/95 mt-1 tracking-tight">
+                  {c1.metricLabel}
+                </div>
+              )}
+            </div>
+          )}
+          {/* Decorative corner watermark */}
+          <div className="absolute -bottom-10 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
         </div>
-      </div>
 
-      {/* Card 3: Cyan gradient (Bounce Rate & SEO Health) */}
-      <div className="card-gradient-cyan rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Bounce Rate</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">SEO Health</span>
-        </div>
-        <div className="flex items-end justify-between mt-3">
-          <div className="h-9 w-24">
-            <Sparkline values={d.seoTrend.map((r) => r.bounce || 50)} color="#FFFFFF" width={96} height={36} />
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-black font-display tracking-tight text-white">
-              {bounceRate}
+        {/* Card 02: The Next 45 Days Are The Primary Email Push */}
+        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#F96D27] to-[#ED3865]">
+          <div className="flex items-start gap-4 sm:gap-5 flex-1 pr-3 z-10">
+            <span className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none select-none">
+              02
+            </span>
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+                {c2.title}
+              </h3>
+              <p className="text-xs sm:text-[13px] text-white/90 leading-relaxed mt-1.5 max-w-xl">
+                {c2.description}
+              </p>
             </div>
-            <div className="text-[11px] text-white/80 mt-0.5">DA {d.seo.latest.da ?? "—"} · AS {d.seo.latest.as ?? "—"}</div>
           </div>
+          {c2.metric && (
+            <div className="shrink-0 text-right pl-2 z-10">
+              <div className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
+                {c2.metric}
+              </div>
+              {c2.metricLabel && (
+                <div className="text-[11px] sm:text-xs font-bold text-white/95 mt-1 tracking-tight">
+                  {c2.metricLabel}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="absolute -bottom-10 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
         </div>
-      </div>
 
-      {/* Card 4: Orange gradient (Closed Won Deals) */}
-      <div className="card-gradient-orange rounded-2xl p-5 text-white shadow-md relative overflow-hidden flex flex-col justify-between min-h-[125px]">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/90">Closed Won</span>
-          <span className="text-[11px] text-white/80 bg-white/20 px-2 py-0.5 rounded-full font-medium">Conversion</span>
-        </div>
-        <div className="flex items-end justify-between mt-3">
-          <div className="flex items-end gap-1.5 h-9 pb-1">
-            <span className="w-1.5 bg-white/40 rounded-full h-3" />
-            <span className="w-1.5 bg-white/60 rounded-full h-5" />
-            <span className="w-1.5 bg-white/75 rounded-full h-7" />
-            <span className="w-1.5 bg-white rounded-full h-9" />
-          </div>
-          <div className="text-right">
-            <div className="text-2xl font-black font-display tracking-tight text-white">
-              {fmtInt(d.wonCount)}
+        {/* Card 03: Three-stage Email Nurture Chain */}
+        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#0091FF] to-[#0062DF]">
+          <div className="flex items-start gap-4 sm:gap-5 flex-1 pr-3 z-10">
+            <span className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none select-none">
+              03
+            </span>
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+                {c3.title}
+              </h3>
+              <p className="text-xs sm:text-[13px] text-white/90 leading-relaxed mt-1.5 max-w-xl">
+                {c3.description}
+              </p>
             </div>
-            <div className="text-[11px] text-white/80 mt-0.5">{d.conversion.toFixed(1)}% Conversion Rate</div>
           </div>
+          {c3.metric && (
+            <div className="shrink-0 text-right pl-2 z-10">
+              <div className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
+                {c3.metric}
+              </div>
+              {c3.metricLabel && (
+                <div className="text-[11px] sm:text-xs font-bold text-white/95 mt-1 tracking-tight">
+                  {c3.metricLabel}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="absolute -bottom-10 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
+        </div>
+
+        {/* Card 04: LinkedIn Page Renamed */}
+        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#00B488] to-[#058296]">
+          <div className="flex items-start gap-4 sm:gap-5 flex-1 pr-3 z-10">
+            <span className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none select-none">
+              04
+            </span>
+            <div className="flex-1">
+              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight leading-snug">
+                {c4.title}
+              </h3>
+              <p className="text-xs sm:text-[13px] text-white/90 leading-relaxed mt-1.5 max-w-xl">
+                {c4.description}
+              </p>
+            </div>
+          </div>
+          {c4.metric && (
+            <div className="shrink-0 text-right pl-2 z-10">
+              <div className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
+                {c4.metric}
+              </div>
+              {c4.metricLabel && (
+                <div className="text-[11px] sm:text-xs font-bold text-white/95 mt-1 tracking-tight">
+                  {c4.metricLabel}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="absolute -bottom-10 -right-8 w-36 h-36 rounded-full bg-white/10 pointer-events-none" />
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { fmtInt, fmtMoneyCompact } from "../lib/numbers.js";
 import { MODULES, CATEGORICAL } from "../lib/palette.js";
 import { CHANNEL_SCHEMAS } from "../lib/channels.js";
 import { prettyDate } from "../lib/dates.js";
+import { WeeklyUpdatesForm } from "../components/WeeklyUpdatesForm.jsx";
 
 /** What to put in a sheet to switch a module on. Shown when it is not connected. */
 function DataContract({ module }) {
@@ -67,6 +68,9 @@ export function ChannelsView({ d, setView }) {
 
   return (
     <>
+      {/* Reusable Weekly Updates Editor (Image 2) */}
+      <WeeklyUpdatesForm />
+
       {email && (
         <KpiBand>
           <Kpi figure={fmtInt(email.sent)} label="Emails sent" detail={`${email.campaigns} campaigns in this period`} accent={MODULES.email.color} />

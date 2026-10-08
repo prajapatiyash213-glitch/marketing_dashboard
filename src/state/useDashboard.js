@@ -455,19 +455,19 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
   }, [periodWeeks, effectivePreviousWeeks, siteBreakdown]);
 
   /* ---- channels ---- */
-  const emailStats = useMemo(() => {
-    if (!periodEmail.length) return null;
-    const sent = sum(periodEmail, "sent");
-    const delivered = sum(periodEmail, "delivered") || sent;
-    const clicks = sum(periodEmail, "clicks");
-    const opens = sum(periodEmail, "opens");
-    const leadsGenerated = sum(periodEmail, "leads");
-    const spend = sum(periodEmail, "cost");
-    const bounces = sum(periodEmail, "bounces");
-    const complaints = sum(periodEmail, "complaints");
-    const unsubscribes = sum(periodEmail, "unsubscribes");
+  const buildEmailMetrics = (rows, prevRows = null) => {
+    if (!rows || !rows.length) return null;
+    const sent = sum(rows, "sent");
+    const delivered = sum(rows, "delivered") || sent;
+    const clicks = sum(rows, "clicks");
+    const opens = sum(rows, "opens");
+    const leadsGenerated = sum(rows, "leads");
+    const spend = sum(rows, "cost");
+    const bounces = sum(rows, "bounces");
+    const complaints = sum(rows, "complaints");
+    const unsubscribes = sum(rows, "unsubscribes");
     return {
-      campaigns: periodEmail.length,
+      campaigns: rows.length,
       sent,
       delivered,
       opens,
@@ -485,11 +485,11 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
       unsubRate: rate(unsubscribes, delivered),
       clickToLead: rate(leadsGenerated, clicks),
       costPerLead: leadsGenerated ? spend / leadsGenerated : null,
-      previousCtr: previousEmail?.length
-        ? rate(sum(previousEmail, "clicks"), sum(previousEmail, "delivered") || sum(previousEmail, "sent"))
+      previousCtr: prevRows?.length
+        ? rate(sum(prevRows, "clicks"), sum(prevRows, "delivered") || sum(prevRows, "sent"))
         : null,
-      byCampaign: periodEmail.slice().sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0)),
-      trend: periodEmail
+      byCampaign: rows.slice().sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0)),
+      trend: rows
         .filter((r) => r.date)
         .slice()
         .sort((a, b) => a.date - b.date)
@@ -504,7 +504,25 @@ export function useDashboard({ leads, weeks, channels, liveLinkedIn }) {
           sent: r.sent,
         })),
     };
-  }, [periodEmail, previousEmail]);
+  };
+
+  const emailStats = useMemo(() => {
+    const periodMetrics = buildEmailMetrics(periodEmail, previousEmail);
+    if (periodMetrics) {
+      return { ...periodMetrics, isFallback: false };
+    }
+    // If no email broadcasts fall in the active period (e.g. 7 days preset when campaigns were in Aug/Sept),
+    // fallback to all uploaded email campaigns so the user's uploaded data is always visible
+    const allMetrics = buildEmailMetrics(email);
+    if (allMetrics) {
+      return {
+        ...allMetrics,
+        isFallback: true,
+        activeRangeLabel: range?.label || "Selected period",
+      };
+    }
+    return null;
+  }, [periodEmail, previousEmail, email, range]);
 
   const socialStats = useMemo(() => {
     if (!social.length) return null;

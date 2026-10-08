@@ -44,26 +44,23 @@ export function TimeAndTraceabilityWidget({ d }) {
     <section className="mb-6 rounded-3xl border border-blue-100/80 bg-gradient-to-b from-[#F3F8FF] via-[#F8FBFF] to-white p-5 sm:p-6 shadow-sm">
       {/* 1. Header with Title & Target Deadline */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-2 rounded-full bg-gradient-to-b from-blue-600 to-indigo-600 shrink-0 shadow-sm" />
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h2 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-                Time &amp; Traceability
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsEditing(!isEditing)}
-                className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                title="Configure target and values"
-              >
-                {isEditing ? "Done" : "Customize Target"}
-              </button>
-            </div>
-            <p className="text-sm font-medium text-slate-500">
-              Qualified Lead Target Calculator
-            </p>
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-base font-bold text-slate-800">
+              Time &amp; Traceability
+            </h2>
+            <button
+              type="button"
+              onClick={() => setIsEditing(!isEditing)}
+              className="text-[11px] font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-0.5 rounded-lg transition-colors cursor-pointer"
+              title="Configure target and values"
+            >
+              {isEditing ? "Done" : "Customize Target"}
+            </button>
           </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Qualified Lead Target Calculator
+          </p>
         </div>
 
         {/* Target Deadline Badge & 3D Illustration */}

@@ -330,14 +330,6 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setView("dropoffs")}
-            className="text-xs font-semibold text-rose-600 hover:text-rose-700 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1"
-          >
-            <span>Website Drop-offs</span>
-            <span>→</span>
-          </button>
-          <button
-            type="button"
             onClick={() => setView("websites")}
             className="text-xs font-semibold text-[#00C2FF] hover:text-cyan-700 bg-white hover:bg-cyan-50 px-3 py-1.5 rounded-xl border border-cyan-200/80 transition-all shadow-xs cursor-pointer"
           >

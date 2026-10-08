@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24918,
+  "followers": 24927,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5104,
-  "lastSynced": "2026-10-06T07:54:20.001Z",
+  "growthSinceExport": 5113,
+  "lastSynced": "2026-10-08T10:58:04.377Z",
   "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -77,8 +77,8 @@
       "text": "We are thrilled to wrap up an incredible experience at Automation Anywhere IMAGINE ‘26 as a proud Silver Partner! The energy, insights, and forward-thinking discussions around AI and automation were innovative & inspiring.\n\nBut that’s not all. We didn't just attend the future, we introduced a piece of it.\n\nAs industries rapidly evolve, businesses need more than just tools, they need a strategic powerhouse to scale efficiency, integrate AI seamlessly, and drive true digital transformation. Automation COE is built to be exactly that catalyst.\n\nA massive thank you to the Automation Anywhere team, our clients, and every innovator who stopped by our booth to experience our live demos and connect with our team. This is just the beginning of a highly automated, hyper-efficient future.",
       "date": "2026-07-02T13:24:33.173Z",
       "url": "https://www.linkedin.com/posts/tecnoprism_we-are-thrilled-to-wrap-up-an-incredible-activity-7478438467006332929-0mWp",
-      "reactions": 194,
-      "likes": 194,
+      "reactions": 195,
+      "likes": 195,
       "author": "Tecnoprism"
     },
     {
@@ -104,19 +104,19 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12147,
+        "count": 12152,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7520,
+        "count": 7523,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Director",
-        "count": 2641,
+        "count": 2642,
         "category": "seniority",
         "isLive": true
       },
@@ -140,7 +140,7 @@
       },
       {
         "label": "Owner",
-        "count": 358,
+        "count": 359,
         "category": "seniority",
         "isLive": true
       }
@@ -148,25 +148,25 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9326,
+        "count": 9330,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6527,
+        "count": 6529,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3018,
+        "count": 3019,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2113,
+        "count": 2114,
         "category": "function",
         "isLive": true
       },
@@ -184,7 +184,7 @@
       },
       {
         "label": "Sales",
-        "count": 890,
+        "count": 891,
         "category": "function",
         "isLive": true
       }
@@ -192,25 +192,25 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9326,
+        "count": 9330,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6527,
+        "count": 6529,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3018,
+        "count": 3019,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2113,
+        "count": 2114,
         "category": "function",
         "isLive": true
       },
@@ -228,7 +228,7 @@
       },
       {
         "label": "Sales",
-        "count": 890,
+        "count": 891,
         "category": "function",
         "isLive": true
       }
@@ -236,13 +236,13 @@
     "location": [
       {
         "label": "United States",
-        "count": 10589,
+        "count": 10593,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9520,
+        "count": 9523,
         "category": "location",
         "isLive": true
       },
@@ -268,31 +268,31 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13507,
+        "count": 13511,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5684,
+        "count": 5686,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Financial Services",
-        "count": 2389,
+        "count": 2390,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Hospitals and Health Care",
-        "count": 1773,
+        "count": 1774,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Banking",
-        "count": 1564,
+        "count": 1565,
         "category": "industry",
         "isLive": true
       }
@@ -300,25 +300,25 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9595,
+        "count": 9599,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6502,
+        "count": 6504,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3811,
+        "count": 3812,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "51-200 employees",
-        "count": 3094,
+        "count": 3095,
         "category": "companySize",
         "isLive": true
       },
@@ -330,6 +330,6 @@
       }
     ],
     "isLive": true,
-    "liveFollowers": 24918
+    "liveFollowers": 24927
   }
 }
