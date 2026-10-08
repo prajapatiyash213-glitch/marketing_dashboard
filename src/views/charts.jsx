@@ -432,7 +432,7 @@ export function TrafficDonutChart({ sources, total }) {
   );
 }
 
-export function GradientStatCards({ d }) {
+export function GradientStatCards() {
   const [updates] = useWeeklyUpdates();
 
   const c1 = updates[0] || {};

@@ -9,7 +9,7 @@ import {
   RecentActivitiesPanel,
   OrderStatusTable,
 } from "./charts.jsx";
-import { fmtInt, fmtMoneyCompact, pct } from "../lib/numbers.js";
+import { fmtInt, fmtMoneyCompact } from "../lib/numbers.js";
 import { MODULES, CATEGORICAL } from "../lib/palette.js";
 import { pipelineColor } from "../lib/segments.js";
 import { getSeoMetricHealth } from "../lib/seoHealth.js";

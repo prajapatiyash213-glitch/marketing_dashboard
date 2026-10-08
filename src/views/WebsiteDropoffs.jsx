@@ -3,7 +3,7 @@ import { Panel, Kpi, KpiBand } from "../components/primitives.jsx";
 import { downloadSampleSheet } from "../lib/sampleTemplates.js";
 import { EXACT_SAMPLE_DROPOFFS, formatDropoffRecord } from "../lib/dropoffData.js";
 
-export function WebsiteDropoffsView({ d, setView }) {
+export function WebsiteDropoffsView({ d }) {
   const [visitorBrandFilter, setVisitorBrandFilter] = useState("All");
   const [ownerFilter, setOwnerFilter] = useState("All");
   const [visitorSearch, setVisitorSearch] = useState("");
@@ -16,8 +16,8 @@ export function WebsiteDropoffsView({ d, setView }) {
 
   const dropoffStats = d?.dropoffStats;
   const currentSite = d?.site || "All";
-  const rangeKey = d?.rangeKey || "all";
-  const rangeLabel = d?.range?.label || "All time";
+  const _rangeKey = d?.rangeKey || "all";
+  const _rangeLabel = d?.range?.label || "All time";
 
   // Base records from dashboard context (reacts automatically to global Site and Timeframe)
   const baseRecords = useMemo(() => {

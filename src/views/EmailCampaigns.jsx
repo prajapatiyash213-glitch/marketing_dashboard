@@ -12,7 +12,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { fmtInt, fmtMoneyCompact } from "../lib/numbers.js";
+import { fmtInt } from "../lib/numbers.js";
 import { MODULES } from "../lib/palette.js";
 import { prettyDate } from "../lib/dates.js";
 import { downloadSampleSheet } from "../lib/sampleTemplates.js";

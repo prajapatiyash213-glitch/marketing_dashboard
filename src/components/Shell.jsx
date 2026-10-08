@@ -148,7 +148,7 @@ export function Sidebar({ view, setView, footer }) {
 }
 
 export function AccountMenu() {
-  const { user, signOut, insecure } = useAuth();
+  const { user, signOut, insecure: _insecure } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 

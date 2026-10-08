@@ -102,7 +102,7 @@ export const SAMPLE_CATEGORIES = [
  * Builds in-memory workbook for a single category or the master all-in-one workbook.
  */
 export function buildSampleWorkbook(categoryId = "all") {
-  const { leads, weeks, channels } = buildSampleData();
+  const { leads, weeks: _weeks, channels } = buildSampleData();
   const wb = XLSX.utils.book_new();
 
   const addLeadsSheet = () => {

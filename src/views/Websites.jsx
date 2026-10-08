@@ -13,7 +13,7 @@ import { getSeoMetricHealth } from "../lib/seoHealth.js";
 import { useData } from "../state/DataContext.jsx";
 
 /** Comprehensive Website & SEO analytics across all 11 metrics. */
-export function WebsitesView({ d, onLoadExactSeo }) {
+export function WebsitesView({ d, setView }) {
   const [tableMode, setTableMode] = useState("unpivoted"); // "unpivoted" | "horizontal"
   const { syncLiveGoogleSheet, syncingGoogleSheet, googleSheetMeta } = useData();
   const [sheetSyncFeedback, setSheetSyncFeedback] = useState(null);

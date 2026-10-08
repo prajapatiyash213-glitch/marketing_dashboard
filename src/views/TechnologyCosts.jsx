@@ -13,7 +13,7 @@ import {
 import { USD_TO_INR } from "../state/useDashboard.js";
 
 /** Formats currency exactly with its appropriate symbol. */
-function fmtMoneyExact(amount, currency) {
+function _fmtMoneyExact(amount, currency) {
   if (amount == null || !Number.isFinite(amount)) return "—";
   const symbol = currency === "USD" ? "$" : "₹";
   return `${symbol}${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

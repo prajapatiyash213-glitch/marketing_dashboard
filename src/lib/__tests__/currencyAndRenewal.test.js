@@ -5,7 +5,6 @@ import {
   DIRECT_SMTP_PLAN,
   isRenewalDueNextMonth,
   isRenewalExpired,
-  parseRenewalDate,
 } from "../../components/SmtpRenewalModal.jsx";
 
 describe("Currency Conversion and Tool Renewals", () => {
