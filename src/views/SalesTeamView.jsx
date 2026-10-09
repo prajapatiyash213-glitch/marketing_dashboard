@@ -176,6 +176,16 @@ export function SalesTeamView() {
     });
   };
 
+  const handleUpdateField = async (leadId, patchLocal, patchSupabase) => {
+    // 1. Optimistic local update
+    setLeads(prev => prev.map(item => item.id === leadId ? { ...item, ...patchLocal } : item));
+
+    // 2. Persist to live Supabase DB
+    if (leadId && patchSupabase) {
+      await updateLiveLead(leadId, patchSupabase);
+    }
+  };
+
   const [selectedStage, setSelectedStage] = useState('all');
 
   // Filtered Leads
@@ -443,77 +453,141 @@ export function SalesTeamView() {
                       {l.brand}
                     </td>
 
-                    {/* OWNERSHIP (Interactive pill dropdown like image) */}
+                    {/* OWNERSHIP (Interactive pill dropdown) */}
                     <td className="py-3.5 px-4">
                       <select
                         value={l.owner}
                         onChange={(e) => {
-                          const updatedOwner = e.target.value;
-                          setLeads(leads.map(item => item.id === l.id ? { ...item, owner: updatedOwner } : item));
+                          const newOwner = e.target.value;
+                          const profileId = Object.keys(profilesMap).find(id => profilesMap[id] === newOwner) || l.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24";
+                          handleUpdateField(l.id, { owner: newOwner, owner_id: profileId }, { owner_id: profileId });
                         }}
                         className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700 font-medium shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-orange-500"
                       >
                         <option value="Yash Prajapati">Yash Prajapati</option>
                         <option value="Pinali Timba">Pinali Timba</option>
                         <option value="Shivam Prajapati">Shivam Prajapati</option>
+                        <option value="shashank Jha">shashank Jha</option>
                       </select>
                     </td>
 
                     {/* LEAD DATE */}
                     <td className="py-3.5 px-4 text-slate-600 text-[11px] leading-tight">
-                      <div>30</div>
-                      <div>Sep</div>
-                      <div>2026</div>
+                      {l.leadDate || '30 Sep 2026'}
                     </td>
 
-                    {/* LEAD SOURCE */}
+                    {/* LEAD SOURCE (Interactive Dropdown) */}
                     <td className="py-3.5 px-4 font-medium text-slate-700">
-                      {l.leadSource}
+                      <select
+                        value={l.leadSource}
+                        onChange={(e) => {
+                          const newSource = e.target.value;
+                          handleUpdateField(l.id, { leadSource: newSource }, { lead_source: newSource });
+                        }}
+                        className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700 font-medium cursor-pointer focus:outline-none"
+                      >
+                        {SOURCES_OPTIONS.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </td>
 
-                    {/* LEAD STAGE */}
+                    {/* LEAD STAGE (Interactive Dropdown) */}
                     <td className="py-3.5 px-4 font-bold text-slate-800">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className={`h-2 w-2 rounded-full ${
-                          l.leadStage === 'Qualified' ? 'bg-sky-500' :
-                          l.leadStage === 'Discovery' ? 'bg-slate-500' :
-                          l.leadStage === 'Closed Won' ? 'bg-emerald-500' : 'bg-blue-600'
-                        }`} />
-                        {l.leadStage}
-                      </span>
+                      <select
+                        value={l.leadStage}
+                        onChange={(e) => {
+                          const newStage = e.target.value;
+                          handleUpdateField(l.id, { leadStage: newStage }, { lead_stage: newStage });
+                        }}
+                        className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none"
+                      >
+                        {STAGES_OPTIONS.map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
                     </td>
 
                     {/* DATE OF CONNECT */}
                     <td className="py-3.5 px-4 text-slate-400">
-                      {l.dateOfConnect || '—'}
+                      <input
+                        type="date"
+                        value={l.dateOfConnect || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleUpdateField(l.id, { dateOfConnect: val }, { connect_date: val });
+                        }}
+                        className="bg-transparent text-xs text-slate-600 focus:outline-none"
+                      />
                     </td>
 
                     {/* COMMENTS (First Connect) */}
                     <td className="py-3.5 px-4 text-slate-600 whitespace-normal max-w-xs leading-snug">
-                      {l.comments || '—'}
+                      <input
+                        type="text"
+                        value={l.comments || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, comments: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { comments: e.target.value }, { comments: e.target.value });
+                        }}
+                        placeholder="Add comments..."
+                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all"
+                      />
                     </td>
 
                     {/* FOLLOW-UP 2 DATE */}
                     <td className="py-3.5 px-4 text-slate-400">
-                      {l.followup2Date || '—'}
+                      <input
+                        type="date"
+                        value={l.followup2Date || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleUpdateField(l.id, { followup2Date: val }, { followup2_date: val });
+                        }}
+                        className="bg-transparent text-xs text-slate-600 focus:outline-none"
+                      />
                     </td>
 
                     {/* COMMENTS (Follow-Up 2) */}
                     <td className="py-3.5 px-4 text-slate-600 whitespace-normal max-w-xs leading-snug">
-                      {l.followup2Comments || '—'}
+                      <input
+                        type="text"
+                        value={l.followup2Comments || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, followup2Comments: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { followup2Comments: e.target.value }, { followup2_comments: e.target.value });
+                        }}
+                        placeholder="Follow-up notes..."
+                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all"
+                      />
                     </td>
 
-                    {/* LEAD STATUS */}
+                    {/* LEAD STATUS (Interactive Pill Select) */}
                     <td className="py-3.5 px-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                        l.leadStatus === 'New' ? 'bg-sky-100 text-sky-700' :
-                        l.leadStatus === 'Attempted to Contact' ? 'bg-amber-100 text-amber-800' :
-                        l.leadStatus === 'Contacted' ? 'bg-indigo-100 text-indigo-700' :
-                        l.leadStatus === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                        'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {l.leadStatus}
-                      </span>
+                      <select
+                        value={l.leadStatus}
+                        onChange={(e) => {
+                          const newStatus = e.target.value;
+                          handleUpdateField(l.id, { leadStatus: newStatus }, { lead_status: newStatus });
+                        }}
+                        className={`rounded-full border border-transparent px-3 py-1 text-xs font-bold cursor-pointer focus:outline-none ${
+                          l.leadStatus === 'New' ? 'bg-sky-100 text-sky-700' :
+                          l.leadStatus === 'Attempted to Contact' ? 'bg-amber-100 text-amber-800' :
+                          l.leadStatus === 'Contacted' ? 'bg-indigo-100 text-indigo-700' :
+                          l.leadStatus === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {STATUSES_OPTIONS.map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
                     </td>
                   </tr>
                 ))}
