@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead } from '../lib/salesSync.js';
 
 export const SOURCES_OPTIONS = [
   "Inbound - Referral",
@@ -35,7 +36,7 @@ export const STAGES_OPTIONS = [
   "Client"
 ];
 
-// Sample default leads for native inline rendering
+// Sample default leads for native fallback rendering
 const INITIAL_LEADS = [
   {
     id: '1',
@@ -86,12 +87,38 @@ const INITIAL_LEADS = [
 
 export function SalesTeamView() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
+  const [profilesMap, setProfilesMap] = useState({});
+  const [syncStatus, setSyncStatus] = useState('syncing');
+  const [lastSyncTime, setLastSyncTime] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Live Supabase Auto-Sync (5s Interval Polling)
+  const syncData = async () => {
+    let map = profilesMap;
+    if (Object.keys(map).length === 0) {
+      map = await fetchProfilesMap();
+      setProfilesMap(map);
+    }
+    const liveLeads = await fetchLiveLeads(map);
+    if (liveLeads && liveLeads.length > 0) {
+      setLeads(liveLeads);
+      setSyncStatus('synced');
+      setLastSyncTime(new Date().toLocaleTimeString());
+    } else {
+      setSyncStatus('synced');
+    }
+  };
+
+  useEffect(() => {
+    syncData();
+    const interval = setInterval(syncData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // New Lead Form State
   const [form, setForm] = useState({
@@ -109,15 +136,29 @@ export function SalesTeamView() {
     leadStatus: 'New'
   });
 
-  const handleCreateLead = (e) => {
+  const handleCreateLead = async (e) => {
     e.preventDefault();
     if (!form.email) return;
-    const newLead = {
-      id: String(Date.now()),
+
+    // Find matching profile ID for owner
+    const matchedProfileId = Object.keys(profilesMap).find(id => profilesMap[id] === form.owner) || "e1914945-b140-46b6-b13d-82b45f053f24";
+
+    const created = await createLiveLead({
       ...form,
-      company: form.company.trim() || form.email.split('@')[0]
-    };
-    setLeads([newLead, ...leads]);
+      owner_id: matchedProfileId
+    });
+
+    if (created) {
+      await syncData();
+    } else {
+      const newLead = {
+        id: String(Date.now()),
+        ...form,
+        company: form.company.trim() || form.email.split('@')[0]
+      };
+      setLeads([newLead, ...leads]);
+    }
+
     setShowAddModal(false);
     setForm({
       email: '',
@@ -164,25 +205,45 @@ export function SalesTeamView() {
 
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Top Notice Header */}
-      <div className="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-2xl p-4">
+      {/* Top Notice Header with Live Auto-Sync Indicator */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-blue-50/80 to-indigo-50/60 border border-blue-100 rounded-2xl p-4 shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-            🎯
+            ⚡
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Sales Pipeline & Team Management</h3>
-            <p className="text-xs text-slate-500">Live synchronization with central Sales CRM app</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-bold text-slate-900">Sales Pipeline & Team Management</h3>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Live Auto-Sync
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Connected to <code className="text-blue-700 bg-blue-100/60 px-1 py-0.5 rounded font-mono">prajapatiyash213-glitch/sales</code> (Vercel &amp; Supabase DB)
+              {lastSyncTime && <span className="ml-2 text-slate-400">• Last synced at {lastSyncTime}</span>}
+            </p>
           </div>
         </div>
-        <a
-          href="https://sales-hazel-ten.vercel.app/admin"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow-xs hover:bg-blue-700 transition-all"
-        >
-          Open Central CRM ↗
-        </a>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => syncData()}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 shadow-2xs transition-all cursor-pointer"
+          >
+            🔄 Sync Now
+          </button>
+          <a
+            href="https://sales-hazel-ten.vercel.app/admin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow-xs hover:bg-blue-700 transition-all"
+          >
+            Open Central CRM ↗
+          </a>
+        </div>
       </div>
 
       <div className="space-y-6">
