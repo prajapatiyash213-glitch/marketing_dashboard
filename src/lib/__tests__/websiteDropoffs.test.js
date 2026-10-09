@@ -14,11 +14,11 @@ describe("Website Drop-offs Navigation and Metrics", () => {
     expect(dropoffsIndex).toBe(pipelineIndex + 1);
   });
 
-  it("includes Sales Team pointing to external admin target URL in main navigation", () => {
+  it("includes Sales Team in main navigation without external redirect", () => {
     const salesTeamNav = NAV.find(([k]) => k === "sales-team");
     expect(salesTeamNav).toBeDefined();
     expect(salesTeamNav[1]).toBe("Sales Team");
-    expect(salesTeamNav[2]).toBe("https://sales-hazel-ten.vercel.app/admin");
+    expect(salesTeamNav[2]).toBeUndefined();
   });
 
   it("evaluates drop-off and bounce rate health with strict < 30% rule", () => {

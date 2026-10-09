@@ -34,7 +34,7 @@ const ACCENT = {
 
 export const NAV = [
   ["overview", "Overview"],
-  ["sales-team", "Sales Team", "https://sales-hazel-ten.vercel.app/admin"],
+  ["sales-team", "Sales Team"],
   ["pipeline", "Pipeline"],
   ["dropoffs", "Website Drop-offs"],
   ["leads", "All leads"],

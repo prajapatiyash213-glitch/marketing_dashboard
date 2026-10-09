@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24929,
+  "followers": 24926,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5115,
-  "lastSynced": "2026-10-08T11:30:21.828Z",
+  "growthSinceExport": 5112,
+  "lastSynced": "2026-10-09T10:05:23.735Z",
   "employees": 230,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,13 +104,13 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12152,
+        "count": 12151,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7524,
+        "count": 7523,
         "category": "seniority",
         "isLive": true
       },
@@ -148,31 +148,31 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9330,
+        "count": 9329,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6530,
+        "count": 6529,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3020,
+        "count": 3019,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2114,
+        "count": 2113,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1699,
+        "count": 1698,
         "category": "function",
         "isLive": true
       },
@@ -192,31 +192,31 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9330,
+        "count": 9329,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6530,
+        "count": 6529,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3020,
+        "count": 3019,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2114,
+        "count": 2113,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1699,
+        "count": 1698,
         "category": "function",
         "isLive": true
       },
@@ -236,19 +236,19 @@
     "location": [
       {
         "label": "United States",
-        "count": 10594,
+        "count": 10592,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9524,
+        "count": 9523,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Kingdom",
-        "count": 2089,
+        "count": 2088,
         "category": "location",
         "isLive": true
       },
@@ -268,13 +268,13 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13513,
+        "count": 13511,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5687,
+        "count": 5686,
         "category": "industry",
         "isLive": true
       },
@@ -300,13 +300,13 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9600,
+        "count": 9599,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6505,
+        "count": 6504,
         "category": "companySize",
         "isLive": true
       },
@@ -330,6 +330,6 @@
       }
     ],
     "isLive": true,
-    "liveFollowers": 24929
+    "liveFollowers": 24926
   }
 }
