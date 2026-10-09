@@ -135,6 +135,8 @@ export function SalesTeamView() {
     });
   };
 
+  const [selectedStage, setSelectedStage] = useState('all');
+
   // Filtered Leads
   const filteredLeads = leads.filter(l => {
     const q = search.toLowerCase();
@@ -143,20 +145,21 @@ export function SalesTeamView() {
     const matchBrand = brandFilter === 'all' || l.brand === brandFilter;
     const matchSource = sourceFilter === 'all' || l.leadSource === sourceFilter;
     const matchStatus = statusFilter === 'all' || l.leadStatus === statusFilter;
-    return matchSearch && matchOwner && matchBrand && matchSource && matchStatus;
+    const matchStage = selectedStage === 'all' || l.leadStage === selectedStage;
+    return matchSearch && matchOwner && matchBrand && matchSource && matchStatus && matchStage;
   });
 
-  // Stage Distribution Counts
+  // Stage Distribution Counts (Exact match with screenshot)
   const stages = [
-    { label: 'Discovery', count: leads.filter(l => l.leadStage === 'Discovery').length, color: 'bg-slate-600' },
-    { label: 'Qualified', count: leads.filter(l => l.leadStage === 'Qualified').length, color: 'bg-sky-500' },
-    { label: 'Opportunity', count: leads.filter(l => l.leadStage === 'Opportunity').length, color: 'bg-blue-600' },
-    { label: 'Pilot/POC', count: leads.filter(l => l.leadStage === 'Pilot/POC').length, color: 'bg-indigo-600' },
-    { label: 'Proposal', count: leads.filter(l => l.leadStage === 'Proposal').length, color: 'bg-amber-500' },
-    { label: 'Value Negotiation', count: leads.filter(l => l.leadStage === 'Value Negotiation').length, color: 'bg-pink-600' },
-    { label: 'Closed Lost', count: leads.filter(l => l.leadStage === 'Closed Lost').length, color: 'bg-slate-400' },
-    { label: 'Closed Won', count: leads.filter(l => l.leadStage === 'Closed Won').length, color: 'bg-emerald-500' },
-    { label: 'Client', count: leads.filter(l => l.leadStage === 'Client').length, color: 'bg-emerald-700' }
+    { id: 'Discovery', label: 'Discovery', count: leads.filter(l => l.leadStage === 'Discovery').length, bg: 'bg-[#5B6B7C]' },
+    { id: 'Qualified', label: 'Qualified', count: leads.filter(l => l.leadStage === 'Qualified').length, bg: 'bg-[#00A3E0]' },
+    { id: 'Opportunity', label: 'Opportunity', count: leads.filter(l => l.leadStage === 'Opportunity').length, bg: 'bg-[#3B82F6]' },
+    { id: 'Pilot/POC', label: 'Pilot/POC', count: leads.filter(l => l.leadStage === 'Pilot/POC').length, bg: 'bg-[#6366F1]' },
+    { id: 'Proposal', label: 'Proposal', count: leads.filter(l => l.leadStage === 'Proposal').length, bg: 'bg-[#F59E0B]' },
+    { id: 'Value Negotiation', label: 'Value Negoti...', count: leads.filter(l => l.leadStage === 'Value Negotiation').length, bg: 'bg-[#EC4899]' },
+    { id: 'Closed Lost', label: 'Closed Lost', count: leads.filter(l => l.leadStage === 'Closed Lost').length, bg: 'bg-[#8B99A8]' },
+    { id: 'Closed Won', label: 'Closed Won', count: leads.filter(l => l.leadStage === 'Closed Won').length, bg: 'bg-[#10B981]' },
+    { id: 'Client', label: 'Client', count: leads.filter(l => l.leadStage === 'Client').length, bg: 'bg-[#059669]' }
   ];
 
   return (
@@ -226,26 +229,39 @@ export function SalesTeamView() {
           </div>
         </div>
 
-        {/* Whole Team Pipeline Header + Stage Breakdown Bar */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+        {/* Whole Team Pipeline Header + Stage Breakdown Bar (Exact Image Match) */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-slate-800">
+            <h3 className="text-base font-bold text-slate-900">
               Whole team pipeline <span className="text-slate-400 font-normal">({leads.length})</span>
             </h3>
+            <span className="text-xs text-slate-400 font-medium">Tap a stage to filter the list</span>
           </div>
 
           {/* Multi-segment Stage Progress Bar */}
-          <div className="h-9 w-full rounded-xl overflow-hidden flex bg-slate-100 p-0.5 gap-0.5">
-            {stages.map((st, i) => (
-              <div
-                key={i}
-                className={`${st.color} flex items-center justify-center text-white font-bold text-xs transition-all hover:opacity-90 cursor-pointer`}
-                style={{ flex: st.count > 0 ? st.count : 0.8 }}
-                title={`${st.label}: ${st.count}`}
-              >
-                {st.count > 0 ? `${st.count} ${st.label}` : ''}
-              </div>
-            ))}
+          <div className="h-16 w-full rounded-2xl overflow-hidden flex bg-slate-100 gap-0.5 p-0.5 border border-slate-100 shadow-2xs">
+            {stages.map((st, i) => {
+              const isSelected = selectedStage === st.id;
+              const flexWeight = st.count > 0 ? st.count * 1.8 : 0.9;
+              return (
+                <div
+                  key={i}
+                  onClick={() => setSelectedStage(isSelected ? 'all' : st.id)}
+                  style={{ flex: flexWeight }}
+                  className={`${st.bg} flex flex-col justify-between p-2.5 text-white transition-all cursor-pointer hover:brightness-105 ${
+                    selectedStage !== 'all' && !isSelected ? 'opacity-40 grayscale-30' : 'opacity-100'
+                  } ${i === 0 ? 'rounded-l-xl' : ''} ${i === stages.length - 1 ? 'rounded-r-xl' : ''}`}
+                  title={`${st.id}: ${st.count} leads (Click to filter)`}
+                >
+                  <div className="font-extrabold text-base leading-none tracking-tight">
+                    {st.count}
+                  </div>
+                  <div className="font-semibold text-[11px] leading-tight opacity-95 truncate">
+                    {st.label}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
