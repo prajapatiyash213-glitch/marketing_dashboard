@@ -1,5 +1,40 @@
 import React, { useState } from 'react';
 
+export const SOURCES_OPTIONS = [
+  "Inbound - Referral",
+  "Inbound - Forms",
+  "Inbound - Visitors",
+  "Outbound - Cold",
+  "Inbound - Drop-Offs",
+  "Events - Imagine",
+  "Events - CFO",
+  "Outbound"
+];
+
+export const STATUSES_OPTIONS = [
+  "New",
+  "Attempted to Contact",
+  "Contacted",
+  "Demo Scheduled",
+  "Prospect (Meeting/Demo done)",
+  "Junk Lead",
+  "Postponed",
+  "Nurture",
+  "Opportunity"
+];
+
+export const STAGES_OPTIONS = [
+  "Discovery",
+  "Qualified",
+  "Opportunity",
+  "Pilot/POC",
+  "Proposal",
+  "Value Negotiation",
+  "Closed Lost",
+  "Closed Won",
+  "Client"
+];
+
 // Sample default leads for native inline rendering
 const INITIAL_LEADS = [
   {
@@ -57,7 +92,6 @@ export function SalesTeamView() {
   const [brandFilter, setBrandFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'grid'
 
   // New Lead Form State
   const [form, setForm] = useState({
@@ -127,7 +161,7 @@ export function SalesTeamView() {
 
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Top Embedded Header notice + Live iFrame fallback option */}
+      {/* Top Notice Header */}
       <div className="flex items-center justify-between bg-blue-50/60 border border-blue-100 rounded-2xl p-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
@@ -144,416 +178,411 @@ export function SalesTeamView() {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow-xs hover:bg-blue-700 transition-all"
         >
-          Open Live Vercel App ↗
+          Open Central CRM ↗
         </a>
       </div>
 
       <div className="space-y-6">
-          {/* 4 Summary KPI Header Cards (Exact Image 2 Match) */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Card 1: Pipeline Status */}
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
-                <span>Pipeline Status</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Total Pipeline</span>
-              </div>
-              <div className="mt-3 text-3xl font-extrabold">{leads.length}</div>
-              <div className="mt-1 text-xs font-medium opacity-95">{leads.length} Active Leads</div>
+        {/* 4 Summary KPI Header Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Card 1: Pipeline Status */}
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
+              <span>Pipeline Status</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Total Pipeline</span>
             </div>
-
-            {/* Card 2: In Progress */}
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
-                <span>In Progress</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Active Stages</span>
-              </div>
-              <div className="mt-3 text-3xl font-extrabold">1</div>
-              <div className="mt-1 text-xs font-medium opacity-95">Meeting & Proposals</div>
-            </div>
-
-            {/* Card 3: Closed Won */}
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
-                <span>Closed Won</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Conversion</span>
-              </div>
-              <div className="mt-3 text-3xl font-extrabold">0</div>
-              <div className="mt-1 text-xs font-medium opacity-95">0% Win Rate</div>
-            </div>
-
-            {/* Card 4: Follow-ups Overdue */}
-            <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-orange-600 to-red-600 text-white shadow-md">
-              <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
-                <span>Follow-ups Overdue</span>
-                <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Alerts</span>
-              </div>
-              <div className="mt-3 text-3xl font-extrabold">0</div>
-              <div className="mt-1 text-xs font-medium opacity-95">Action Required</div>
-            </div>
+            <div className="mt-3 text-3xl font-extrabold">{leads.length}</div>
+            <div className="mt-1 text-xs font-medium opacity-95">{leads.length} Active Leads</div>
           </div>
 
-          {/* Section Header & Stage Breakdown Bar */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800">
-                Whole team pipeline <span className="text-slate-500 font-normal">({leads.length})</span>
-              </h2>
-              <span className="text-xs text-slate-400">Tap a stage to filter the list</span>
+          {/* Card 2: In Progress */}
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-indigo-600 to-blue-600 text-white shadow-md">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
+              <span>In Progress</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Active Stages</span>
             </div>
-
-            {/* Stage Colored Bar */}
-            <div className="grid grid-cols-9 rounded-xl overflow-hidden text-white text-[11px] font-bold shadow-xs">
-              {stages.map(s => (
-                <div key={s.label} className={`${s.color} p-2.5 flex flex-col justify-between border-r border-white/20 last:border-0`}>
-                  <div className="text-base font-extrabold">{s.count}</div>
-                  <div className="text-[10px] font-medium truncate">{s.label}</div>
-                </div>
-              ))}
-            </div>
+            <div className="mt-3 text-3xl font-extrabold">1</div>
+            <div className="mt-1 text-xs font-medium opacity-95">Meeting & Proposals</div>
           </div>
 
-          {/* Filters & Action Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-            <div className="flex items-center gap-3 flex-wrap flex-1">
-              {/* List / Grid Toggle */}
-              <div className="inline-flex rounded-full bg-slate-100 p-1 text-xs font-bold border border-slate-200">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    viewMode === 'list' ? 'bg-pink-600 text-white shadow-xs' : 'text-slate-600'
-                  }`}
-                >
-                  List
-                </button>
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    viewMode === 'grid' ? 'bg-pink-600 text-white shadow-xs' : 'text-slate-600'
-                  }`}
-                >
-                  Grid
-                </button>
-              </div>
-
-              {/* Search Box */}
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search email, company or comments"
-                className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs w-64 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-              />
-
-              {/* Dropdowns */}
-              <select
-                value={ownerFilter}
-                onChange={e => setOwnerFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
-              >
-                <option value="all">All members</option>
-                <option value="Pinali Timba">Pinali Timba</option>
-                <option value="Shivam Prajapati">Shivam Prajapati</option>
-              </select>
-
-              <select
-                value={brandFilter}
-                onChange={e => setBrandFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
-              >
-                <option value="all">All brands</option>
-                <option value="Tecnoprism">Tecnoprism</option>
-                <option value="AutomationCOE">AutomationCOE</option>
-              </select>
-
-              <select
-                value={sourceFilter}
-                onChange={e => setSourceFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
-              >
-                <option value="all">All sources</option>
-                <option value="Outbound">Outbound</option>
-                <option value="Inbound - Referral">Inbound - Referral</option>
-                <option value="Inbound - Drop-Offs">Inbound - Drop-Offs</option>
-                <option value="Events - CFO">Events - CFO</option>
-              </select>
-
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
-              >
-                <option value="all">All statuses</option>
-                <option value="New">New</option>
-                <option value="Attempted to Contact">Attempted to Contact</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Postponed">Postponed</option>
-              </select>
+          {/* Card 3: Closed Won */}
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-md">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
+              <span>Closed Won</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Conversion</span>
             </div>
-
-            {/* Right Action Buttons */}
-            <div className="flex items-center gap-2">
-              <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
-                Overdue follow-ups (0)
-              </button>
-              <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
-                Export CSV
-              </button>
-              <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
-                📥 Import Excel / CSV
-              </button>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
-              >
-                + Add lead
-              </button>
-            </div>
+            <div className="mt-3 text-3xl font-extrabold">0</div>
+            <div className="mt-1 text-xs font-medium opacity-95">₹0.00 Win Ratio</div>
           </div>
 
-          {/* Lead Table (Exact Image 2 Match) */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  <tr>
-                    <th className="py-3 px-4">Company</th>
-                    <th className="py-3 px-4">Brand</th>
-                    <th className="py-3 px-4">Ownership</th>
-                    <th className="py-3 px-4">Lead Date</th>
-                    <th className="py-3 px-4">Lead Source</th>
-                    <th className="py-3 px-4">Lead Stage</th>
-                    <th className="py-3 px-4">Date of Connect</th>
-                    <th className="py-3 px-4">Comments</th>
-                    <th className="py-3 px-4">Follow-up 2 Date</th>
-                    <th className="py-3 px-4">Comments</th>
-                    <th className="py-3 px-4">Lead Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredLeads.map(l => (
-                    <tr key={l.id} className="hover:bg-slate-50/80 transition-all">
-                      <td className="py-3 px-4 font-bold text-slate-800">{l.company}</td>
-                      <td className="py-3 px-4 text-slate-600">{l.brand}</td>
-                      <td className="py-3 px-4 text-slate-600 font-medium">{l.owner}</td>
-                      <td className="py-3 px-4 text-slate-500">{l.leadDate}</td>
-                      <td className="py-3 px-4 text-slate-600">{l.leadSource}</td>
-                      <td className="py-3 px-4">
-                        <span className="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700">
-                          {l.leadStage}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-400">{l.dateOfConnect || '—'}</td>
-                      <td className="py-3 px-4 text-slate-600 max-w-xs truncate">{l.comments || '—'}</td>
-                      <td className="py-3 px-4 text-slate-400">{l.followup2Date || '—'}</td>
-                      <td className="py-3 px-4 text-slate-600 max-w-xs truncate">{l.followup2Comments || '—'}</td>
-                      <td className="py-3 px-4">
-                        <span className={`inline-block px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                          l.leadStatus === 'New' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'
-                        }`}>
-                          {l.leadStatus}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {/* Card 4: Follow-ups Overdue */}
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md">
+            <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
+              <span>Follow-ups Overdue</span>
+              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Action Needed</span>
             </div>
+            <div className="mt-3 text-3xl font-extrabold">0</div>
+            <div className="mt-1 text-xs font-medium opacity-95">0 Pending Action Items</div>
           </div>
         </div>
 
-      {/* Add Lead Modal (Exact Image 3 Match) */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl space-y-5 my-8">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h2 className="text-lg font-bold text-slate-800">Add lead</h2>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 text-sm font-bold"
+        {/* Whole Team Pipeline Header + Stage Breakdown Bar */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-800">
+              Whole team pipeline <span className="text-slate-400 font-normal">({leads.length})</span>
+            </h3>
+          </div>
+
+          {/* Multi-segment Stage Progress Bar */}
+          <div className="h-9 w-full rounded-xl overflow-hidden flex bg-slate-100 p-0.5 gap-0.5">
+            {stages.map((st, i) => (
+              <div
+                key={i}
+                className={`${st.color} flex items-center justify-center text-white font-bold text-xs transition-all hover:opacity-90 cursor-pointer`}
+                style={{ flex: st.count > 0 ? st.count : 0.8 }}
+                title={`${st.label}: ${st.count}`}
               >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Form Body */}
-            <form onSubmit={handleCreateLead} className="space-y-4 text-xs text-slate-700">
-              {/* Section 1: Lead Details */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-slate-800 text-xs">Lead details</h3>
-
-                <div>
-                  <label className="block font-medium mb-1">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={e => setForm({ ...form, email: e.target.value })}
-                    placeholder="name@company.com"
-                    className="w-full px-3.5 py-2 rounded-xl border border-pink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/20 text-xs"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-medium mb-1">Company Name</label>
-                    <input
-                      type="text"
-                      value={form.company}
-                      onChange={e => setForm({ ...form, company: e.target.value })}
-                      placeholder="e.g. Acme Corp"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Brand</label>
-                    <select
-                      value={form.brand}
-                      onChange={e => setForm({ ...form, brand: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
-                    >
-                      <option value="Tecnoprism">Tecnoprism</option>
-                      <option value="AutomationCOE">AutomationCOE</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-medium mb-1">Ownership</label>
-                    <select
-                      value={form.owner}
-                      onChange={e => setForm({ ...form, owner: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
-                    >
-                      <option value="Pinali Timba">Pinali Timba</option>
-                      <option value="Shivam Prajapati">Shivam Prajapati</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Lead Date</label>
-                    <input
-                      type="date"
-                      value={form.leadDate}
-                      onChange={e => setForm({ ...form, leadDate: e.target.value })}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-medium mb-1">Lead Source</label>
-                    <select
-                      value={form.leadSource}
-                      onChange={e => setForm({ ...form, leadSource: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
-                    >
-                      <option value="Inbound - Referral">Inbound - Referral</option>
-                      <option value="Inbound - Drop-Offs">Inbound - Drop-Offs</option>
-                      <option value="Outbound">Outbound</option>
-                      <option value="Events - CFO">Events - CFO</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block font-medium mb-1">Lead Stage</label>
-                    <select
-                      value={form.leadStage}
-                      onChange={e => setForm({ ...form, leadStage: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
-                    >
-                      <option value="Discovery">Discovery</option>
-                      <option value="Qualified">Qualified</option>
-                      <option value="Opportunity">Opportunity</option>
-                      <option value="Pilot/POC">Pilot/POC</option>
-                    </select>
-                  </div>
-                </div>
+                {st.count > 0 ? `${st.count} ${st.label}` : ''}
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Section 2: First Connect */}
-              <div className="space-y-3 pt-2">
-                <h3 className="font-bold text-slate-800 text-xs">First connect</h3>
-                <div>
-                  <label className="block font-medium mb-1">Date of Connect</label>
-                  <input
-                    type="date"
-                    value={form.dateOfConnect}
-                    onChange={e => setForm({ ...form, dateOfConnect: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Comments</label>
-                  <textarea
-                    rows={2}
-                    value={form.comments}
-                    onChange={e => setForm({ ...form, comments: e.target.value })}
-                    placeholder="What was discussed on the first call or meeting"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs"
-                  />
-                </div>
-              </div>
+        {/* Filters & Action Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Search Input */}
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search email, company or comments"
+              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs w-64 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+            />
 
-              {/* Section 3: Follow-up 2 */}
-              <div className="space-y-3 pt-2">
-                <h3 className="font-bold text-slate-800 text-xs">Follow-up 2</h3>
-                <div>
-                  <label className="block font-medium mb-1">Follow-up 2 Date</label>
-                  <input
-                    type="date"
-                    value={form.followup2Date}
-                    onChange={e => setForm({ ...form, followup2Date: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium mb-1">Comments</label>
-                  <textarea
-                    rows={2}
-                    value={form.followup2Comments}
-                    onChange={e => setForm({ ...form, followup2Comments: e.target.value })}
-                    placeholder="Notes from the second follow-up"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none text-xs"
-                  />
-                </div>
-              </div>
+            {/* Owner Filter */}
+            <select
+              value={ownerFilter}
+              onChange={e => setOwnerFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+            >
+              <option value="all">All members</option>
+              <option value="Pinali Timba">Pinali Timba</option>
+              <option value="Shivam Prajapati">Shivam Prajapati</option>
+            </select>
 
-              {/* Section 4: Outcome */}
-              <div className="space-y-3 pt-2">
-                <h3 className="font-bold text-slate-800 text-xs">Outcome</h3>
-                <div>
-                  <label className="block font-medium mb-1">Lead Status</label>
-                  <select
-                    value={form.leadStatus}
-                    onChange={e => setForm({ ...form, leadStatus: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
-                  >
-                    <option value="New">New</option>
-                    <option value="Attempted to Contact">Attempted to Contact</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Postponed">Postponed</option>
-                  </select>
-                </div>
-              </div>
+            {/* Brand Filter */}
+            <select
+              value={brandFilter}
+              onChange={e => setBrandFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+            >
+              <option value="all">All brands</option>
+              <option value="Tecnoprism">Tecnoprism</option>
+              <option value="AutomationCOE">AutomationCOE</option>
+            </select>
 
-              {/* Modal Footer Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            {/* Source Filter (Exact match with Image 1) */}
+            <select
+              value={sourceFilter}
+              onChange={e => setSourceFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+            >
+              <option value="all">All sources</option>
+              {SOURCES_OPTIONS.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+
+            {/* Status Filter (Exact match with Image 2) */}
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+            >
+              <option value="all">All statuses</option>
+              {STATUSES_OPTIONS.map(st => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2">
+            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
+              Overdue follow-ups (0)
+            </button>
+            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
+              Export CSV
+            </button>
+            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
+              📥 Import Excel / CSV
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              + Add lead
+            </button>
+          </div>
+        </div>
+
+        {/* Lead Table */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <tr>
+                  <th className="py-3 px-4">Company</th>
+                  <th className="py-3 px-4">Brand</th>
+                  <th className="py-3 px-4">Ownership</th>
+                  <th className="py-3 px-4">Lead Date</th>
+                  <th className="py-3 px-4">Lead Source</th>
+                  <th className="py-3 px-4">Lead Stage</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                {filteredLeads.map(l => (
+                  <tr key={l.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3.5 px-4 font-bold text-slate-900">
+                      <div>{l.company}</div>
+                      <div className="text-[11px] font-normal text-slate-400">{l.email}</div>
+                    </td>
+                    <td className="py-3.5 px-4">{l.brand}</td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px]">
+                        👤 {l.owner}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-slate-500">{l.leadDate}</td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold">
+                        {l.leadSource}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">
+                        {l.leadStage}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold">
+                        ● {l.leadStatus}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button className="text-slate-400 hover:text-slate-700 font-bold px-2">•••</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Add Lead Right Slide-Over Drawer (Exact Image 4 Match) */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Dark Semi-transparent Backdrop */}
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+            onClick={() => setShowAddModal(false)}
+          />
+
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full">
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+                <h2 className="text-lg font-bold text-slate-900">Add lead</h2>
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-5 py-2 rounded-xl border border-slate-200 font-semibold text-slate-600 hover:bg-slate-50 transition-all text-xs"
+                  className="h-8 w-8 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md transition-all text-xs"
-                >
-                  Add lead
+                  ✕
                 </button>
               </div>
-            </form>
+
+              {/* Scrollable Form Content */}
+              <form onSubmit={handleCreateLead} className="flex-1 overflow-y-auto p-6 space-y-6 text-xs text-slate-700">
+                {/* Lead details */}
+                <div className="space-y-4">
+                  <h3 className="font-bold text-slate-900 text-sm">Lead details</h3>
+
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      placeholder="name@company.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Company Name</label>
+                      <input
+                        type="text"
+                        value={form.company}
+                        onChange={e => setForm({ ...form, company: e.target.value })}
+                        placeholder="e.g. Acme Corp"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Brand</label>
+                      <select
+                        value={form.brand}
+                        onChange={e => setForm({ ...form, brand: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
+                      >
+                        <option value="Tecnoprism">Tecnoprism</option>
+                        <option value="AutomationCOE">AutomationCOE</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Ownership</label>
+                      <select
+                        value={form.owner}
+                        onChange={e => setForm({ ...form, owner: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
+                      >
+                        <option value="Pinali Timba">Pinali Timba</option>
+                        <option value="Shivam Prajapati">Shivam Prajapati</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Lead Date</label>
+                      <input
+                        type="date"
+                        value={form.leadDate}
+                        onChange={e => setForm({ ...form, leadDate: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Lead Source</label>
+                      <select
+                        value={form.leadSource}
+                        onChange={e => setForm({ ...form, leadSource: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
+                      >
+                        {SOURCES_OPTIONS.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Lead Stage</label>
+                      <select
+                        value={form.leadStage}
+                        onChange={e => setForm({ ...form, leadStage: e.target.value })}
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
+                      >
+                        {STAGES_OPTIONS.map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* First connect */}
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  <h3 className="font-bold text-slate-900 text-sm">First connect</h3>
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Date of Connect</label>
+                    <input
+                      type="date"
+                      value={form.dateOfConnect}
+                      onChange={e => setForm({ ...form, dateOfConnect: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Comments</label>
+                    <textarea
+                      rows={3}
+                      value={form.comments}
+                      onChange={e => setForm({ ...form, comments: e.target.value })}
+                      placeholder="What was discussed on the first call or meeting"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none text-xs resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Follow-up 2 */}
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  <h3 className="font-bold text-slate-900 text-sm">Follow-up 2</h3>
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Follow-up 2 Date</label>
+                    <input
+                      type="date"
+                      value={form.followup2Date}
+                      onChange={e => setForm({ ...form, followup2Date: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Comments</label>
+                    <textarea
+                      rows={3}
+                      value={form.followup2Comments}
+                      onChange={e => setForm({ ...form, followup2Comments: e.target.value })}
+                      placeholder="Notes from the second follow-up"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none text-xs resize-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Outcome */}
+                <div className="space-y-4 pt-2 border-t border-slate-100 pb-4">
+                  <h3 className="font-bold text-slate-900 text-sm">Outcome</h3>
+                  <div>
+                    <label className="block font-medium mb-1.5 text-slate-600">Lead Status</label>
+                    <select
+                      value={form.leadStatus}
+                      onChange={e => setForm({ ...form, leadStatus: e.target.value })}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
+                    >
+                      {STATUSES_OPTIONS.map(st => (
+                        <option key={st} value={st}>{st}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Drawer Sticky Action Footer */}
+                <div className="sticky bottom-0 bg-white border-t border-slate-100 pt-4 pb-2 flex items-center justify-end gap-3 mt-auto">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 transition-all text-xs"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md transition-all text-xs cursor-pointer"
+                  >
+                    Add lead
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
