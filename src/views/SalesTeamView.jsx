@@ -328,53 +328,115 @@ export function SalesTeamView() {
           </div>
         </div>
 
-        {/* Lead Table */}
+        {/* Lead Table (Exact 12-column match from screenshots) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <tr>
-                  <th className="py-3 px-4">Company</th>
-                  <th className="py-3 px-4">Brand</th>
-                  <th className="py-3 px-4">Ownership</th>
-                  <th className="py-3 px-4">Lead Date</th>
-                  <th className="py-3 px-4">Lead Source</th>
-                  <th className="py-3 px-4">Lead Stage</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                  <th className="py-3 px-4">EMAIL</th>
+                  <th className="py-3 px-4">COMPANY</th>
+                  <th className="py-3 px-4">BRAND</th>
+                  <th className="py-3 px-4">OWNERSHIP</th>
+                  <th className="py-3 px-4">LEAD DATE</th>
+                  <th className="py-3 px-4">LEAD SOURCE</th>
+                  <th className="py-3 px-4">LEAD STAGE</th>
+                  <th className="py-3 px-4">DATE OF CONNECT</th>
+                  <th className="py-3 px-4">COMMENTS</th>
+                  <th className="py-3 px-4">FOLLOW-UP 2 DATE</th>
+                  <th className="py-3 px-4">COMMENTS</th>
+                  <th className="py-3 px-4">LEAD STATUS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {filteredLeads.map(l => (
                   <tr key={l.id} className="hover:bg-slate-50/80 transition-colors">
+                    {/* EMAIL */}
+                    <td className="py-3.5 px-4 text-slate-600 font-normal">
+                      {l.email}
+                    </td>
+
+                    {/* COMPANY */}
                     <td className="py-3.5 px-4 font-bold text-slate-900">
-                      <div>{l.company}</div>
-                      <div className="text-[11px] font-normal text-slate-400">{l.email}</div>
+                      {l.company}
                     </td>
-                    <td className="py-3.5 px-4">{l.brand}</td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px]">
-                        👤 {l.owner}
-                      </span>
+
+                    {/* BRAND */}
+                    <td className="py-3.5 px-4 font-bold text-slate-800">
+                      {l.brand}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-500">{l.leadDate}</td>
+
+                    {/* OWNERSHIP (Interactive pill dropdown like image) */}
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[11px] font-semibold">
-                        {l.leadSource}
-                      </span>
+                      <select
+                        value={l.owner}
+                        onChange={(e) => {
+                          const updatedOwner = e.target.value;
+                          setLeads(leads.map(item => item.id === l.id ? { ...item, owner: updatedOwner } : item));
+                        }}
+                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-700 font-medium shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-orange-500"
+                      >
+                        <option value="Yash Prajapati">Yash Prajapati</option>
+                        <option value="Pinali Timba">Pinali Timba</option>
+                        <option value="Shivam Prajapati">Shivam Prajapati</option>
+                      </select>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">
+
+                    {/* LEAD DATE */}
+                    <td className="py-3.5 px-4 text-slate-600 text-[11px] leading-tight">
+                      <div>30</div>
+                      <div>Sep</div>
+                      <div>2026</div>
+                    </td>
+
+                    {/* LEAD SOURCE */}
+                    <td className="py-3.5 px-4 font-medium text-slate-700">
+                      {l.leadSource}
+                    </td>
+
+                    {/* LEAD STAGE */}
+                    <td className="py-3.5 px-4 font-bold text-slate-800">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span className={`h-2 w-2 rounded-full ${
+                          l.leadStage === 'Qualified' ? 'bg-sky-500' :
+                          l.leadStage === 'Discovery' ? 'bg-slate-500' :
+                          l.leadStage === 'Closed Won' ? 'bg-emerald-500' : 'bg-blue-600'
+                        }`} />
                         {l.leadStage}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold">
-                        ● {l.leadStatus}
-                      </span>
+
+                    {/* DATE OF CONNECT */}
+                    <td className="py-3.5 px-4 text-slate-400">
+                      {l.dateOfConnect || '—'}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button className="text-slate-400 hover:text-slate-700 font-bold px-2">•••</button>
+
+                    {/* COMMENTS (First Connect) */}
+                    <td className="py-3.5 px-4 text-slate-600 whitespace-normal max-w-xs leading-snug">
+                      {l.comments || '—'}
+                    </td>
+
+                    {/* FOLLOW-UP 2 DATE */}
+                    <td className="py-3.5 px-4 text-slate-400">
+                      {l.followup2Date || '—'}
+                    </td>
+
+                    {/* COMMENTS (Follow-Up 2) */}
+                    <td className="py-3.5 px-4 text-slate-600 whitespace-normal max-w-xs leading-snug">
+                      {l.followup2Comments || '—'}
+                    </td>
+
+                    {/* LEAD STATUS */}
+                    <td className="py-3.5 px-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                        l.leadStatus === 'New' ? 'bg-sky-100 text-sky-700' :
+                        l.leadStatus === 'Attempted to Contact' ? 'bg-amber-100 text-amber-800' :
+                        l.leadStatus === 'Contacted' ? 'bg-indigo-100 text-indigo-700' :
+                        l.leadStatus === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                        'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {l.leadStatus}
+                      </span>
                     </td>
                   </tr>
                 ))}
