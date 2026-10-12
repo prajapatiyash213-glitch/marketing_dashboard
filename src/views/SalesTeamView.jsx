@@ -507,8 +507,9 @@ export function SalesTeamView() {
               className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
             >
               <option value="all">All members</option>
+              <option value="Yash Prajapati">Yash Prajapati</option>
               <option value="Pinali Timba">Pinali Timba</option>
-              <option value="Shivam Prajapati">Shivam Prajapati</option>
+              <option value="shashank Jha">shashank Jha</option>
             </select>
 
             {/* Brand Filter */}
@@ -660,7 +661,6 @@ export function SalesTeamView() {
                       >
                         <option value="Yash Prajapati">Yash Prajapati</option>
                         <option value="Pinali Timba">Pinali Timba</option>
-                        <option value="Shivam Prajapati">Shivam Prajapati</option>
                         <option value="shashank Jha">shashank Jha</option>
                       </select>
                     </td>
@@ -887,8 +887,9 @@ export function SalesTeamView() {
                         onChange={e => setForm({ ...form, owner: e.target.value })}
                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none bg-white text-xs"
                       >
+                        <option value="Yash Prajapati">Yash Prajapati</option>
                         <option value="Pinali Timba">Pinali Timba</option>
-                        <option value="Shivam Prajapati">Shivam Prajapati</option>
+                        <option value="shashank Jha">shashank Jha</option>
                       </select>
                     </div>
                     <div>
