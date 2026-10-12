@@ -110,6 +110,7 @@ export const CHANNEL_SCHEMAS = {
       D("dateOfConnect", "Date of Connect", ["date of connect", "connect date"]),
       D("comments", "Comments", ["comments", "notes", "remark", "remarks"]),
       D("followup2Date", "Follow-up 2 Date", ["follow-up 2 date", "followup 2 date", "followup date"]),
+      D("followup2Comments", "Follow-up 2 Comments", ["follow-up 2 comments", "followup 2 comments", "comments", "second comments", "follow up comments"]),
       D("leadStatus", "Lead Status", ["lead status", "status"]),
     ],
   },

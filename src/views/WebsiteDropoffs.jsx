@@ -820,17 +820,27 @@ export function WebsiteDropoffsView({ d }) {
 
                         {/* Date of Connect & Comments */}
                         <td className="p-3">
-                          {r.dateOfConnect || r.comments ? (
-                            <div>
-                              {r.dateOfConnect && (
-                                <span className="font-semibold text-slate-800 text-[11px] block">
-                                  {r.dateOfConnect}
-                                </span>
+                          {r.dateOfConnect || r.comments || r.followup2Date || r.followup2Comments ? (
+                            <div className="space-y-1">
+                              {(r.dateOfConnect || r.comments) && (
+                                <div>
+                                  {r.dateOfConnect && (
+                                    <span className="font-semibold text-slate-800 text-[11px] block">
+                                      {r.dateOfConnect}
+                                    </span>
+                                  )}
+                                  {r.comments && (
+                                    <span className="text-[10px] text-slate-500 italic block mt-0.5">
+                                      "{r.comments}"
+                                    </span>
+                                  )}
+                                </div>
                               )}
-                              {r.comments && (
-                                <span className="text-[10px] text-slate-500 italic block mt-0.5">
-                                  "{r.comments}"
-                                </span>
+                              {(r.followup2Date || r.followup2Comments) && (
+                                <div className="pt-0.5 border-t border-slate-100 text-[10px] text-indigo-700">
+                                  {r.followup2Date && <span className="font-bold mr-1">FU2: {r.followup2Date}</span>}
+                                  {r.followup2Comments && <span className="italic">"{r.followup2Comments}"</span>}
+                                </div>
                               )}
                             </div>
                           ) : (

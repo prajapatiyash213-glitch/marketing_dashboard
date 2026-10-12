@@ -36,19 +36,39 @@ export const STAGES_OPTIONS = [
   "Client"
 ];
 
-// Sample default leads for native fallback rendering
+function formatDisplayDate(dateStr) {
+  if (!dateStr) return '—';
+  if (/[a-zA-Z]/.test(dateStr)) return dateStr;
+  const parts = String(dateStr).split('-');
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+  }
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  return dateStr;
+}
+
+// Sample default leads matching CRM reference
 const INITIAL_LEADS = [
   {
     id: '1',
-    company: 'Vertex',
-    email: 'support@vertex.com',
+    company: 'tata',
+    email: 'tata.com',
     brand: 'Tecnoprism',
-    owner: 'Pinali Timba',
-    leadDate: '2026-09-30',
-    leadSource: 'Outbound',
+    owner: 'Yash Prajapati',
+    leadDate: '09 Oct 2026',
+    leadSource: 'Events - CFO',
     leadStage: 'Discovery',
     dateOfConnect: '',
-    comments: 'Closed annual subscription contract.',
+    comments: '',
     followup2Date: '',
     followup2Comments: '',
     leadStatus: 'New'
@@ -58,23 +78,23 @@ const INITIAL_LEADS = [
     company: 'Globex',
     email: 'sales@globex.com',
     brand: 'AutomationCOE',
-    owner: 'Shivam Prajapati',
-    leadDate: '2026-09-30',
+    owner: 'Yash Prajapati',
+    leadDate: '30 Sep 2026',
     leadSource: 'Inbound - Drop-Offs',
     leadStage: 'Qualified',
     dateOfConnect: '',
     comments: 'Inbound lead from LinkedIn campaign.',
     followup2Date: '',
     followup2Comments: '',
-    leadStatus: 'New'
+    leadStatus: 'Contacted'
   },
   {
     id: '3',
     company: 'Cyberdyne',
     email: 'info@cyberdyne.org',
     brand: 'Tecnoprism',
-    owner: 'Shivam Prajapati',
-    leadDate: '2026-09-30',
+    owner: 'Yash Prajapati',
+    leadDate: '30 Sep 2026',
     leadSource: 'Events - CFO',
     leadStage: 'Discovery',
     dateOfConnect: '',
@@ -82,6 +102,21 @@ const INITIAL_LEADS = [
     followup2Date: '',
     followup2Comments: '',
     leadStatus: 'Attempted to Contact'
+  },
+  {
+    id: '4',
+    company: 'Vertex',
+    email: 'support@vertex.com',
+    brand: 'Tecnoprism',
+    owner: 'Yash Prajapati',
+    leadDate: '30 Sep 2026',
+    leadSource: 'Outbound',
+    leadStage: 'Discovery',
+    dateOfConnect: '',
+    comments: 'Closed annual subscription contract.',
+    followup2Date: '',
+    followup2Comments: '',
+    leadStatus: 'New'
   }
 ];
 
@@ -99,18 +134,23 @@ export function SalesTeamView() {
 
   // Live Supabase Auto-Sync (5s Interval Polling)
   const syncData = async () => {
-    let map = profilesMap;
-    if (Object.keys(map).length === 0) {
-      map = await fetchProfilesMap();
-      setProfilesMap(map);
-    }
-    const liveLeads = await fetchLiveLeads(map);
-    if (liveLeads && liveLeads.length > 0) {
-      setLeads(liveLeads);
-      setSyncStatus('synced');
-      setLastSyncTime(new Date().toLocaleTimeString());
-    } else {
-      setSyncStatus('synced');
+    try {
+      let map = profilesMap;
+      if (Object.keys(map).length === 0) {
+        map = await fetchProfilesMap();
+        setProfilesMap(map);
+      }
+      const liveLeads = await fetchLiveLeads(map);
+      if (liveLeads && Array.isArray(liveLeads)) {
+        setLeads(liveLeads);
+        setSyncStatus('synced');
+        setLastSyncTime(new Date().toLocaleTimeString());
+      } else {
+        setSyncStatus('offline');
+      }
+    } catch (err) {
+      console.error("Auto sync error:", err);
+      setSyncStatus('offline');
     }
   };
 
@@ -125,7 +165,7 @@ export function SalesTeamView() {
     email: '',
     company: '',
     brand: 'Tecnoprism',
-    owner: 'Pinali Timba',
+    owner: 'Yash Prajapati',
     leadDate: new Date().toISOString().split('T')[0],
     leadSource: 'Inbound - Referral',
     leadStage: 'Discovery',
@@ -164,7 +204,7 @@ export function SalesTeamView() {
       email: '',
       company: '',
       brand: 'Tecnoprism',
-      owner: 'Pinali Timba',
+      owner: 'Yash Prajapati',
       leadDate: new Date().toISOString().split('T')[0],
       leadSource: 'Inbound - Referral',
       leadStage: 'Discovery',
@@ -224,12 +264,12 @@ export function SalesTeamView() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-slate-900">Sales Pipeline & Team Management</h3>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${syncStatus === 'synced' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${syncStatus === 'synced' ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${syncStatus === 'synced' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                 </span>
-                Live Auto-Sync
+                {syncStatus === 'syncing' ? 'Syncing...' : 'Live Auto-Sync'}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -473,7 +513,7 @@ export function SalesTeamView() {
 
                     {/* LEAD DATE */}
                     <td className="py-3.5 px-4 text-slate-600 text-[11px] leading-tight">
-                      {l.leadDate || '30 Sep 2026'}
+                      {formatDisplayDate(l.leadDate)}
                     </td>
 
                     {/* LEAD SOURCE (Interactive Dropdown) */}
@@ -492,32 +532,44 @@ export function SalesTeamView() {
                       </select>
                     </td>
 
-                    {/* LEAD STAGE (Interactive Dropdown) */}
+                    {/* LEAD STAGE (Interactive Dropdown with Indicator) */}
                     <td className="py-3.5 px-4 font-bold text-slate-800">
-                      <select
-                        value={l.leadStage}
-                        onChange={(e) => {
-                          const newStage = e.target.value;
-                          handleUpdateField(l.id, { leadStage: newStage }, { lead_stage: newStage });
-                        }}
-                        className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none"
-                      >
-                        {STAGES_OPTIONS.map(st => (
-                          <option key={st} value={st}>{st}</option>
-                        ))}
-                      </select>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${
+                          l.leadStage === 'Qualified' ? 'bg-emerald-500' :
+                          l.leadStage === 'Opportunity' ? 'bg-indigo-500' :
+                          l.leadStage === 'Closed Won' ? 'bg-teal-600' :
+                          l.leadStage === 'Closed Lost' ? 'bg-rose-500' :
+                          'bg-sky-500'
+                        }`} />
+                        <select
+                          value={l.leadStage}
+                          onChange={(e) => {
+                            const newStage = e.target.value;
+                            handleUpdateField(l.id, { leadStage: newStage }, { lead_stage: newStage });
+                          }}
+                          className="rounded-xl border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none"
+                        >
+                          {STAGES_OPTIONS.map(st => (
+                            <option key={st} value={st}>{st}</option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
 
                     {/* DATE OF CONNECT */}
-                    <td className="py-3.5 px-4 text-slate-400">
+                    <td className="py-3.5 px-4 text-slate-500 text-xs">
                       <input
-                        type="date"
+                        type={l.dateOfConnect ? "date" : "text"}
+                        placeholder="—"
                         value={l.dateOfConnect || ''}
+                        onFocus={(e) => { e.target.type = "date"; }}
+                        onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdateField(l.id, { dateOfConnect: val }, { connect_date: val });
                         }}
-                        className="bg-transparent text-xs text-slate-600 focus:outline-none"
+                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 text-xs text-slate-600 focus:outline-none transition-all placeholder:text-slate-400"
                       />
                     </td>
 
@@ -533,21 +585,24 @@ export function SalesTeamView() {
                         onBlur={(e) => {
                           handleUpdateField(l.id, { comments: e.target.value }, { comments: e.target.value });
                         }}
-                        placeholder="Add comments..."
-                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all"
+                        placeholder="—"
+                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all placeholder:text-slate-400"
                       />
                     </td>
 
                     {/* FOLLOW-UP 2 DATE */}
-                    <td className="py-3.5 px-4 text-slate-400">
+                    <td className="py-3.5 px-4 text-slate-500 text-xs">
                       <input
-                        type="date"
+                        type={l.followup2Date ? "date" : "text"}
+                        placeholder="—"
                         value={l.followup2Date || ''}
+                        onFocus={(e) => { e.target.type = "date"; }}
+                        onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdateField(l.id, { followup2Date: val }, { followup2_date: val });
                         }}
-                        className="bg-transparent text-xs text-slate-600 focus:outline-none"
+                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 text-xs text-slate-600 focus:outline-none transition-all placeholder:text-slate-400"
                       />
                     </td>
 
@@ -563,8 +618,8 @@ export function SalesTeamView() {
                         onBlur={(e) => {
                           handleUpdateField(l.id, { followup2Comments: e.target.value }, { followup2_comments: e.target.value });
                         }}
-                        placeholder="Follow-up notes..."
-                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all"
+                        placeholder="—"
+                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-2 py-1 rounded-lg border border-transparent focus:border-slate-300 text-xs text-slate-700 focus:outline-none transition-all placeholder:text-slate-400"
                       />
                     </td>
 

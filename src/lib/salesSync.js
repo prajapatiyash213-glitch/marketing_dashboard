@@ -1,73 +1,94 @@
 /**
- * Live Supabase Data Sync Service for `sales` CRM repository
+ * Live Data Sync Service for `sales` CRM repository
  * Repo: https://github.com/prajapatiyash213-glitch/sales
  * Live App: https://sales-hazel-ten.vercel.app
+ *
+ * Uses `/api/sales-leads` proxy to avoid browser-side 401 "Forbidden use of secret API key in browser"
  */
 
 const SUPABASE_URL = "https://takqbngsfdwburtujtsc.supabase.co";
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY || atob("c2Jfc2VjcmV0X3J2RWtuazdLRkRZZC1wR0FHTDNQLVFfekw2bTkyRUY=");
+const SUPABASE_KEY = typeof window === "undefined"
+  ? (process.env.SUPABASE_SERVICE_ROLE_KEY || Buffer.from("c2Jfc2VjcmV0X3J2RWtuazdLRkRZZC1wR0FHTDNQLVFfekw2bTkyRUY=", "base64").toString("utf-8"))
+  : "";
 
-const HEADERS = {
-  "apikey": SUPABASE_KEY,
-  "Authorization": `Bearer ${SUPABASE_KEY}`,
-  "Content-Type": "application/json"
-};
+function mapRowToLead(row, profilesMap = {}) {
+  // If company is empty, extract from email or domain
+  let comp = row.company?.trim();
+  if (!comp && row.email) {
+    const domainPart = row.email.split("@")[1]?.split(".")[0];
+    comp = domainPart ? domainPart.charAt(0).toUpperCase() + domainPart.slice(1) : "N/A";
+  }
+
+  return {
+    id: row.id,
+    email: row.email || "",
+    company: comp || "N/A",
+    brand: row.brand || "Tecnoprism",
+    owner: profilesMap[row.owner_id] || "Yash Prajapati",
+    owner_id: row.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24",
+    leadDate: row.lead_date || row.created_at?.split("T")[0] || "",
+    leadSource: row.lead_source || "Inbound - Referral",
+    leadStage: row.lead_stage || "Discovery",
+    dateOfConnect: row.connect_date || "",
+    comments: row.comments || "",
+    followup2Date: row.followup2_date || "",
+    followup2Comments: row.followup2_comments || "",
+    leadStatus: row.lead_status || "New",
+    created_at: row.created_at
+  };
+}
 
 /**
- * Fetch all user profiles from Supabase to resolve owner_id to full names
+ * Fetch all user profiles from API/Supabase to resolve owner_id to full names
  */
 export async function fetchProfilesMap() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=*`, { headers: HEADERS });
+    const res = await fetch("/api/sales-leads", {
+      headers: { "Content-Type": "application/json" }
+    });
     if (!res.ok) return {};
-    const profiles = await res.json();
+    const { profiles } = await res.json();
     const map = {};
-    profiles.forEach(p => {
+    (profiles || []).forEach(p => {
       if (p.id) {
         map[p.id] = p.full_name || p.email || "Yash Prajapati";
       }
     });
     return map;
   } catch (err) {
-    console.warn("Failed to fetch profiles map:", err);
+    console.warn("Proxy profiles fetch failed:", err);
     return {};
   }
 }
 
 /**
- * Fetch all leads from Supabase backend
+ * Fetch all leads from backend
  */
 export async function fetchLiveLeads(profilesMap = {}) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?select=*&order=created_at.desc`, { headers: HEADERS });
+    const res = await fetch("/api/sales-leads", {
+      headers: { "Content-Type": "application/json" }
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const rows = await res.json();
+    const data = await res.json();
+    const rows = data.leads || [];
 
-    return rows.map(row => ({
-      id: row.id,
-      email: row.email || "",
-      company: row.company || row.email?.split("@")[0] || "N/A",
-      brand: row.brand || "Tecnoprism",
-      owner: profilesMap[row.owner_id] || "Yash Prajapati",
-      owner_id: row.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24",
-      leadDate: row.lead_date || row.created_at?.split("T")[0] || "",
-      leadSource: row.lead_source || "Inbound - Referral",
-      leadStage: row.lead_stage || "Discovery",
-      dateOfConnect: row.connect_date || "",
-      comments: row.comments || "",
-      followup2Date: row.followup2_date || "",
-      followup2Comments: row.followup2_comments || "",
-      leadStatus: row.lead_status || "New",
-      created_at: row.created_at
-    }));
+    // Also update profiles if provided in response
+    if (data.profiles && Array.isArray(data.profiles)) {
+      data.profiles.forEach(p => {
+        if (p.id) profilesMap[p.id] = p.full_name || p.email || "Yash Prajapati";
+      });
+    }
+
+    return rows.map(row => mapRowToLead(row, profilesMap));
   } catch (err) {
-    console.warn("Live Supabase fetch error, falling back to local dataset:", err);
+    console.warn("Live leads fetch error:", err);
     return null;
   }
 }
 
 /**
- * Create a new lead on Supabase backend
+ * Create a new lead on backend
  */
 export async function createLiveLead(leadData) {
   try {
@@ -86,20 +107,20 @@ export async function createLiveLead(leadData) {
       lead_status: leadData.leadStatus || "New"
     };
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+    const res = await fetch("/api/sales-leads", {
       method: "POST",
-      headers: { ...HEADERS, "Prefer": "return=representation" },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      console.warn("Failed to create lead on Supabase:", errText);
+      console.warn("Failed to create lead on backend:", errText);
       return null;
     }
 
-    const inserted = await res.json();
-    return inserted?.[0] || null;
+    const data = await res.json();
+    return data.lead || null;
   } catch (err) {
     console.error("Error creating live lead:", err);
     return null;
@@ -107,18 +128,18 @@ export async function createLiveLead(leadData) {
 }
 
 /**
- * Update lead owner or status on Supabase
+ * Update lead owner or status on backend
  */
 export async function updateLiveLead(leadId, patchObj) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+    const res = await fetch("/api/sales-leads", {
       method: "PATCH",
-      headers: HEADERS,
-      body: JSON.stringify(patchObj)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: leadId, patch: patchObj })
     });
     return res.ok;
   } catch (err) {
-    console.error("Error updating lead on Supabase:", err);
+    console.error("Error updating lead on backend:", err);
     return false;
   }
 }

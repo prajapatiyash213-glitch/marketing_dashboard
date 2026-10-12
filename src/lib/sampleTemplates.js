@@ -94,7 +94,7 @@ export const SAMPLE_CATEGORIES = [
     badge: "Drop-offs",
     badgeBg: "bg-rose-50 text-[#FA2E76] border-rose-200/60",
     description: "Visitor drop-offs capturing multi-line pages visited, brand, owner, lead dates, connect dates, and stages.",
-    columns: ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Lead Status"],
+    columns: ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"],
   },
 ];
 
@@ -262,24 +262,27 @@ export function buildSampleWorkbook(categoryId = "all") {
   };
 
   const addDropoffsSheet = () => {
-    const rows = EXACT_SAMPLE_DROPOFFS.map((r) => ({
-      "First Name": r.firstName,
-      "Last Name": r.lastName,
-      "Title": r.title,
-      "Company Name": r.company,
-      "Company Name for Emails": r.companyForEmails,
-      "Email": r.email,
-      "Page Visited": r.pageVisited,
-      "Brand": r.brand,
-      "Ownership": r.ownership,
-      "Lead Date": r.leadDate,
-      "Lead Source": r.leadSource,
-      "Lead Stage": r.leadStage,
-      "Date of Connect": r.dateOfConnect,
-      "Comments": r.comments,
-      "Lead Status": r.leadStatus,
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
+    const headers = ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"];
+    const rows = EXACT_SAMPLE_DROPOFFS.map((r) => [
+      r.firstName,
+      r.lastName,
+      r.title,
+      r.company,
+      r.companyForEmails,
+      r.email,
+      r.pageVisited,
+      r.brand,
+      r.ownership,
+      r.leadDate,
+      r.leadSource,
+      r.leadStage,
+      r.dateOfConnect || "",
+      r.comments || "",
+      r.followup2Date || "",
+      r.followup2Comments || "",
+      r.leadStatus || "New",
+    ]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
     XLSX.utils.book_append_sheet(wb, ws, "Website Dropoffs");
   };
 
