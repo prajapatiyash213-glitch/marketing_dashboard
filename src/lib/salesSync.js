@@ -6,10 +6,12 @@
  * Uses `/api/sales-leads` proxy to avoid browser-side 401 "Forbidden use of secret API key in browser"
  */
 
-const SUPABASE_URL = "https://takqbngsfdwburtujtsc.supabase.co";
-const SUPABASE_KEY = typeof window === "undefined"
-  ? (process.env.SUPABASE_SERVICE_ROLE_KEY || Buffer.from("c2Jfc2VjcmV0X3J2RWtuazdLRkRZZC1wR0FHTDNQLVFfekw2bTkyRUY=", "base64").toString("utf-8"))
-  : "";
+function getEndpointUrl() {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/api/sales-leads`;
+  }
+  return "http://localhost:5173/api/sales-leads";
+}
 
 function mapRowToLead(row, profilesMap = {}) {
   // If company is empty, extract from email or domain
@@ -43,10 +45,11 @@ function mapRowToLead(row, profilesMap = {}) {
  */
 export async function fetchProfilesMap() {
   try {
-    const res = await fetch("/api/sales-leads", {
+    const endpoint = getEndpointUrl();
+    const res = await fetch(endpoint, {
       headers: { "Content-Type": "application/json" }
     });
-    if (!res.ok) return {};
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const { profiles } = await res.json();
     const map = {};
     (profiles || []).forEach(p => {
@@ -56,7 +59,7 @@ export async function fetchProfilesMap() {
     });
     return map;
   } catch (err) {
-    console.warn("Proxy profiles fetch failed:", err);
+    console.warn("[SalesSync] Profiles fetch error:", err);
     return {};
   }
 }
@@ -66,10 +69,12 @@ export async function fetchProfilesMap() {
  */
 export async function fetchLiveLeads(profilesMap = {}) {
   try {
-    const res = await fetch("/api/sales-leads", {
+    const endpoint = getEndpointUrl();
+    console.log("[SalesSync] Fetching leads from:", endpoint);
+    const res = await fetch(endpoint, {
       headers: { "Content-Type": "application/json" }
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     const rows = data.leads || [];
 
@@ -80,10 +85,11 @@ export async function fetchLiveLeads(profilesMap = {}) {
       });
     }
 
+    console.log(`[SalesSync] Successfully fetched ${rows.length} leads.`);
     return rows.map(row => mapRowToLead(row, profilesMap));
   } catch (err) {
-    console.warn("Live leads fetch error:", err);
-    return null;
+    console.error("[SalesSync] Live leads fetch error:", err);
+    throw err;
   }
 }
 
@@ -92,6 +98,7 @@ export async function fetchLiveLeads(profilesMap = {}) {
  */
 export async function createLiveLead(leadData) {
   try {
+    const endpoint = getEndpointUrl();
     const payload = {
       email: leadData.email,
       company: leadData.company,
@@ -107,7 +114,7 @@ export async function createLiveLead(leadData) {
       lead_status: leadData.leadStatus || "New"
     };
 
-    const res = await fetch("/api/sales-leads", {
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -115,14 +122,13 @@ export async function createLiveLead(leadData) {
 
     if (!res.ok) {
       const errText = await res.text();
-      console.warn("Failed to create lead on backend:", errText);
-      return null;
+      throw new Error(`Failed to create lead: ${errText}`);
     }
 
     const data = await res.json();
     return data.lead || null;
   } catch (err) {
-    console.error("Error creating live lead:", err);
+    console.error("[SalesSync] Error creating live lead:", err);
     return null;
   }
 }
@@ -132,14 +138,15 @@ export async function createLiveLead(leadData) {
  */
 export async function updateLiveLead(leadId, patchObj) {
   try {
-    const res = await fetch("/api/sales-leads", {
+    const endpoint = getEndpointUrl();
+    const res = await fetch(endpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: leadId, patch: patchObj })
     });
     return res.ok;
   } catch (err) {
-    console.error("Error updating lead on backend:", err);
+    console.error("[SalesSync] Error updating lead on backend:", err);
     return false;
   }
 }

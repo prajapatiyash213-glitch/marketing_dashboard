@@ -124,6 +124,7 @@ export function SalesTeamView() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [profilesMap, setProfilesMap] = useState({});
   const [syncStatus, setSyncStatus] = useState('syncing');
+  const [syncError, setSyncError] = useState(null);
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
@@ -135,6 +136,7 @@ export function SalesTeamView() {
   // Live Supabase Auto-Sync (5s Interval Polling)
   const syncData = async () => {
     try {
+      setSyncStatus('syncing');
       let map = profilesMap;
       if (Object.keys(map).length === 0) {
         map = await fetchProfilesMap();
@@ -144,6 +146,7 @@ export function SalesTeamView() {
       if (liveLeads && Array.isArray(liveLeads)) {
         setLeads(liveLeads);
         setSyncStatus('synced');
+        setSyncError(null);
         setLastSyncTime(new Date().toLocaleTimeString());
       } else {
         setSyncStatus('offline');
@@ -151,6 +154,7 @@ export function SalesTeamView() {
     } catch (err) {
       console.error("Auto sync error:", err);
       setSyncStatus('offline');
+      setSyncError(err.message || 'Failed to fetch from server');
     }
   };
 
@@ -264,17 +268,30 @@ export function SalesTeamView() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base font-bold text-slate-900">Sales Pipeline & Team Management</h3>
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${syncStatus === 'synced' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                syncStatus === 'synced' ? 'bg-emerald-100 text-emerald-800' :
+                syncStatus === 'syncing' ? 'bg-blue-100 text-blue-800' :
+                'bg-rose-100 text-rose-800'
+              }`}>
                 <span className="relative flex h-2 w-2">
-                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${syncStatus === 'synced' ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                  <span className={`relative inline-flex rounded-full h-2 w-2 ${syncStatus === 'synced' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    syncStatus === 'synced' ? 'bg-emerald-400' :
+                    syncStatus === 'syncing' ? 'bg-blue-400' :
+                    'bg-rose-400'
+                  }`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    syncStatus === 'synced' ? 'bg-emerald-500' :
+                    syncStatus === 'syncing' ? 'bg-blue-500' :
+                    'bg-rose-500'
+                  }`}></span>
                 </span>
-                {syncStatus === 'syncing' ? 'Syncing...' : 'Live Auto-Sync'}
+                {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'synced' ? `Live Auto-Sync (${leads.length} Leads)` : 'Offline / Error'}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Connected to <code className="text-blue-700 bg-blue-100/60 px-1 py-0.5 rounded font-mono">prajapatiyash213-glitch/sales</code> (Vercel &amp; Supabase DB)
               {lastSyncTime && <span className="ml-2 text-slate-400">• Last synced at {lastSyncTime}</span>}
+              {syncError && <span className="ml-2 text-rose-600 font-semibold">• Error: {syncError}</span>}
             </p>
           </div>
         </div>
