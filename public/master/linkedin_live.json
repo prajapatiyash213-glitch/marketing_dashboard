@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24934,
+  "followers": 24943,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5120,
-  "lastSynced": "2026-10-12T05:15:47.837Z",
+  "growthSinceExport": 5129,
+  "lastSynced": "2026-10-12T09:43:07.099Z",
   "employees": 232,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,19 +104,19 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12155,
+        "count": 12159,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7525,
+        "count": 7528,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Director",
-        "count": 2643,
+        "count": 2644,
         "category": "seniority",
         "isLive": true
       },
@@ -128,7 +128,7 @@
       },
       {
         "label": "CXO",
-        "count": 654,
+        "count": 655,
         "category": "seniority",
         "isLive": true
       },
@@ -148,25 +148,25 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9332,
+        "count": 9336,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6531,
+        "count": 6533,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3020,
+        "count": 3021,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2114,
+        "count": 2115,
         "category": "function",
         "isLive": true
       },
@@ -178,7 +178,7 @@
       },
       {
         "label": "Consulting",
-        "count": 1346,
+        "count": 1347,
         "category": "function",
         "isLive": true
       },
@@ -192,25 +192,25 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9332,
+        "count": 9336,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6531,
+        "count": 6533,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3020,
+        "count": 3021,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2114,
+        "count": 2115,
         "category": "function",
         "isLive": true
       },
@@ -222,7 +222,7 @@
       },
       {
         "label": "Consulting",
-        "count": 1346,
+        "count": 1347,
         "category": "function",
         "isLive": true
       },
@@ -236,19 +236,19 @@
     "location": [
       {
         "label": "United States",
-        "count": 10596,
+        "count": 10600,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9526,
+        "count": 9530,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Kingdom",
-        "count": 2089,
+        "count": 2090,
         "category": "location",
         "isLive": true
       },
@@ -268,31 +268,31 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13515,
+        "count": 13520,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5688,
+        "count": 5690,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Financial Services",
-        "count": 2391,
+        "count": 2392,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Hospitals and Health Care",
-        "count": 1774,
+        "count": 1775,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Banking",
-        "count": 1565,
+        "count": 1566,
         "category": "industry",
         "isLive": true
       }
@@ -300,25 +300,25 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9602,
+        "count": 9605,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6506,
+        "count": 6508,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3813,
+        "count": 3814,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "51-200 employees",
-        "count": 3096,
+        "count": 3097,
         "category": "companySize",
         "isLive": true
       },
@@ -330,6 +330,6 @@
       }
     ],
     "isLive": true,
-    "liveFollowers": 24934
+    "liveFollowers": 24943
   }
 }
