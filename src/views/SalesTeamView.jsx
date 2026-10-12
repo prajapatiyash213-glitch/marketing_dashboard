@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead } from '../lib/salesSync.js';
 
 export const SOURCES_OPTIONS = [
@@ -56,30 +57,32 @@ function formatDisplayDate(dateStr) {
   return dateStr;
 }
 
-// Sample default leads matching CRM reference
+// Sample default leads matching CRM reference (with real Supabase UUIDs)
 const INITIAL_LEADS = [
   {
-    id: '1',
+    id: 'd11c4d3d-8daf-4f27-b55a-90866e6486a2',
     company: 'tata',
-    email: 'tata.com',
+    email: 'niti@tata.com',
     brand: 'Tecnoprism',
     owner: 'Yash Prajapati',
-    leadDate: '09 Oct 2026',
+    owner_id: 'e1914945-b140-46b6-b13d-82b45f053f24',
+    leadDate: '2026-10-09',
     leadSource: 'Events - CFO',
     leadStage: 'Discovery',
     dateOfConnect: '',
-    comments: '',
+    comments: 'Test comment',
     followup2Date: '',
     followup2Comments: '',
     leadStatus: 'New'
   },
   {
-    id: '2',
+    id: 'ee56e5a6-1601-49c8-a653-972b4af87262',
     company: 'Globex',
     email: 'sales@globex.com',
     brand: 'AutomationCOE',
     owner: 'Yash Prajapati',
-    leadDate: '30 Sep 2026',
+    owner_id: 'e1914945-b140-46b6-b13d-82b45f053f24',
+    leadDate: '2026-09-30',
     leadSource: 'Inbound - Drop-Offs',
     leadStage: 'Qualified',
     dateOfConnect: '',
@@ -89,12 +92,13 @@ const INITIAL_LEADS = [
     leadStatus: 'Contacted'
   },
   {
-    id: '3',
+    id: '4d707116-20af-4b37-9d57-1dc49f7ed457',
     company: 'Cyberdyne',
     email: 'info@cyberdyne.org',
     brand: 'Tecnoprism',
     owner: 'Yash Prajapati',
-    leadDate: '30 Sep 2026',
+    owner_id: 'e1914945-b140-46b6-b13d-82b45f053f24',
+    leadDate: '2026-09-30',
     leadSource: 'Events - CFO',
     leadStage: 'Discovery',
     dateOfConnect: '',
@@ -104,12 +108,13 @@ const INITIAL_LEADS = [
     leadStatus: 'Attempted to Contact'
   },
   {
-    id: '4',
+    id: '1cac93ac-ca6f-4d6d-a6a2-e12df58c6618',
     company: 'Vertex',
     email: 'support@vertex.com',
     brand: 'Tecnoprism',
     owner: 'Yash Prajapati',
-    leadDate: '30 Sep 2026',
+    owner_id: 'e1914945-b140-46b6-b13d-82b45f053f24',
+    leadDate: '2026-09-30',
     leadSource: 'Outbound',
     leadStage: 'Discovery',
     dateOfConnect: '',
@@ -220,17 +225,98 @@ export function SalesTeamView() {
     });
   };
 
+  const fileInputRef = useRef(null);
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setSyncStatus('syncing');
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+
+      for (const row of json) {
+        const email = row.Email || row.email || row['Email Address'];
+        if (!email) continue;
+        const newLead = {
+          email,
+          company: row.Company || row.company || '',
+          brand: row.Brand || row.brand || 'Tecnoprism',
+          owner: row.Owner || row.owner || 'Yash Prajapati',
+          leadDate: row['Lead Date'] || row.leadDate || new Date().toISOString().split('T')[0],
+          leadSource: row['Lead Source'] || row.leadSource || 'Inbound - Referral',
+          leadStage: row['Lead Stage'] || row.leadStage || 'Discovery',
+          dateOfConnect: row['Date Of Connect'] || row['Connect Date'] || '',
+          comments: row.Comments || row.comments || '',
+          followup2Date: row['Follow-up 2 Date'] || row.followup2Date || '',
+          followup2Comments: row['Follow-up 2 Notes'] || row.followup2Comments || '',
+          leadStatus: row['Lead Status'] || row.leadStatus || 'New'
+        };
+        await createLiveLead(newLead);
+      }
+      await syncData();
+    } catch (err) {
+      console.error("Import error:", err);
+      alert("Failed to import file: " + err.message);
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
+
   const handleUpdateField = async (leadId, patchLocal, patchSupabase) => {
     // 1. Optimistic local update
     setLeads(prev => prev.map(item => item.id === leadId ? { ...item, ...patchLocal } : item));
 
     // 2. Persist to live Supabase DB
     if (leadId && patchSupabase) {
-      await updateLiveLead(leadId, patchSupabase);
+      try {
+        const ok = await updateLiveLead(leadId, patchSupabase);
+        if (ok) {
+          setSyncStatus('synced');
+          setSyncError(null);
+          setLastSyncTime(new Date().toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error("Failed to update lead:", err);
+        setSyncStatus('offline');
+        setSyncError(err.message || 'Update failed');
+      }
     }
   };
 
   const [selectedStage, setSelectedStage] = useState('all');
+  const [overdueFilter, setOverdueFilter] = useState(false);
+
+  // Export CSV handler
+  const handleExportCsv = () => {
+    const headers = ["Email", "Company", "Brand", "Owner", "Lead Date", "Source", "Stage", "Connect Date", "Comments", "Follow-up 2 Date", "Follow-up 2 Notes", "Status"];
+    const rows = filteredLeads.map(l => [
+      `"${l.email || ''}"`,
+      `"${l.company || ''}"`,
+      `"${l.brand || ''}"`,
+      `"${l.owner || ''}"`,
+      `"${l.leadDate || ''}"`,
+      `"${l.leadSource || ''}"`,
+      `"${l.leadStage || ''}"`,
+      `"${l.dateOfConnect || ''}"`,
+      `"${(l.comments || '').replace(/"/g, '""')}"`,
+      `"${l.followup2Date || ''}"`,
+      `"${(l.followup2Comments || '').replace(/"/g, '""')}"`,
+      `"${l.leadStatus || ''}"`
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sales_leads_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Filtered Leads
   const filteredLeads = leads.filter(l => {
@@ -241,7 +327,8 @@ export function SalesTeamView() {
     const matchSource = sourceFilter === 'all' || l.leadSource === sourceFilter;
     const matchStatus = statusFilter === 'all' || l.leadStatus === statusFilter;
     const matchStage = selectedStage === 'all' || l.leadStage === selectedStage;
-    return matchSearch && matchOwner && matchBrand && matchSource && matchStatus && matchStage;
+    const matchOverdue = !overdueFilter || (l.followup2Date && new Date(l.followup2Date) < new Date());
+    return matchSearch && matchOwner && matchBrand && matchSource && matchStatus && matchStage && matchOverdue;
   });
 
   // Stage Distribution Counts (Exact match with screenshot)
@@ -256,6 +343,14 @@ export function SalesTeamView() {
     { id: 'Closed Won', label: 'Closed Won', count: leads.filter(l => l.leadStage === 'Closed Won').length, bg: 'bg-[#10B981]' },
     { id: 'Client', label: 'Client', count: leads.filter(l => l.leadStage === 'Client').length, bg: 'bg-[#059669]' }
   ];
+
+  const inProgressCount = leads.filter(l => ['Qualified', 'Opportunity', 'Pilot/POC', 'Proposal', 'Value Negotiation'].includes(l.leadStage)).length;
+  const closedWonCount = leads.filter(l => ['Closed Won', 'Client'].includes(l.leadStage)).length;
+  const overdueCount = leads.filter(l => {
+    if (!l.followup2Date) return false;
+    const d = new Date(l.followup2Date);
+    return !isNaN(d.getTime()) && d < new Date();
+  }).length;
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -332,7 +427,7 @@ export function SalesTeamView() {
               <span>In Progress</span>
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Active Stages</span>
             </div>
-            <div className="mt-3 text-3xl font-extrabold">1</div>
+            <div className="mt-3 text-3xl font-extrabold">{inProgressCount}</div>
             <div className="mt-1 text-xs font-medium opacity-95">Meeting & Proposals</div>
           </div>
 
@@ -342,7 +437,7 @@ export function SalesTeamView() {
               <span>Closed Won</span>
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Conversion</span>
             </div>
-            <div className="mt-3 text-3xl font-extrabold">0</div>
+            <div className="mt-3 text-3xl font-extrabold">{closedWonCount}</div>
             <div className="mt-1 text-xs font-medium opacity-95">₹0.00 Win Ratio</div>
           </div>
 
@@ -352,8 +447,8 @@ export function SalesTeamView() {
               <span>Follow-ups Overdue</span>
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Action Needed</span>
             </div>
-            <div className="mt-3 text-3xl font-extrabold">0</div>
-            <div className="mt-1 text-xs font-medium opacity-95">0 Pending Action Items</div>
+            <div className="mt-3 text-3xl font-extrabold">{overdueCount}</div>
+            <div className="mt-1 text-xs font-medium opacity-95">{overdueCount} Pending Action Items</div>
           </div>
         </div>
 
@@ -454,13 +549,33 @@ export function SalesTeamView() {
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2">
-            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
-              Overdue follow-ups (0)
+            <button
+              onClick={() => setOverdueFilter(!overdueFilter)}
+              className={`px-3.5 py-1.5 rounded-full border text-xs font-semibold transition-all cursor-pointer ${
+                overdueFilter
+                  ? 'border-rose-500 bg-rose-500 text-white shadow-xs'
+                  : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
+              }`}
+            >
+              Overdue follow-ups ({overdueCount})
             </button>
-            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
+            <button
+              onClick={handleExportCsv}
+              className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all cursor-pointer"
+            >
               Export CSV
             </button>
-            <button className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImportFile}
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all cursor-pointer"
+            >
               📥 Import Excel / CSV
             </button>
             <button
@@ -502,12 +617,34 @@ export function SalesTeamView() {
 
                     {/* COMPANY */}
                     <td className="py-3.5 px-4 font-bold text-slate-900">
-                      {l.company}
+                      <input
+                        type="text"
+                        value={l.company || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, company: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { company: e.target.value }, { company: e.target.value });
+                        }}
+                        className="w-full bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 font-bold text-xs text-slate-900 focus:outline-none transition-all placeholder:text-slate-400"
+                        placeholder="Company"
+                      />
                     </td>
 
                     {/* BRAND */}
                     <td className="py-3.5 px-4 font-bold text-slate-800">
-                      {l.brand}
+                      <select
+                        value={l.brand}
+                        onChange={(e) => {
+                          const newBrand = e.target.value;
+                          handleUpdateField(l.id, { brand: newBrand }, { brand: newBrand });
+                        }}
+                        className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-bold text-slate-800 cursor-pointer focus:outline-none"
+                      >
+                        <option value="Tecnoprism">Tecnoprism</option>
+                        <option value="AutomationCOE">AutomationCOE</option>
+                      </select>
                     </td>
 
                     {/* OWNERSHIP (Interactive pill dropdown) */}
@@ -530,7 +667,15 @@ export function SalesTeamView() {
 
                     {/* LEAD DATE */}
                     <td className="py-3.5 px-4 text-slate-600 text-[11px] leading-tight">
-                      {formatDisplayDate(l.leadDate)}
+                      <input
+                        type={l.leadDate && !/[a-zA-Z]/.test(l.leadDate) ? "date" : "text"}
+                        value={l.leadDate || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          handleUpdateField(l.id, { leadDate: val }, { lead_date: val });
+                        }}
+                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1 py-0.5 rounded border border-transparent focus:border-slate-300 text-xs text-slate-600 focus:outline-none transition-all"
+                      />
                     </td>
 
                     {/* LEAD SOURCE (Interactive Dropdown) */}

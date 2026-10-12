@@ -3,8 +3,12 @@
  * Repo: https://github.com/prajapatiyash213-glitch/sales
  * Live App: https://sales-hazel-ten.vercel.app
  *
- * Uses `/api/sales-leads` proxy to avoid browser-side 401 "Forbidden use of secret API key in browser"
+ * Resilient multi-tier sync:
+ * 1. Primary: Local dev proxy or Vercel serverless `/api/sales-leads`
+ * 2. Fallback: Live sales backend `https://sales-hazel-ten.vercel.app/api/sales-leads`
  */
+
+const FALLBACK_ENDPOINT = "https://sales-hazel-ten.vercel.app/api/sales-leads";
 
 function getEndpointUrl() {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -13,8 +17,44 @@ function getEndpointUrl() {
   return "http://localhost:5173/api/sales-leads";
 }
 
+function sanitizeLeadPatch(patchObj) {
+  const clean = { ...patchObj };
+  if ('connect_date' in clean && !clean.connect_date) clean.connect_date = null;
+  if ('followup2_date' in clean && !clean.followup2_date) clean.followup2_date = null;
+  if ('lead_date' in clean && !clean.lead_date) clean.lead_date = new Date().toISOString().split('T')[0];
+  return clean;
+}
+
+async function requestSalesApi(options = {}) {
+  const primaryUrl = getEndpointUrl();
+
+  try {
+    const res = await fetch(primaryUrl, options);
+    const contentType = res.headers.get("content-type") || "";
+
+    if (res.ok && contentType.includes("application/json")) {
+      return await res.json();
+    }
+
+    // If primary returned HTML (e.g. rewrite to index.html) or error, try fallback
+    console.warn(`[SalesSync] Primary endpoint returned status ${res.status} (${contentType}), trying fallback...`);
+    const fbRes = await fetch(FALLBACK_ENDPOINT, options);
+    if (!fbRes.ok) throw new Error(`HTTP ${fbRes.status}: ${fbRes.statusText}`);
+    return await fbRes.json();
+  } catch (err) {
+    // If primary failed on network, try fallback
+    try {
+      console.warn("[SalesSync] Primary fetch failed, attempting fallback:", FALLBACK_ENDPOINT);
+      const fbRes = await fetch(FALLBACK_ENDPOINT, options);
+      if (fbRes.ok) return await fbRes.json();
+    } catch {
+      // ignore fallback error and throw original or fallback error
+    }
+    throw err;
+  }
+}
+
 function mapRowToLead(row, profilesMap = {}) {
-  // If company is empty, extract from email or domain
   let comp = row.company?.trim();
   if (!comp && row.email) {
     const domainPart = row.email.split("@")[1]?.split(".")[0];
@@ -45,14 +85,12 @@ function mapRowToLead(row, profilesMap = {}) {
  */
 export async function fetchProfilesMap() {
   try {
-    const endpoint = getEndpointUrl();
-    const res = await fetch(endpoint, {
+    const data = await requestSalesApi({
       headers: { "Content-Type": "application/json" }
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const { profiles } = await res.json();
+    const profiles = data.profiles || [];
     const map = {};
-    (profiles || []).forEach(p => {
+    profiles.forEach(p => {
       if (p.id) {
         map[p.id] = p.full_name || p.email || "Yash Prajapati";
       }
@@ -69,23 +107,18 @@ export async function fetchProfilesMap() {
  */
 export async function fetchLiveLeads(profilesMap = {}) {
   try {
-    const endpoint = getEndpointUrl();
-    console.log("[SalesSync] Fetching leads from:", endpoint);
-    const res = await fetch(endpoint, {
+    const data = await requestSalesApi({
       headers: { "Content-Type": "application/json" }
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    const data = await res.json();
     const rows = data.leads || [];
 
-    // Also update profiles if provided in response
     if (data.profiles && Array.isArray(data.profiles)) {
       data.profiles.forEach(p => {
         if (p.id) profilesMap[p.id] = p.full_name || p.email || "Yash Prajapati";
       });
     }
 
-    console.log(`[SalesSync] Successfully fetched ${rows.length} leads.`);
+    console.log(`[SalesSync] Successfully fetched ${rows.length} live leads.`);
     return rows.map(row => mapRowToLead(row, profilesMap));
   } catch (err) {
     console.error("[SalesSync] Live leads fetch error:", err);
@@ -98,8 +131,7 @@ export async function fetchLiveLeads(profilesMap = {}) {
  */
 export async function createLiveLead(leadData) {
   try {
-    const endpoint = getEndpointUrl();
-    const payload = {
+    const payload = sanitizeLeadPatch({
       email: leadData.email,
       company: leadData.company,
       brand: leadData.brand || "Tecnoprism",
@@ -112,20 +144,14 @@ export async function createLiveLead(leadData) {
       followup2_date: leadData.followup2Date || null,
       followup2_comments: leadData.followup2Comments || null,
       lead_status: leadData.leadStatus || "New"
-    };
+    });
 
-    const res = await fetch(endpoint, {
+    const data = await requestSalesApi({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Failed to create lead: ${errText}`);
-    }
-
-    const data = await res.json();
     return data.lead || null;
   } catch (err) {
     console.error("[SalesSync] Error creating live lead:", err);
@@ -134,17 +160,17 @@ export async function createLiveLead(leadData) {
 }
 
 /**
- * Update lead owner or status on backend
+ * Update lead fields on backend
  */
 export async function updateLiveLead(leadId, patchObj) {
   try {
-    const endpoint = getEndpointUrl();
-    const res = await fetch(endpoint, {
+    const sanitized = sanitizeLeadPatch(patchObj);
+    const data = await requestSalesApi({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: leadId, patch: patchObj })
+      body: JSON.stringify({ id: leadId, patch: sanitized })
     });
-    return res.ok;
+    return !!data.success;
   } catch (err) {
     console.error("[SalesSync] Error updating lead on backend:", err);
     return false;
