@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24943,
+  "followers": 24947,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5129,
-  "lastSynced": "2026-10-12T09:43:07.099Z",
+  "growthSinceExport": 5133,
+  "lastSynced": "2026-10-12T18:40:26.209Z",
   "employees": 232,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,13 +104,13 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12159,
+        "count": 12161,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7528,
+        "count": 7529,
         "category": "seniority",
         "isLive": true
       },
@@ -148,19 +148,19 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9336,
+        "count": 9337,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6533,
+        "count": 6535,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3021,
+        "count": 3022,
         "category": "function",
         "isLive": true
       },
@@ -172,7 +172,7 @@
       },
       {
         "label": "Business Development",
-        "count": 1699,
+        "count": 1700,
         "category": "function",
         "isLive": true
       },
@@ -192,19 +192,19 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9336,
+        "count": 9337,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6533,
+        "count": 6535,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3021,
+        "count": 3022,
         "category": "function",
         "isLive": true
       },
@@ -216,7 +216,7 @@
       },
       {
         "label": "Business Development",
-        "count": 1699,
+        "count": 1700,
         "category": "function",
         "isLive": true
       },
@@ -236,13 +236,13 @@
     "location": [
       {
         "label": "United States",
-        "count": 10600,
+        "count": 10601,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9530,
+        "count": 9531,
         "category": "location",
         "isLive": true
       },
@@ -268,13 +268,13 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13520,
+        "count": 13522,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5690,
+        "count": 5691,
         "category": "industry",
         "isLive": true
       },
@@ -300,19 +300,19 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9605,
+        "count": 9607,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6508,
+        "count": 6509,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3814,
+        "count": 3815,
         "category": "companySize",
         "isLive": true
       },
@@ -324,12 +324,12 @@
       },
       {
         "label": "2-10 employees",
-        "count": 1918,
+        "count": 1919,
         "category": "companySize",
         "isLive": true
       }
     ],
     "isLive": true,
-    "liveFollowers": 24943
+    "liveFollowers": 24947
   }
 }
