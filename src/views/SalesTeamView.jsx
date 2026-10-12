@@ -60,6 +60,22 @@ function formatDisplayDate(dateStr) {
 // Sample default leads matching CRM reference (with real Supabase UUIDs)
 const INITIAL_LEADS = [
   {
+    id: 'e6ee692a-fdba-4681-a099-842545b7ef79',
+    company: 'adani',
+    email: 'om@adani.com',
+    brand: 'Tecnoprism',
+    owner: 'shashank Jha',
+    owner_id: '5a94425d-b626-417c-a373-f9fa2ff0fdb0',
+    leadDate: '2026-10-12',
+    leadSource: 'Inbound - Forms',
+    leadStage: 'Discovery',
+    dateOfConnect: '',
+    comments: '',
+    followup2Date: '',
+    followup2Comments: '',
+    leadStatus: 'New'
+  },
+  {
     id: 'd11c4d3d-8daf-4f27-b55a-90866e6486a2',
     company: 'tata',
     email: 'niti@tata.com',
@@ -125,9 +141,15 @@ const INITIAL_LEADS = [
   }
 ];
 
+const INITIAL_PROFILES_MAP = {
+  'e1914945-b140-46b6-b13d-82b45f053f24': 'Yash Prajapati',
+  '7f326b7f-20f7-4ca7-a9e6-af2a324c8dcf': 'Pinali Timba',
+  '5a94425d-b626-417c-a373-f9fa2ff0fdb0': 'shashank Jha'
+};
+
 export function SalesTeamView() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
-  const [profilesMap, setProfilesMap] = useState({});
+  const [profilesMap, setProfilesMap] = useState(INITIAL_PROFILES_MAP);
   const [syncStatus, setSyncStatus] = useState('syncing');
   const [syncError, setSyncError] = useState(null);
   const [lastSyncTime, setLastSyncTime] = useState(null);
@@ -666,16 +688,8 @@ export function SalesTeamView() {
                     </td>
 
                     {/* LEAD DATE */}
-                    <td className="py-3.5 px-4 text-slate-600 text-[11px] leading-tight">
-                      <input
-                        type={l.leadDate && !/[a-zA-Z]/.test(l.leadDate) ? "date" : "text"}
-                        value={l.leadDate || ''}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          handleUpdateField(l.id, { leadDate: val }, { lead_date: val });
-                        }}
-                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1 py-0.5 rounded border border-transparent focus:border-slate-300 text-xs text-slate-600 focus:outline-none transition-all"
-                      />
+                    <td className="py-3.5 px-4 text-slate-600 text-[11px] font-medium leading-tight">
+                      {formatDisplayDate(l.leadDate)}
                     </td>
 
                     {/* LEAD SOURCE (Interactive Dropdown) */}

@@ -54,19 +54,29 @@ async function requestSalesApi(options = {}) {
   }
 }
 
-function mapRowToLead(row, profilesMap = {}) {
-  let comp = row.company?.trim();
-  if (!comp && row.email) {
-    const domainPart = row.email.split("@")[1]?.split(".")[0];
-    comp = domainPart ? domainPart.charAt(0).toUpperCase() + domainPart.slice(1) : "N/A";
+export function extractCompanyFromEmail(email) {
+  if (!email || !email.includes('@')) return '';
+  const domain = email.split('@')[1] || '';
+  const namePart = domain.split('.')[0] || '';
+  if (!namePart || ['gmail', 'yahoo', 'hotmail', 'outlook', 'icloud', 'proton', 'aol', 'zoho', 'rediffmail'].includes(namePart.toLowerCase())) {
+    return '';
   }
+  return namePart.charAt(0).toUpperCase() + namePart.slice(1);
+}
 
+export function displayCompany(row) {
+  if (row.company && row.company.trim()) return row.company.trim();
+  const derived = extractCompanyFromEmail(row.email);
+  return derived || '—';
+}
+
+function mapRowToLead(row, profilesMap = {}) {
   return {
     id: row.id,
     email: row.email || "",
-    company: comp || "N/A",
+    company: displayCompany(row),
     brand: row.brand || "Tecnoprism",
-    owner: profilesMap[row.owner_id] || "Yash Prajapati",
+    owner: profilesMap[row.owner_id] || (row.owner_id === "5a94425d-b626-417c-a373-f9fa2ff0fdb0" ? "shashank Jha" : "Yash Prajapati"),
     owner_id: row.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24",
     leadDate: row.lead_date || row.created_at?.split("T")[0] || "",
     leadSource: row.lead_source || "Inbound - Referral",
