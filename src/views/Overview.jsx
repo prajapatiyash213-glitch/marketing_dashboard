@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Panel, EmptyState, Kpi, KpiBand, Delta } from "../components/primitives.jsx";
 import { ModuleTile, FunnelFlow, CoverageBar, RankedBars, Sparkline } from "../components/visuals.jsx";
 import {
@@ -289,6 +289,63 @@ export function SiteCompareStrip({ sites }) {
 }
 
 export function WebsiteSeoExecutiveStrip({ d, setView }) {
+  const is7Days = d.rangeKey === "7d";
+  const isAllTime = d.rangeKey === "all" || !d.rangeActive;
+
+  const chronologicalWeeks = useMemo(() => {
+    const rawWeeks = (d.weeks || []).filter((w) => d.site === "All" || w.site === d.site);
+    const mapByDate = new Map();
+    for (const w of rawWeeks) {
+      if (!w.date) continue;
+      const key = w.date.getTime();
+      if (!mapByDate.has(key)) {
+        mapByDate.set(key, {
+          date: w.date,
+          sort: w.sort || key,
+          label: w.label,
+          views: 0,
+          users: 0,
+          bounceSum: 0,
+          bounceN: 0,
+          as: null,
+          da: null,
+          keywords: null,
+          backlinks: null,
+          raw_backlinks: null,
+          aiSearch: null,
+          raw_aiSearch: null,
+        });
+      }
+      const item = mapByDate.get(key);
+      item.views += w.views || 0;
+      item.users += w.users || 0;
+      if (w.bounce != null) {
+        item.bounceSum += w.bounce;
+        item.bounceN += 1;
+      }
+      if (w.as != null) item.as = w.as;
+      if (w.da != null) item.da = w.da;
+      if (w.keywords != null) item.keywords = w.keywords;
+      if (w.backlinks != null) {
+        item.backlinks = w.backlinks;
+        item.raw_backlinks = w.raw_backlinks;
+      }
+      if (w.aiSearch != null) {
+        item.aiSearch = (item.aiSearch || 0) + w.aiSearch;
+        item.raw_aiSearch = w.raw_aiSearch;
+      }
+    }
+    return Array.from(mapByDate.values())
+      .sort((a, b) => a.sort - b.sort)
+      .map((item) => ({
+        ...item,
+        bounce: item.bounceN ? Math.round((item.bounceSum / item.bounceN) * 10) / 10 : null,
+      }));
+  }, [d.weeks, d.site]);
+
+  const currentDatasetWeek = chronologicalWeeks[chronologicalWeeks.length - 1] || null;
+  const previousDatasetWeek = chronologicalWeeks.length >= 2 ? chronologicalWeeks[chronologicalWeeks.length - 2] : null;
+
   const latest = d.seo.latest || {};
   const bounceDisplay = d.seo.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (latest.bounce != null ? `${latest.bounce}%` : "—");
   const trend = d.seoTrend || [];
@@ -296,17 +353,36 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
   const priorPeriodWeek = d.previousSeoTrend?.length
     ? d.previousSeoTrend[d.previousSeoTrend.length - 1]
     : (d.seo?.previousLatest || null);
-  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek;
 
-  const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
-  const usersHealth = getSeoMetricHealth("users", latestWeek.users, prevWeek?.users);
-  const currentBounce = latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce);
-  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce);
-  const asHealth = getSeoMetricHealth("as", latest.as, prevWeek?.as);
-  const daHealth = getSeoMetricHealth("da", latest.da, prevWeek?.da);
-  const keywordsHealth = getSeoMetricHealth("keywords", latest.keywords, prevWeek?.keywords);
-  const backlinksHealth = getSeoMetricHealth("backlinks", latest.backlinks, prevWeek?.backlinks);
-  const aiSearchHealth = getSeoMetricHealth("aiSearch", latest.aiSearch, prevWeek?.aiSearch);
+  const prevWeek = is7Days
+    ? (previousDatasetWeek || priorPeriodWeek)
+    : (trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek);
+  const currentWeek = is7Days ? (currentDatasetWeek || latestWeek) : latestWeek;
+
+  const viewsHealth = getSeoMetricHealth("views", is7Days ? currentWeek?.views : latestWeek.views, prevWeek?.views, {
+    isAllTime,
+    is7Days,
+    periodLabel: "WoW",
+  });
+  const usersHealth = getSeoMetricHealth("users", is7Days ? currentWeek?.users : latestWeek.users, prevWeek?.users, {
+    isAllTime,
+    is7Days,
+    periodLabel: "WoW",
+  });
+  const currentBounce = is7Days
+    ? (currentWeek?.bounce != null ? currentWeek.bounce : (latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce)))
+    : (latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce));
+  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce, {
+    isAllTime,
+    is7Days,
+    compareWoW: is7Days,
+    periodLabel: "WoW",
+  });
+  const asHealth = getSeoMetricHealth("as", is7Days ? (currentWeek?.as ?? latest.as) : latest.as, prevWeek?.as, { is7Days });
+  const daHealth = getSeoMetricHealth("da", is7Days ? (currentWeek?.da ?? latest.da) : latest.da, prevWeek?.da, { is7Days });
+  const keywordsHealth = getSeoMetricHealth("keywords", is7Days ? (currentWeek?.keywords ?? latest.keywords) : latest.keywords, prevWeek?.keywords, { is7Days });
+  const backlinksHealth = getSeoMetricHealth("backlinks", is7Days ? (currentWeek?.backlinks ?? latest.backlinks) : latest.backlinks, prevWeek?.backlinks, { is7Days });
+  const aiSearchHealth = getSeoMetricHealth("aiSearch", is7Days ? (currentWeek?.aiSearch ?? latest.aiSearch) : latest.aiSearch, prevWeek?.aiSearch, { is7Days });
 
   return (
     <section className="section-snap-item panel p-5 mb-5 bg-gradient-to-r from-white via-cyan-50/20 to-blue-50/20 border border-slate-200/80 rounded-2xl shadow-xs">
@@ -341,54 +417,82 @@ export function WebsiteSeoExecutiveStrip({ d, setView }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
         <div className={`bg-white rounded-xl p-3 border-l-4 ${viewsHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">GA4 Views</div>
-          <div className={`text-lg font-bold mt-0.5 ${viewsHealth.textClass}`}>{fmtInt(d.seo.views)}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{viewsHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${viewsHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.views ?? d.seo.views) : d.seo.views)}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days ? (prevWeek?.views != null ? `Last wk: ${fmtInt(prevWeek.views)}` : "Last wk: —") : viewsHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${usersHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Total Users</div>
-          <div className={`text-lg font-bold mt-0.5 ${usersHealth.textClass}`}>{fmtInt(d.seo.users)}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{usersHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${usersHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.users ?? d.seo.users) : d.seo.users)}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days ? (prevWeek?.users != null ? `Last wk: ${fmtInt(prevWeek.users)}` : "Last wk: —") : usersHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${bounceHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Bounce Rate</div>
-          <div className={`text-lg font-bold mt-0.5 ${bounceHealth.textClass}`}>{bounceDisplay}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{bounceHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${bounceHealth.textClass}`}>
+            {is7Days ? (currentWeek?.bounce != null ? `${currentWeek.bounce.toFixed(1)}%` : bounceDisplay) : bounceDisplay}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days ? (prevWeek?.bounce != null ? `Last wk: ${prevWeek.bounce.toFixed(1)}%` : "Last wk: —") : bounceHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${asHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">SEMrush Score</div>
-          <div className={`text-lg font-bold mt-0.5 ${asHealth.textClass}`}>{latest.as ?? "—"}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{asHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${asHealth.textClass}`}>
+            {(is7Days ? currentWeek?.as : null) ?? latest.as ?? "—"}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days && prevWeek?.as != null ? `Last wk: ${prevWeek.as}` : asHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${daHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Domain Auth</div>
-          <div className={`text-lg font-bold mt-0.5 ${daHealth.textClass}`}>{latest.da ?? "—"}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{daHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${daHealth.textClass}`}>
+            {(is7Days ? currentWeek?.da : null) ?? latest.da ?? "—"}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days && prevWeek?.da != null ? `Last wk: ${prevWeek.da}` : daHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${keywordsHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Top 20 KW</div>
-          <div className={`text-lg font-bold mt-0.5 ${keywordsHealth.textClass}`}>{latest.keywords ?? "—"}</div>
-          <div className="text-[10px] text-slate-400 mt-1">{keywordsHealth.badgeText}</div>
+          <div className={`text-lg font-bold mt-0.5 ${keywordsHealth.textClass}`}>
+            {(is7Days ? currentWeek?.keywords : null) ?? latest.keywords ?? "—"}
+          </div>
+          <div className="text-[10px] text-slate-400 mt-1">
+            {is7Days && prevWeek?.keywords != null ? `Last wk: ${prevWeek.keywords}` : keywordsHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${backlinksHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">Backlinks</div>
           <div className={`text-lg font-bold mt-0.5 ${backlinksHealth.textClass}`} title={latest.raw_backlinks || ""}>
-            {latest.backlinks != null ? fmtInt(latest.backlinks) : "—"}
+            {(is7Days && currentWeek?.backlinks != null ? fmtInt(currentWeek.backlinks) : null) ?? (latest.backlinks != null ? fmtInt(latest.backlinks) : "—")}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1 truncate">{backlinksHealth.badgeText}</div>
+          <div className="text-[10px] text-slate-400 mt-1 truncate">
+            {is7Days && prevWeek?.backlinks != null ? `Last wk: ${fmtInt(prevWeek.backlinks)}` : backlinksHealth.badgeText}
+          </div>
         </div>
 
         <div className={`bg-white rounded-xl p-3 border-l-4 ${aiSearchHealth.borderClass} border border-slate-100 shadow-xs`}>
           <div className="text-[11px] font-medium text-slate-400 truncate">AI Search</div>
           <div className={`text-lg font-bold mt-0.5 ${aiSearchHealth.textClass}`} title={latest.raw_aiSearch || ""}>
-            {latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—"}
+            {(is7Days && currentWeek?.aiSearch != null ? fmtInt(currentWeek.aiSearch) : null) ?? (latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—")}
           </div>
-          <div className="text-[10px] text-slate-400 mt-1 truncate">{aiSearchHealth.badgeText}</div>
+          <div className="text-[10px] text-slate-400 mt-1 truncate">
+            {is7Days && prevWeek?.aiSearch != null ? `Last wk: ${fmtInt(prevWeek.aiSearch)}` : aiSearchHealth.badgeText}
+          </div>
         </div>
       </div>
     </section>

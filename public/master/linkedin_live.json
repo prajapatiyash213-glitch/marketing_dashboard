@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24947,
+  "followers": 24959,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5133,
-  "lastSynced": "2026-10-12T18:40:26.209Z",
+  "growthSinceExport": 5145,
+  "lastSynced": "2026-10-13T05:48:37.433Z",
   "employees": 232,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -104,25 +104,25 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12161,
+        "count": 12167,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7529,
+        "count": 7533,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Director",
-        "count": 2644,
+        "count": 2645,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "VP",
-        "count": 1070,
+        "count": 1071,
         "category": "seniority",
         "isLive": true
       },
@@ -148,43 +148,43 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9337,
+        "count": 9342,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6535,
+        "count": 6538,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3022,
+        "count": 3023,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2115,
+        "count": 2116,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1700,
+        "count": 1701,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1347,
+        "count": 1348,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Sales",
-        "count": 891,
+        "count": 892,
         "category": "function",
         "isLive": true
       }
@@ -192,43 +192,43 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9337,
+        "count": 9342,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6535,
+        "count": 6538,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3022,
+        "count": 3023,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2115,
+        "count": 2116,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1700,
+        "count": 1701,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1347,
+        "count": 1348,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Sales",
-        "count": 891,
+        "count": 892,
         "category": "function",
         "isLive": true
       }
@@ -236,31 +236,31 @@
     "location": [
       {
         "label": "United States",
-        "count": 10601,
+        "count": 10606,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9531,
+        "count": 9536,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Kingdom",
-        "count": 2090,
+        "count": 2091,
         "category": "location",
         "isLive": true
       },
       {
         "label": "Canada",
-        "count": 1523,
+        "count": 1524,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Arab Emirates",
-        "count": 1201,
+        "count": 1202,
         "category": "location",
         "isLive": true
       }
@@ -268,31 +268,31 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13522,
+        "count": 13529,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5691,
+        "count": 5694,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Financial Services",
-        "count": 2392,
+        "count": 2393,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Hospitals and Health Care",
-        "count": 1775,
+        "count": 1776,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Banking",
-        "count": 1566,
+        "count": 1567,
         "category": "industry",
         "isLive": true
       }
@@ -300,36 +300,36 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9607,
+        "count": 9611,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6509,
+        "count": 6512,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3815,
+        "count": 3817,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "51-200 employees",
-        "count": 3097,
+        "count": 3099,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "2-10 employees",
-        "count": 1919,
+        "count": 1920,
         "category": "companySize",
         "isLive": true
       }
     ],
     "isLive": true,
-    "liveFollowers": 24947
+    "liveFollowers": 24959
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Panel, EmptyState, Kpi, KpiBand, Delta, ChartTooltip, AXIS } from "../components/primitives.jsx";
 import { SiteCompareStrip } from "./Overview.jsx";
 import { TrafficPanel, BacklinkPanel, BouncePanel } from "./charts.jsx";
@@ -75,6 +75,70 @@ export function WebsitesView({ d, setView }) {
   }
   const compare = Array.from(byLabel.values()).sort((a, b) => a.sort - b.sort);
 
+  const is7Days = d.rangeKey === "7d";
+  const isAllTime = d.rangeKey === "all" || !d.rangeActive;
+
+  // Build chronological distinct weekly periods across all data so current week and last week are always exact
+  const chronologicalWeeks = useMemo(() => {
+    const rawWeeks = (d.weeks || []).filter((w) => d.site === "All" || w.site === d.site);
+    const mapByDate = new Map();
+    for (const w of rawWeeks) {
+      if (!w.date) continue;
+      const key = w.date.getTime();
+      if (!mapByDate.has(key)) {
+        mapByDate.set(key, {
+          date: w.date,
+          sort: w.sort || key,
+          label: w.label,
+          views: 0,
+          users: 0,
+          bounceSum: 0,
+          bounceN: 0,
+          seoLeads: 0,
+          downloads: 0,
+          as: null,
+          da: null,
+          pa: null,
+          keywords: null,
+          backlinks: null,
+          raw_backlinks: null,
+          aiSearch: null,
+          raw_aiSearch: null,
+        });
+      }
+      const item = mapByDate.get(key);
+      item.views += w.views || 0;
+      item.users += w.users || 0;
+      item.seoLeads += w.seoLeads || 0;
+      item.downloads += w.downloads || 0;
+      if (w.bounce != null) {
+        item.bounceSum += w.bounce;
+        item.bounceN += 1;
+      }
+      if (w.as != null) item.as = w.as;
+      if (w.da != null) item.da = w.da;
+      if (w.pa != null) item.pa = w.pa;
+      if (w.keywords != null) item.keywords = w.keywords;
+      if (w.backlinks != null) {
+        item.backlinks = w.backlinks;
+        item.raw_backlinks = w.raw_backlinks;
+      }
+      if (w.aiSearch != null) {
+        item.aiSearch = (item.aiSearch || 0) + w.aiSearch;
+        item.raw_aiSearch = w.raw_aiSearch;
+      }
+    }
+    return Array.from(mapByDate.values())
+      .sort((a, b) => a.sort - b.sort)
+      .map((item) => ({
+        ...item,
+        bounce: item.bounceN ? Math.round((item.bounceSum / item.bounceN) * 10) / 10 : null,
+      }));
+  }, [d.weeks, d.site]);
+
+  const currentDatasetWeek = chronologicalWeeks[chronologicalWeeks.length - 1] || null;
+  const previousDatasetWeek = chronologicalWeeks.length >= 2 ? chronologicalWeeks[chronologicalWeeks.length - 2] : null;
+
   const trend = d.seoTrend || [];
   // Use aggregated weekly trend so multi-site weeks are cleanly merged rather than cross-comparing different sites
   const latestWeek = trend[trend.length - 1] || latest || {};
@@ -86,21 +150,40 @@ export function WebsitesView({ d, setView }) {
     ? d.previousSeoTrend[d.previousSeoTrend.length - 1]
     : (d.seo?.previousLatest || null);
 
-  const prevWeek = trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek;
+  const prevWeek = is7Days
+    ? (previousDatasetWeek || priorPeriodWeek)
+    : (trend.length >= 2 ? trend[trend.length - 2] : priorPeriodWeek);
 
-  // Dynamic SEO metric evaluation: Good (Green), Bad (Red), Natural (Black)
-  const viewsHealth = getSeoMetricHealth("views", latestWeek.views, prevWeek?.views);
-  const usersHealth = getSeoMetricHealth("users", latestWeek.users, prevWeek?.users);
-  const currentBounce = latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce);
-  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce);
-  const asHealth = getSeoMetricHealth("as", latest.as, prevWeek?.as);
-  const daHealth = getSeoMetricHealth("da", latest.da, prevWeek?.da);
-  const keywordsHealth = getSeoMetricHealth("keywords", latest.keywords, prevWeek?.keywords);
-  const leadsHealth = getSeoMetricHealth("webLeads", d.seo.webLeads, prevWeek?.seoLeads);
-  const downloadsHealth = getSeoMetricHealth("downloads", d.seo.downloads, prevWeek?.downloads);
-  const paHealth = getSeoMetricHealth("pa", latest.pa, prevWeek?.pa);
-  const backlinksHealth = getSeoMetricHealth("backlinks", latest.backlinks, prevWeek?.backlinks);
-  const aiSearchHealth = getSeoMetricHealth("aiSearch", latest.aiSearch, prevWeek?.aiSearch);
+  const currentWeek = is7Days ? (currentDatasetWeek || latestWeek) : latestWeek;
+
+  // Dynamic SEO metric evaluation: Good (Green), Bad (Red), Natural (Black/Grey)
+  const viewsHealth = getSeoMetricHealth("views", is7Days ? currentWeek?.views : latestWeek.views, prevWeek?.views, {
+    isAllTime,
+    is7Days,
+    periodLabel: "WoW",
+  });
+  const usersHealth = getSeoMetricHealth("users", is7Days ? currentWeek?.users : latestWeek.users, prevWeek?.users, {
+    isAllTime,
+    is7Days,
+    periodLabel: "WoW",
+  });
+  const currentBounce = is7Days
+    ? (currentWeek?.bounce != null ? currentWeek.bounce : (latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce)))
+    : (latestWeek.bounce != null ? latestWeek.bounce : (d.seo?.avgBounce ?? latest.bounce));
+  const bounceHealth = getSeoMetricHealth("bounce", currentBounce, prevWeek?.bounce, {
+    isAllTime,
+    is7Days,
+    compareWoW: is7Days,
+    periodLabel: "WoW",
+  });
+  const asHealth = getSeoMetricHealth("as", is7Days ? (currentWeek?.as ?? latest.as) : latest.as, prevWeek?.as, { is7Days });
+  const daHealth = getSeoMetricHealth("da", is7Days ? (currentWeek?.da ?? latest.da) : latest.da, prevWeek?.da, { is7Days });
+  const keywordsHealth = getSeoMetricHealth("keywords", is7Days ? (currentWeek?.keywords ?? latest.keywords) : latest.keywords, prevWeek?.keywords, { is7Days });
+  const leadsHealth = getSeoMetricHealth("webLeads", is7Days ? (currentWeek?.seoLeads ?? d.seo.webLeads) : d.seo.webLeads, prevWeek?.seoLeads, { is7Days });
+  const downloadsHealth = getSeoMetricHealth("downloads", is7Days ? (currentWeek?.downloads ?? d.seo.downloads) : d.seo.downloads, prevWeek?.downloads, { is7Days });
+  const paHealth = getSeoMetricHealth("pa", is7Days ? (currentWeek?.pa ?? latest.pa) : latest.pa, prevWeek?.pa, { is7Days });
+  const backlinksHealth = getSeoMetricHealth("backlinks", is7Days ? (currentWeek?.backlinks ?? latest.backlinks) : latest.backlinks, prevWeek?.backlinks, { is7Days });
+  const aiSearchHealth = getSeoMetricHealth("aiSearch", is7Days ? (currentWeek?.aiSearch ?? latest.aiSearch) : latest.aiSearch, prevWeek?.aiSearch, { is7Days });
 
   return (
     <>
@@ -217,9 +300,15 @@ export function WebsitesView({ d, setView }) {
               {viewsHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${viewsHealth.textClass}`}>{fmtInt(d.seo.views)}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${viewsHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.views ?? d.seo.views) : d.seo.views)}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">{d.periodWeeks.length} {d.periodWeeks.length === 1 ? "wk" : "wks"} in period</span>
+            <span className="truncate">
+              {is7Days
+                ? (prevWeek?.views != null ? `Last wk: ${fmtInt(prevWeek.views)}` : "Last wk: —")
+                : `${d.periodWeeks.length} ${d.periodWeeks.length === 1 ? "wk" : "wks"} in period`}
+            </span>
             {viewsHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${viewsHealth.status === "good" ? "text-emerald-600" : viewsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {viewsHealth.diffText}
@@ -236,9 +325,15 @@ export function WebsitesView({ d, setView }) {
               {usersHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${usersHealth.textClass}`}>{fmtInt(d.seo.users)}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${usersHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.users ?? d.seo.users) : d.seo.users)}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Unique visitors</span>
+            <span className="truncate">
+              {is7Days
+                ? (prevWeek?.users != null ? `Last wk: ${fmtInt(prevWeek.users)}` : "Last wk: —")
+                : "Unique visitors"}
+            </span>
             {usersHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${usersHealth.status === "good" ? "text-emerald-600" : usersHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {usersHealth.diffText}
@@ -261,9 +356,15 @@ export function WebsitesView({ d, setView }) {
               {bounceHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${bounceHealth.textClass}`}>{bounceDisplay}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${bounceHealth.textClass}`}>
+            {is7Days ? (currentWeek?.bounce != null ? `${currentWeek.bounce.toFixed(1)}%` : bounceDisplay) : bounceDisplay}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Period average</span>
+            <span className="truncate">
+              {is7Days
+                ? (prevWeek?.bounce != null ? `Last wk: ${prevWeek.bounce.toFixed(1)}%` : "Last wk: —")
+                : "Period average"}
+            </span>
             {bounceHealth.diffText ? (
               <span className={`text-[10px] font-bold shrink-0 ${bounceHealth.diff < 0 ? "text-emerald-600" : bounceHealth.diff > 0 ? "text-rose-600" : "text-slate-500"}`}>
                 {bounceHealth.diffText}
@@ -282,9 +383,13 @@ export function WebsitesView({ d, setView }) {
               {asHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${asHealth.textClass}`}>{latest.as ?? "—"}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${asHealth.textClass}`}>
+            {(is7Days ? currentWeek?.as : null) ?? latest.as ?? "—"}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Authority Score</span>
+            <span className="truncate">
+              {is7Days && prevWeek?.as != null ? `Last wk: ${prevWeek.as}` : "Authority Score"}
+            </span>
             {asHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${asHealth.status === "good" ? "text-emerald-600" : asHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {asHealth.diffText}
@@ -301,9 +406,13 @@ export function WebsitesView({ d, setView }) {
               {daHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${daHealth.textClass}`}>{latest.da ?? "—"}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${daHealth.textClass}`}>
+            {(is7Days ? currentWeek?.da : null) ?? latest.da ?? "—"}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">DAPA Checker</span>
+            <span className="truncate">
+              {is7Days && prevWeek?.da != null ? `Last wk: ${prevWeek.da}` : "DAPA Checker"}
+            </span>
             {daHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${daHealth.status === "good" ? "text-emerald-600" : daHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {daHealth.diffText}
@@ -320,9 +429,13 @@ export function WebsitesView({ d, setView }) {
               {keywordsHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${keywordsHealth.textClass}`}>{latest.keywords ?? "—"}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${keywordsHealth.textClass}`}>
+            {(is7Days ? currentWeek?.keywords : null) ?? latest.keywords ?? "—"}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Ranked queries</span>
+            <span className="truncate">
+              {is7Days && prevWeek?.keywords != null ? `Last wk: ${prevWeek.keywords}` : "Ranked queries"}
+            </span>
             {keywordsHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${keywordsHealth.status === "good" ? "text-emerald-600" : keywordsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {keywordsHealth.diffText}
@@ -339,9 +452,13 @@ export function WebsitesView({ d, setView }) {
               {leadsHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${leadsHealth.textClass}`}>{fmtInt(d.seo.webLeads)}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${leadsHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.seoLeads ?? d.seo.webLeads) : d.seo.webLeads)}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">{d.seo.efficiency.toFixed(2)}% conv</span>
+            <span className="truncate">
+              {is7Days && prevWeek ? `Last wk: ${fmtInt(prevWeek.seoLeads || 0)}` : `${d.seo.efficiency.toFixed(2)}% conv`}
+            </span>
             {leadsHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${leadsHealth.status === "good" ? "text-emerald-600" : leadsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {leadsHealth.diffText}
@@ -358,9 +475,13 @@ export function WebsitesView({ d, setView }) {
               {downloadsHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${downloadsHealth.textClass}`}>{fmtInt(d.seo.downloads)}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${downloadsHealth.textClass}`}>
+            {fmtInt(is7Days ? (currentWeek?.downloads ?? d.seo.downloads) : d.seo.downloads)}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Resource fills</span>
+            <span className="truncate">
+              {is7Days && prevWeek ? `Last wk: ${fmtInt(prevWeek.downloads || 0)}` : "Resource fills"}
+            </span>
             {downloadsHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${downloadsHealth.status === "good" ? "text-emerald-600" : downloadsHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {downloadsHealth.diffText}
@@ -377,9 +498,13 @@ export function WebsitesView({ d, setView }) {
               {paHealth.shortBadge}
             </span>
           </div>
-          <div className={`text-2xl font-black font-display mt-1.5 ${paHealth.textClass}`}>{latest.pa ?? "—"}</div>
+          <div className={`text-2xl font-black font-display mt-1.5 ${paHealth.textClass}`}>
+            {(is7Days ? currentWeek?.pa : null) ?? latest.pa ?? "—"}
+          </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate">Homepage PA</span>
+            <span className="truncate">
+              {is7Days && prevWeek?.pa != null ? `Last wk: ${prevWeek.pa}` : "Homepage PA"}
+            </span>
             {paHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${paHealth.status === "good" ? "text-emerald-600" : paHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {paHealth.diffText}
@@ -397,10 +522,12 @@ export function WebsitesView({ d, setView }) {
             </span>
           </div>
           <div className={`text-2xl font-black font-display mt-1.5 ${backlinksHealth.textClass}`} title={latest.raw_backlinks || ""}>
-            {latest.backlinks != null ? fmtInt(latest.backlinks) : "—"}
+            {(is7Days && currentWeek?.backlinks != null ? fmtInt(currentWeek.backlinks) : null) ?? (latest.backlinks != null ? fmtInt(latest.backlinks) : "—")}
           </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate" title={latest.raw_backlinks || "Total indexed links"}>{latest.raw_backlinks || "Total indexed links"}</span>
+            <span className="truncate" title={latest.raw_backlinks || "Total indexed links"}>
+              {is7Days && prevWeek?.backlinks != null ? `Last wk: ${fmtInt(prevWeek.backlinks)}` : (latest.raw_backlinks || "Total indexed links")}
+            </span>
             {backlinksHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${backlinksHealth.status === "good" ? "text-emerald-600" : backlinksHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {backlinksHealth.diffText}
@@ -418,10 +545,12 @@ export function WebsitesView({ d, setView }) {
             </span>
           </div>
           <div className={`text-2xl font-black font-display mt-1.5 ${aiSearchHealth.textClass}`} title={latest.raw_aiSearch || ""}>
-            {latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—"}
+            {(is7Days && currentWeek?.aiSearch != null ? fmtInt(currentWeek.aiSearch) : null) ?? (latest.aiSearch != null ? fmtInt(latest.aiSearch) : "—")}
           </div>
           <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1 text-[11px] text-slate-400">
-            <span className="truncate" title={latest.raw_aiSearch || "AI query referrals"}>{latest.raw_aiSearch || "AI query referrals"}</span>
+            <span className="truncate" title={latest.raw_aiSearch || "AI query referrals"}>
+              {is7Days && prevWeek?.aiSearch != null ? `Last wk: ${fmtInt(prevWeek.aiSearch)}` : (latest.raw_aiSearch || "AI query referrals")}
+            </span>
             {aiSearchHealth.diffText && (
               <span className={`text-[10px] font-bold shrink-0 ${aiSearchHealth.status === "good" ? "text-emerald-600" : aiSearchHealth.status === "bad" ? "text-rose-600" : "text-slate-500"}`}>
                 {aiSearchHealth.diffText}

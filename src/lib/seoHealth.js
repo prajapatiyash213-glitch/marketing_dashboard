@@ -32,11 +32,14 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
     case "views": {
       // Traffic views:
       // "is it growing every day so it green if drop then red"
-      // Growing -> Green ("good", Growing)
-      // Dropping -> Red ("bad", Dropping)
-      // Stable -> Black ("neutral", Stable)
+      // "isme me all time per click karu to GA4 Views and Total Users green hona chahiye"
       const periodLabel = options.periodLabel || "WoW";
-      if (cur == null || cur === 0) {
+      if (options.isAllTime) {
+        status = "good";
+        shortBadge = "Healthy";
+        badgeText = "All Time · Active";
+        diffText = "";
+      } else if (cur == null || cur === 0) {
         status = "bad";
         shortBadge = "Zero";
         badgeText = "No Traffic";
@@ -58,9 +61,9 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
         badgeText = `${shortBadge} · ${diffText}`;
       } else {
         // Active traffic baseline without prior comparison period
-        status = "neutral";
-        shortBadge = "Baseline";
-        badgeText = "Active Baseline";
+        status = options.isAllTime ? "good" : "neutral";
+        shortBadge = options.isAllTime ? "Healthy" : "Baseline";
+        badgeText = options.isAllTime ? "All Time · Active" : "Active Baseline";
       }
       break;
     }
@@ -68,11 +71,14 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
     case "users": {
       // Unique users:
       // "is it growing every day so it green if drop then red"
-      // Growing -> Green ("good", Growing)
-      // Dropping -> Red ("bad", Dropping)
-      // Stable -> Black ("neutral", Stable)
+      // "isme me all time per click karu to GA4 Views and Total Users green hona chahiye"
       const periodLabel = options.periodLabel || "WoW";
-      if (cur == null || cur === 0) {
+      if (options.isAllTime) {
+        status = "good";
+        shortBadge = "Healthy";
+        badgeText = "All Time · Active";
+        diffText = "";
+      } else if (cur == null || cur === 0) {
         status = "bad";
         shortBadge = "Zero";
         badgeText = "No Users";
@@ -94,16 +100,19 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
         badgeText = `${shortBadge} · ${diffText}`;
       } else {
         // Active visitor baseline without prior comparison period
-        status = "neutral";
-        shortBadge = "Baseline";
-        badgeText = "Active Visitors";
+        status = options.isAllTime ? "good" : "neutral";
+        shortBadge = options.isAllTime ? "Healthy" : "Baseline";
+        badgeText = options.isAllTime ? "All Time · Active" : "Active Visitors";
       }
       break;
     }
 
     case "bounce": {
       // Bounce rate:
-      // "below 30% bounce rate consider as in green color otherwise red"
+      // When comparing WoW (e.g. 7 days preset):
+      // - Lower bounce rate than last week -> Improved -> GREEN
+      // - Higher bounce rate than last week -> Deteriorated -> RED
+      // - Same bounce rate as last week -> Stable -> GREY
       if (hasPrev && diff != null) {
         const roundedDiff = Math.round(diff * 100) / 100;
         diffText = `${roundedDiff > 0 ? "+" : ""}${roundedDiff.toFixed(1)}% WoW`;
@@ -112,6 +121,30 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
         status = "neutral";
         shortBadge = "—";
         badgeText = "—";
+      } else if (options.compareWoW || options.is7Days) {
+        if (hasPrev && diff != null) {
+          if (diff < 0) {
+            status = "good";
+            shortBadge = "Improved";
+            badgeText = `Improved · ${diffText}`;
+          } else if (diff > 0) {
+            status = "bad";
+            shortBadge = "Higher";
+            badgeText = `Higher · ${diffText}`;
+          } else {
+            status = "neutral";
+            shortBadge = "Stable";
+            badgeText = `Stable · ${diffText}`;
+          }
+        } else if (cur < 30.0) {
+          status = "good";
+          shortBadge = "< 30% Good";
+          badgeText = "< 30% · Good";
+        } else {
+          status = "bad";
+          shortBadge = "≥ 30% High";
+          badgeText = "≥ 30% · High";
+        }
       } else if (cur < 30.0) {
         status = "good";
         shortBadge = "< 30% Good";
@@ -359,6 +392,8 @@ export function getSeoMetricHealth(metric, currentVal, prevVal, options = {}) {
       ? "text-emerald-600"
       : status === "bad"
       ? "text-rose-600"
+      : options.is7Days
+      ? "text-slate-600"
       : "text-slate-900";
 
   const borderClass =

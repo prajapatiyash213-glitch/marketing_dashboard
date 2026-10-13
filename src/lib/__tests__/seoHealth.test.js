@@ -143,4 +143,46 @@ describe("Dynamic SEO Metric Health Evaluator", () => {
     expect(usersFlat.borderClass).toBe("border-l-slate-400");
     expect(usersFlat.shortBadge).toBe("Stable");
   });
+
+  it("evaluates All Time selection: GA4 Views and Total Users must always be GREEN", () => {
+    // All time views: e.g. 80,561
+    const allViews = getSeoMetricHealth("views", 80561, null, { isAllTime: true });
+    expect(allViews.status).toBe("good");
+    expect(allViews.textClass).toBe("text-emerald-600");
+    expect(allViews.borderClass).toBe("border-l-emerald-500");
+    expect(allViews.shortBadge).toBe("Healthy");
+
+    // All time users: e.g. 34,913
+    const allUsers = getSeoMetricHealth("users", 34913, null, { isAllTime: true });
+    expect(allUsers.status).toBe("good");
+    expect(allUsers.textClass).toBe("text-emerald-600");
+    expect(allUsers.borderClass).toBe("border-l-emerald-500");
+    expect(allUsers.shortBadge).toBe("Healthy");
+  });
+
+  it("evaluates 7-day week-over-week Bounce Rate comparison (Green if improved, Red if worse, Grey if equal)", () => {
+    // Improved bounce rate (e.g. 52.7% down to 50.0%): GREEN
+    const bounceImproved = getSeoMetricHealth("bounce", 50.0, 52.7, { is7Days: true, compareWoW: true });
+    expect(bounceImproved.status).toBe("good");
+    expect(bounceImproved.textClass).toBe("text-emerald-600");
+    expect(bounceImproved.borderClass).toBe("border-l-emerald-500");
+    expect(bounceImproved.shortBadge).toBe("Improved");
+    expect(bounceImproved.diffText).toBe("-2.7% WoW");
+
+    // Deteriorated bounce rate (e.g. 52.71% up to 54.73%): RED
+    const bounceWorse = getSeoMetricHealth("bounce", 54.73, 52.71, { is7Days: true, compareWoW: true });
+    expect(bounceWorse.status).toBe("bad");
+    expect(bounceWorse.textClass).toBe("text-rose-600");
+    expect(bounceWorse.borderClass).toBe("border-l-rose-500");
+    expect(bounceWorse.shortBadge).toBe("Higher");
+    expect(bounceWorse.diffText).toBe("+2.0% WoW");
+
+    // Equal bounce rate (52.0% to 52.0%): GREY / NEUTRAL
+    const bounceEqual = getSeoMetricHealth("bounce", 52.0, 52.0, { is7Days: true, compareWoW: true });
+    expect(bounceEqual.status).toBe("neutral");
+    expect(bounceEqual.textClass).toBe("text-slate-600");
+    expect(bounceEqual.borderClass).toBe("border-l-slate-400");
+    expect(bounceEqual.shortBadge).toBe("Stable");
+    expect(bounceEqual.diffText).toBe("0.0% WoW");
+  });
 });
