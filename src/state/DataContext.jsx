@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-10-05-v27-dropoffs-update";
+const MASTER_DATASET_VERSION = "2026-10-13-v28-tecnoprism-9oct-update";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -206,11 +206,23 @@ export function DataProvider({ children }) {
       setWeeks((prev) => {
         if (!hasIncomingSeo && prev.length > 0) return prev;
         const incomingSites = new Set(results.flatMap((r) => (r.seoWeeks || []).map((w) => w.site)).filter(Boolean));
-        let kept = (isSample ? [] : prev).filter((w) => !names.has(w.file) && !incomingSites.has(w.site));
+        let kept = (isSample ? [] : prev).filter((w) => {
+          if (names.has(w.file)) return false;
+          if (names.has("Key Metrics of Marketing(Tecnoprism) (2).csv") && w.file === "Key Metrics of Marketing(Tecnoprism).csv") return false;
+          if (incomingSites.has(w.site)) return false;
+          return true;
+        });
         for (const r of results) kept = mergeSeoWeeks(kept, r.seoWeeks);
         return sanitizeSeoWeeks(kept);
       });
-      setFiles((prev) => (isSample ? [] : prev).filter((f) => !names.has(f.name)).concat(results.map((r) => r.file)));
+      setFiles((prev) => {
+        const kept = (isSample ? [] : prev).filter((f) => {
+          if (names.has(f.name)) return false;
+          if (names.has("Key Metrics of Marketing(Tecnoprism) (2).csv") && f.name === "Key Metrics of Marketing(Tecnoprism).csv") return false;
+          return true;
+        });
+        return kept.concat(results.map((r) => r.file));
+      });
       setChannels((prev) => {
         const next = { email: [], social: [], landing: [], cost: [], dropoffs: [] };
         for (const key of Object.keys(next)) {
@@ -302,11 +314,24 @@ export function DataProvider({ children }) {
           return;
         }
 
+        if (!hasLatestVersion) {
+          try {
+            await clearDataset();
+          } catch {
+            /* ignore */
+          }
+          setLeads([]);
+          setWeeks([]);
+          setChannels({ email: [], social: [], landing: [], cost: [], dropoffs: [] });
+          setFiles([]);
+          setRawSheets({});
+        }
+
         // For existing users with older cache, or new users:
-        // Automatically fetch and load all 8 final master files
+        // Automatically fetch and load all final master files with cache busting
         const loadedBlobs = [];
         for (const url of MASTER_FILES) {
-          const res = await fetch(encodeURI(url)).catch(() => null);
+          const res = await fetch(encodeURI(url) + `?t=${Date.now()}`).catch(() => null);
           if (res && res.ok) {
             const blob = await res.blob();
             const fileName = decodeURIComponent(url.split("/").pop());
@@ -341,7 +366,7 @@ export function DataProvider({ children }) {
     try {
       const loadedBlobs = [];
       for (const url of MASTER_FILES) {
-        const res = await fetch(encodeURI(url)).catch(() => null);
+        const res = await fetch(encodeURI(url) + `?t=${Date.now()}`).catch(() => null);
         if (res && res.ok) {
           const blob = await res.blob();
           const fileName = decodeURIComponent(url.split("/").pop());
