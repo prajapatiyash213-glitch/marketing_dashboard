@@ -18,12 +18,17 @@ export function WebsitesView({ d, setView }) {
   const { syncLiveGoogleSheet, syncingGoogleSheet, googleSheetMeta } = useData();
   const [sheetSyncFeedback, setSheetSyncFeedback] = useState(null);
 
+  const acoeWeeks = useMemo(() => (d.weeks || []).filter((w) => w.site === "automationcoe.com"), [d.weeks]);
+  const latestAcoeWeek = acoeWeeks.length ? acoeWeeks[acoeWeeks.length - 1] : null;
+  const acoeWeeksCount = acoeWeeks.length || googleSheetMeta?.weeksCount || 16;
+  const acoeLatestLabel = latestAcoeWeek?.label || googleSheetMeta?.latestWeek || "16-Oct";
+
   const handleSyncSheet = async () => {
     try {
       const res = await syncLiveGoogleSheet();
       setSheetSyncFeedback({
         type: "success",
-        message: `Synced ${res?.weeksCount || 14} weeks from Google Sheets! Latest: ${res?.latestWeek || "2-Oct"}`,
+        message: `Synced ${res?.weeksCount || acoeWeeksCount} weeks from Google Sheets! Latest: ${res?.latestWeek || acoeLatestLabel}`,
       });
       setTimeout(() => setSheetSyncFeedback(null), 4000);
     } catch (e) {
@@ -208,7 +213,7 @@ export function WebsitesView({ d, setView }) {
               </span>
             </div>
             <p className="text-xs text-emerald-100/90 mt-0.5">
-              Source: ACOE Website Status (Google Sheets) · Live tracking: <strong className="text-white font-extrabold">{googleSheetMeta?.weeksCount || 14} weekly periods</strong> · Latest week: <strong className="text-white font-extrabold">{googleSheetMeta?.latestWeek || "2-Oct"}</strong> · {googleSheetMeta?.lastSynced ? `Synced at ${new Date(googleSheetMeta.lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Active cloud sync"}
+              Source: ACOE Website Status (Google Sheets) · Live tracking: <strong className="text-white font-extrabold">{acoeWeeksCount} weekly periods</strong> · Latest week: <strong className="text-white font-extrabold">{acoeLatestLabel}</strong> · {googleSheetMeta?.lastSynced ? `Synced at ${new Date(googleSheetMeta.lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Active cloud sync"}
             </p>
           </div>
         </div>

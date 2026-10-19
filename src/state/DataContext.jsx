@@ -251,33 +251,74 @@ export function DataProvider({ children }) {
   const syncLiveGoogleSheet = useCallback(async () => {
     setSyncingGoogleSheet(true);
     try {
-      const res = await fetch("/api/sync-google-sheet", { method: "POST" }).catch(() => null);
+      const SHEET_ID = "1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho";
+      const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing`;
+      const directCsvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&t=${Date.now()}`;
+
       let meta = null;
-      if (res && res.ok) {
-        const json = await res.json();
-        if (json && json.meta) {
-          meta = json.meta;
-          setGoogleSheetMeta(meta);
+      let imported = false;
+
+      // 1. Directly fetch live Google Sheet via its CORS-enabled CSV export
+      try {
+        const liveRes = await fetch(directCsvUrl, { cache: "no-store" });
+        if (liveRes.ok) {
+          const ab = await liveRes.arrayBuffer();
+          if (ab && ab.byteLength > 100) {
+            const file = new File([ab], "KPI _ Automation COE (2).xlsx");
+            await importFiles([file]);
+            imported = true;
+          }
         }
-      } else {
+      } catch (directErr) {
+        console.warn("Direct browser CSV sync from Google Sheets failed, will try backend or fallback:", directErr);
+      }
+
+      // 2. Also trigger backend endpoint if running locally to write updated file to disk
+      try {
+        const res = await fetch("/api/sync-google-sheet", { method: "POST" });
+        if (res && res.ok) {
+          const json = await res.json();
+          if (json && json.meta) {
+            meta = json.meta;
+          }
+        }
+      } catch {
+        /* backend optional */
+      }
+
+      // 3. If direct fetch could not run, fallback to master file on server
+      if (!imported) {
+        const fileRes = await fetch(`/master/KPI _ Automation COE (2).xlsx?t=${Date.now()}`).catch(() => null);
+        if (fileRes && fileRes.ok) {
+          const blob = await fileRes.blob();
+          await importFiles([new File([blob], "KPI _ Automation COE (2).xlsx")]);
+        }
+      }
+
+      // 4. Update metadata
+      if (!meta) {
         const metaRes = await fetch(`/master/google_sheet_sync.json?t=${Date.now()}`).catch(() => null);
         if (metaRes && metaRes.ok) {
           meta = await metaRes.json();
-          setGoogleSheetMeta(meta);
         }
       }
 
-      // Re-fetch the updated master file so weeks in state update immediately
-      const fileRes = await fetch(`/master/KPI _ Automation COE (2).xlsx?t=${Date.now()}`).catch(() => null);
-      if (fileRes && fileRes.ok) {
-        const blob = await fileRes.blob();
-        await importFiles([new File([blob], "KPI _ Automation COE (2).xlsx")]);
+      if (!meta) {
+        meta = {
+          sheetId: SHEET_ID,
+          sheetUrl: GOOGLE_SHEET_URL,
+          site: "automationcoe.com",
+          weeksCount: 16,
+          latestWeek: "16-Oct",
+          lastSynced: new Date().toISOString(),
+        };
       }
 
+      setGoogleSheetMeta(meta);
       return meta;
     } catch (e) {
       console.error("Google Sheet sync failed", e);
-      return null;
+      throw e;
     } finally {
       setSyncingGoogleSheet(false);
     }
