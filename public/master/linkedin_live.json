@@ -1,14 +1,41 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 24964,
+  "followers": 25021,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5150,
-  "lastSynced": "2026-10-13T08:53:25.940Z",
+  "growthSinceExport": 5207,
+  "lastSynced": "2026-10-19T16:14:48.242Z",
   "employees": 232,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
   "recentPosts": [
+    {
+      "title": "The best supply chains don't predict better.\nThey respond faster.\nMost organizations focus on improv...",
+      "text": "The best supply chains don't predict better.\nThey respond faster.\nMost organizations focus on improving forecast accuracy.\nThe leaders focus on reducing the time between a signal and a decision.\nThat's where inventory, cost, and service-level improvements actually happen.\nAgree or disagree?\n\n#SupplyChain #DemandPlanning #SupplyChainManagement #Tecnoprism #Forecasting",
+      "date": "2026-10-19T08:56:34.793Z",
+      "url": "https://www.linkedin.com/posts/tecnoprism_supplychain-demandplanning-supplychainmanagement-activity-7517871306629865472-NLt1",
+      "reactions": 15,
+      "likes": 15,
+      "author": "Tecnoprism"
+    },
+    {
+      "title": "Procurement leaders are often forced to choose between speed and control.\nMove faster, and governanc...",
+      "text": "Procurement leaders are often forced to choose between speed and control.\nMove faster, and governance becomes harder.\nAdd more controls, and procurement slows down.\nBut what if you didn't have to choose?\n\nToday's AI, automation, and enterprise platforms can streamline sourcing, bid evaluation, and PO creation while keeping decision-making exactly where it belongs.\n\nThe goal isn't to automate decisions.\nIt's to help decision-makers move faster with accuracy and compliance.\n\nWe've shared an example of how this can work in practice in the comments below.\n#Procurement #ProcureToPay #Automation #AI #Tecnoprism",
+      "date": "2026-10-16T06:50:33.987Z",
+      "url": "https://www.linkedin.com/posts/tecnoprism_procurement-procuretopay-automation-activity-7516752430714462209-T5wg",
+      "reactions": 16,
+      "likes": 16,
+      "author": "Tecnoprism"
+    },
+    {
+      "title": "Every enterprise wants AI in their operations.\nBut, only a few know where to apply it.\nThe real ques...",
+      "text": "Every enterprise wants AI in their operations.\nBut, only a few know where to apply it.\nThe real question isn't:\n\"What AI tool should we use?\"\nIt's:\n\"Which business problem should we solve first?\"\n\nOver the years, we've helped enterprises automate, agentify, optimize, and transform processes across BFSI, healthcare, manufacturing, insurance, supply chain, retail, energy, logistics, and more.\n\nFrom invoice & payroll processing, to claims processing & patient access, to quality inspection, demand forecasting, service desk automation, and financial crime monitoring, these aren't theoretical possibilities.\nThey're real-world use cases we've designed, built, and delivered.\n\nIf you could transform one process in your organization tomorrow, what would it be?\n\nExplore some of the enterprise use cases we've helped bring to life in the comments below.\n\n#ArtificialIntelligence #AgenticAI #Automation #EnterpriseAI #Tecnoprism #UseCase",
+      "date": "2026-10-13T12:14:03.066Z",
+      "url": "https://www.linkedin.com/posts/tecnoprism_artificialintelligence-agenticai-automation-activity-7515746674695348225-SnZj",
+      "reactions": 33,
+      "likes": 33,
+      "author": "Tecnoprism"
+    },
     {
       "title": "A question every CIO, COO, CTO and Transformation Leader should ask:\nIf we already have the technolo...",
       "text": "A question every CIO, COO, CTO and Transformation Leader should ask:\nIf we already have the technology, strategy, and vision, what's still missing?\n\nAI. Automation. Data. Platforms.\nMost enterprises already have them.\nYet transformation initiatives continue to stall.\nPilots remain pilots.\nAnd expected business outcomes never fully materialize.\nWhy?\n\nBecause accountability for the outcome is often fragmented across multiple stakeholders.\nThat's the gap.\n\nAnd that's why the Forward Deployed Engineer (#FDE) model is gaining attention. It's changing how organizations deliver AI and automation by bringing ownership closer to the problem and accountability closer to the outcome.\n\nIs lack of technology really the challenge, or is it lack of ownership?\nWhat about your enterprise?\nCurious to hear your perspective. 👇\n\n#Tecnoprism #ForwardDeployedEngineer #AI #Transformation",
@@ -71,76 +98,49 @@
       "reactions": 95,
       "likes": 95,
       "author": "Tecnoprism"
-    },
-    {
-      "title": "We are thrilled to wrap up an incredible experience at Automation Anywhere IMAGINE ‘26 as a proud Si...",
-      "text": "We are thrilled to wrap up an incredible experience at Automation Anywhere IMAGINE ‘26 as a proud Silver Partner! The energy, insights, and forward-thinking discussions around AI and automation were innovative & inspiring.\n\nBut that’s not all. We didn't just attend the future, we introduced a piece of it.\n\nAs industries rapidly evolve, businesses need more than just tools, they need a strategic powerhouse to scale efficiency, integrate AI seamlessly, and drive true digital transformation. Automation COE is built to be exactly that catalyst.\n\nA massive thank you to the Automation Anywhere team, our clients, and every innovator who stopped by our booth to experience our live demos and connect with our team. This is just the beginning of a highly automated, hyper-efficient future.",
-      "date": "2026-07-02T13:24:33.173Z",
-      "url": "https://www.linkedin.com/posts/tecnoprism_we-are-thrilled-to-wrap-up-an-incredible-activity-7478438467006332929-0mWp",
-      "reactions": 195,
-      "likes": 195,
-      "author": "Tecnoprism"
-    },
-    {
-      "title": "Introducing Automation COE",
-      "text": "Automation has evolved fast.\nEnterprises today are running thousands of automations…\nprocessing millions of workflows…\nsaving billions of hours across industries.\n\nBut when we looked deeper at real enterprise environments, we saw something no one was fixing.\n👉 Discovery was still manual\n👉 Documentation was slowing everything down\n👉 Failures were being caught after the damage\n\nSo, we at Tecnoprism, didn’t try to improve it.\nWe rebuilt the model.\n\nIntroducing Automation CoE\nPowered by two intelligent agents:\n1. ARIA — understands your processes from videos and builds everything from PDDs to test cases\n2. AURA — ensures your automation ecosystem runs without surprises\n\nThis is not another automation layer.\nThis is the shift to intelligent, self-aware automation.\n\nWatch what we’ve built 👇 and leave your thoughts in comment.\n\nWant to know more? Visit our website www.automationcoe.com\n\n#AutomationCoE #AI #EnterpriseAI #Automation #Innovation #NewLaunch #LaunchVideo",
-      "date": "2026-07-01T03:00:05.428Z",
-      "url": "https://www.linkedin.com/posts/tecnoprism_introducing-automation-coe-activity-7477918928061501441-gDnt",
-      "reactions": 223,
-      "likes": 223,
-      "author": "Tecnoprism"
-    },
-    {
-      "title": "The future of AI & Automation is built by people who dare to lead it.\nMeet the leadership team drivi...",
-      "text": "The future of AI & Automation is built by people who dare to lead it.\nMeet the leadership team driving innovation at Tecnoprism, as we gear up for IMAGINE ‘26 by Automation Anywhere.\n\n📍 Hilton Bengaluru | July 2\n📌 Booth No. 2\n\nIf you’re attending, let’s connect and explore how we can unlock real business value through intelligent automation.\n\n#AI #Automation #Imagine2026 #Tecnoprism #Bengaluru\nHilton and Hilton Garden Inn Bengaluru Embassy Manyata Business Park ",
-      "date": "2026-06-30T12:55:17.363Z",
-      "url": "https://www.linkedin.com/posts/tecnoprism_ai-automation-imagine2026-activity-7477706326840623104-_XWz",
-      "reactions": 174,
-      "likes": 174,
-      "author": "Tecnoprism"
     }
   ],
   "demographics": {
     "seniority": [
       {
         "label": "Senior",
-        "count": 12170,
+        "count": 12197,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Entry",
-        "count": 7534,
+        "count": 7552,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Director",
-        "count": 2646,
+        "count": 2652,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "VP",
-        "count": 1071,
+        "count": 1073,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "CXO",
-        "count": 655,
+        "count": 657,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Manager",
-        "count": 529,
+        "count": 530,
         "category": "seniority",
         "isLive": true
       },
       {
         "label": "Owner",
-        "count": 359,
+        "count": 360,
         "category": "seniority",
         "isLive": true
       }
@@ -148,43 +148,43 @@
     "jobFunction": [
       {
         "label": "Engineering",
-        "count": 9344,
+        "count": 9365,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6539,
+        "count": 6554,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3024,
+        "count": 3031,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2117,
+        "count": 2121,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1701,
+        "count": 1705,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1348,
+        "count": 1351,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Sales",
-        "count": 892,
+        "count": 894,
         "category": "function",
         "isLive": true
       }
@@ -192,43 +192,43 @@
     "function": [
       {
         "label": "Engineering",
-        "count": 9344,
+        "count": 9365,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Information Technology",
-        "count": 6539,
+        "count": 6554,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Operations",
-        "count": 3024,
+        "count": 3031,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Program & Project Management",
-        "count": 2117,
+        "count": 2121,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Business Development",
-        "count": 1701,
+        "count": 1705,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Consulting",
-        "count": 1348,
+        "count": 1351,
         "category": "function",
         "isLive": true
       },
       {
         "label": "Sales",
-        "count": 892,
+        "count": 894,
         "category": "function",
         "isLive": true
       }
@@ -236,31 +236,31 @@
     "location": [
       {
         "label": "United States",
-        "count": 10609,
+        "count": 10633,
         "category": "location",
         "isLive": true
       },
       {
         "label": "India",
-        "count": 9538,
+        "count": 9559,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Kingdom",
-        "count": 2091,
+        "count": 2096,
         "category": "location",
         "isLive": true
       },
       {
         "label": "Canada",
-        "count": 1524,
+        "count": 1528,
         "category": "location",
         "isLive": true
       },
       {
         "label": "United Arab Emirates",
-        "count": 1202,
+        "count": 1205,
         "category": "location",
         "isLive": true
       }
@@ -268,31 +268,31 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13532,
+        "count": 13562,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Software Development",
-        "count": 5695,
+        "count": 5708,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Financial Services",
-        "count": 2394,
+        "count": 2399,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Hospitals and Health Care",
-        "count": 1776,
+        "count": 1781,
         "category": "industry",
         "isLive": true
       },
       {
         "label": "Banking",
-        "count": 1567,
+        "count": 1571,
         "category": "industry",
         "isLive": true
       }
@@ -300,36 +300,36 @@
     "companySize": [
       {
         "label": "10,001+ employees",
-        "count": 9613,
+        "count": 9635,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6514,
+        "count": 6529,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3818,
+        "count": 3826,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "51-200 employees",
-        "count": 3099,
+        "count": 3106,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "2-10 employees",
-        "count": 1920,
+        "count": 1924,
         "category": "companySize",
         "isLive": true
       }
     ],
     "isLive": true,
-    "liveFollowers": 24964
+    "liveFollowers": 25021
   }
 }
