@@ -1,10 +1,10 @@
 {
   "profileUrl": "https://www.linkedin.com/company/tecnoprism/",
   "companyName": "Tecnoprism Pvt Ltd",
-  "followers": 25074,
+  "followers": 25076,
   "previousExportFollowers": 19814,
-  "growthSinceExport": 5260,
-  "lastSynced": "2026-10-26T10:10:33.095Z",
+  "growthSinceExport": 5262,
+  "lastSynced": "2026-10-26T15:54:10.689Z",
   "employees": 232,
   "hq": "Tomball, Texas, US",
   "slogan": "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
@@ -14,8 +14,8 @@
       "text": "Most manufacturers don't have a quality problem.\nThey have a detection problem.\nBy the time a defect is identified, material has already been consumed, production has already moved forward, and the cost has already been incurred.\n\nThat's why improving quality isn't always about adding more inspections.\nIt's about identifying deviations before they become scrap.\n\nThe question is:\nWhat's hurting manufacturing performance more today?\nPoor quality?\nOr discovering quality issues too late?\n\n#Manufacturing #QualityControl #SmartManufacturing #IndustrialAI #Tecnoprism",
       "date": "2026-10-26T07:37:19.802Z",
       "url": "https://www.linkedin.com/posts/tecnoprism_manufacturing-qualitycontrol-smartmanufacturing-activity-7520388077807149056-d3z8",
-      "reactions": 8,
-      "likes": 8,
+      "reactions": 13,
+      "likes": 13,
       "author": "Tecnoprism"
     },
     {
@@ -104,7 +104,7 @@
     "seniority": [
       {
         "label": "Senior",
-        "count": 12223,
+        "count": 12224,
         "category": "seniority",
         "isLive": true
       },
@@ -116,7 +116,7 @@
       },
       {
         "label": "Director",
-        "count": 2657,
+        "count": 2658,
         "category": "seniority",
         "isLive": true
       },
@@ -134,7 +134,7 @@
       },
       {
         "label": "Manager",
-        "count": 531,
+        "count": 532,
         "category": "seniority",
         "isLive": true
       },
@@ -172,7 +172,7 @@
       },
       {
         "label": "Business Development",
-        "count": 1708,
+        "count": 1709,
         "category": "function",
         "isLive": true
       },
@@ -216,7 +216,7 @@
       },
       {
         "label": "Business Development",
-        "count": 1708,
+        "count": 1709,
         "category": "function",
         "isLive": true
       },
@@ -236,7 +236,7 @@
     "location": [
       {
         "label": "United States",
-        "count": 10655,
+        "count": 10656,
         "category": "location",
         "isLive": true
       },
@@ -268,7 +268,7 @@
     "industry": [
       {
         "label": "IT Services and IT Consulting",
-        "count": 13591,
+        "count": 13592,
         "category": "industry",
         "isLive": true
       },
@@ -280,7 +280,7 @@
       },
       {
         "label": "Financial Services",
-        "count": 2404,
+        "count": 2405,
         "category": "industry",
         "isLive": true
       },
@@ -306,13 +306,13 @@
       },
       {
         "label": "1,001-5,000 employees",
-        "count": 6542,
+        "count": 6543,
         "category": "companySize",
         "isLive": true
       },
       {
         "label": "501-1,000 employees",
-        "count": 3834,
+        "count": 3835,
         "category": "companySize",
         "isLive": true
       },
@@ -330,6 +330,6 @@
       }
     ],
     "isLive": true,
-    "liveFollowers": 25074
+    "liveFollowers": 25076
   }
 }
