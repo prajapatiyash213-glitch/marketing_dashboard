@@ -20,8 +20,8 @@ export function WebsitesView({ d, setView }) {
 
   const acoeWeeks = useMemo(() => (d.weeks || []).filter((w) => w.site === "automationcoe.com"), [d.weeks]);
   const latestAcoeWeek = acoeWeeks.length ? acoeWeeks[acoeWeeks.length - 1] : null;
-  const acoeWeeksCount = acoeWeeks.length || googleSheetMeta?.weeksCount || 16;
-  const acoeLatestLabel = latestAcoeWeek?.label || googleSheetMeta?.latestWeek || "16-Oct";
+  const acoeWeeksCount = acoeWeeks.length || googleSheetMeta?.weeksCount || 17;
+  const acoeLatestLabel = latestAcoeWeek?.label || googleSheetMeta?.latestWeek || "23-Oct";
 
   const handleSyncSheet = async () => {
     try {

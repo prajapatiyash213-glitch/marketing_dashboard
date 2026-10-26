@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { mergeSeoWeeks, sanitizeSeoWeeks } from "../lib/seoMatrix.js";
-import { MAX_FILE_BYTES, deduplicateLeads } from "../lib/parseWorkbook.js";
+import { MAX_FILE_BYTES, deduplicateLeads, parseWorkbook } from "../lib/parseWorkbook.js";
 import { saveDataset, loadDataset, clearDataset, onDatasetUpdate } from "../lib/storage.js";
 import { buildSampleData } from "../lib/sampleData.js";
 import { EXACT_SEO_DATA } from "./../lib/exactSeoData.js";
@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-10-13-v28-tecnoprism-9oct-update";
+const MASTER_DATASET_VERSION = "2026-10-26-v29-acoe-23oct-update";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -258,19 +258,65 @@ export function DataProvider({ children }) {
       let meta = null;
       let imported = false;
 
+      const proxyCsvUrl = `https://corsproxy.io/?${encodeURIComponent(directCsvUrl)}`;
+
+      const extractMetaFromBuffer = (buffer) => {
+        try {
+          const parsed = parseWorkbook(buffer.slice(0), "KPI _ Automation COE (2).xlsx");
+          const parsedWeeks = parsed?.seoWeeks || [];
+          const latestParsed = parsedWeeks.length ? parsedWeeks[parsedWeeks.length - 1] : null;
+          if (parsedWeeks.length > 0) {
+            return {
+              sheetId: SHEET_ID,
+              sheetUrl: GOOGLE_SHEET_URL,
+              site: "automationcoe.com",
+              weeksCount: parsedWeeks.length,
+              latestWeek: latestParsed?.label || null,
+              latestWeekDate: latestParsed?.date || null,
+              latestViews: latestParsed?.views || null,
+              latestUsers: latestParsed?.users || null,
+              latestBounce: latestParsed?.bounce || null,
+              lastSynced: new Date().toISOString(),
+            };
+          }
+        } catch (e) {
+          console.warn("Could not extract meta from parsed buffer:", e);
+        }
+        return null;
+      };
+
       // 1. Directly fetch live Google Sheet via its CORS-enabled CSV export
       try {
         const liveRes = await fetch(directCsvUrl, { cache: "no-store" });
         if (liveRes.ok) {
           const ab = await liveRes.arrayBuffer();
           if (ab && ab.byteLength > 100) {
+            meta = extractMetaFromBuffer(ab);
             const file = new File([ab], "KPI _ Automation COE (2).xlsx");
             await importFiles([file]);
             imported = true;
           }
         }
       } catch (directErr) {
-        console.warn("Direct browser CSV sync from Google Sheets failed, will try backend or fallback:", directErr);
+        console.warn("Direct browser CSV sync from Google Sheets failed, trying proxy fallback:", directErr);
+      }
+
+      // 1b. If direct fetch failed, try CORS proxy
+      if (!imported) {
+        try {
+          const proxyRes = await fetch(proxyCsvUrl, { cache: "no-store" });
+          if (proxyRes.ok) {
+            const ab = await proxyRes.arrayBuffer();
+            if (ab && ab.byteLength > 100) {
+              meta = extractMetaFromBuffer(ab);
+              const file = new File([ab], "KPI _ Automation COE (2).xlsx");
+              await importFiles([file]);
+              imported = true;
+            }
+          }
+        } catch (proxyErr) {
+          console.warn("Proxy CSV sync from Google Sheets failed:", proxyErr);
+        }
       }
 
       // 2. Also trigger backend endpoint if running locally to write updated file to disk
@@ -286,16 +332,18 @@ export function DataProvider({ children }) {
         /* backend optional */
       }
 
-      // 3. If direct fetch could not run, fallback to master file on server
+      // 3. If direct & proxy fetch could not run, fallback to master file on server
       if (!imported) {
         const fileRes = await fetch(`/master/KPI _ Automation COE (2).xlsx?t=${Date.now()}`).catch(() => null);
         if (fileRes && fileRes.ok) {
           const blob = await fileRes.blob();
-          await importFiles([new File([blob], "KPI _ Automation COE (2).xlsx")]);
+          const ab = await blob.arrayBuffer();
+          if (!meta) meta = extractMetaFromBuffer(ab);
+          await importFiles([new File([ab], "KPI _ Automation COE (2).xlsx")]);
         }
       }
 
-      // 4. Update metadata
+      // 4. Update metadata if not yet computed
       if (!meta) {
         const metaRes = await fetch(`/master/google_sheet_sync.json?t=${Date.now()}`).catch(() => null);
         if (metaRes && metaRes.ok) {
@@ -308,8 +356,8 @@ export function DataProvider({ children }) {
           sheetId: SHEET_ID,
           sheetUrl: GOOGLE_SHEET_URL,
           site: "automationcoe.com",
-          weeksCount: 16,
-          latestWeek: "16-Oct",
+          weeksCount: 17,
+          latestWeek: "23-Oct",
           lastSynced: new Date().toISOString(),
         };
       }
