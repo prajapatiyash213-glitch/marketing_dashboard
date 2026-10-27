@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-10-26-v29-acoe-23oct-update";
+const MASTER_DATASET_VERSION = "2026-10-27-v30-tecnoprism-57weeks-update";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -56,7 +56,7 @@ function sanitizeLead(l) {
 
 const MASTER_FILES = [
   "/master/Imagine 26 - Leads Database (1).xlsx",
-  "/master/Key Metrics of Marketing(Tecnoprism) (2).csv",
+  "/master/Key Metrics of Marketing(Tecnoprism) (3).csv",
   "/master/KPI _ Automation COE (2).xlsx",
   "/master/Bulk Email Marketing statistics - 21 Sep 26.csv",
   "/master/Tools_And_Costs_Cleaned.xlsx",
@@ -208,7 +208,7 @@ export function DataProvider({ children }) {
         const incomingSites = new Set(results.flatMap((r) => (r.seoWeeks || []).map((w) => w.site)).filter(Boolean));
         let kept = (isSample ? [] : prev).filter((w) => {
           if (names.has(w.file)) return false;
-          if (names.has("Key Metrics of Marketing(Tecnoprism) (2).csv") && w.file === "Key Metrics of Marketing(Tecnoprism).csv") return false;
+          if (Array.from(names).some((n) => /Key Metrics of Marketing\(Tecnoprism\)/i.test(n)) && /Key Metrics of Marketing\(Tecnoprism\)/i.test(w.file)) return false;
           if (incomingSites.has(w.site)) return false;
           return true;
         });
@@ -218,7 +218,7 @@ export function DataProvider({ children }) {
       setFiles((prev) => {
         const kept = (isSample ? [] : prev).filter((f) => {
           if (names.has(f.name)) return false;
-          if (names.has("Key Metrics of Marketing(Tecnoprism) (2).csv") && f.name === "Key Metrics of Marketing(Tecnoprism).csv") return false;
+          if (Array.from(names).some((n) => /Key Metrics of Marketing\(Tecnoprism\)/i.test(n)) && /Key Metrics of Marketing\(Tecnoprism\)/i.test(f.name)) return false;
           return true;
         });
         return kept.concat(results.map((r) => r.file));
