@@ -33,16 +33,16 @@
   .field { @apply bg-panel border border-[#E2E8F0] text-ink text-sm px-3.5 py-2 rounded-xl transition-all; }
   .field:focus { @apply border-brandPink outline-none ring-1 ring-brandPink; }
   .btn { @apply border border-[#E2E8F0] bg-panel text-ink text-sm px-4 py-2 rounded-xl cursor-pointer font-medium hover:bg-slate-50 transition-all; }
-  .btn-primary { @apply border-transparent bg-gradient-to-r from-[#FA2E76] to-[#E91E63] text-white shadow-glow-pink hover:opacity-95 active:scale-[0.98]; }
+  .btn-primary { @apply border-transparent bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-white shadow-glow-pink hover:opacity-95 active:scale-[0.98]; }
   .btn-primary:hover { filter: brightness(1.05); }
   .btn:disabled { @apply opacity-45 cursor-not-allowed; }
   .chip { @apply border border-[#E2E8F0] text-xs px-3 py-1.5 cursor-pointer text-slate-600 rounded-lg hover:border-slate-300 transition-all whitespace-nowrap; }
-  .chip-on { @apply border-transparent bg-gradient-to-r from-[#FA2E76] to-[#E91E63] text-white shadow-sm font-semibold; }
+  .chip-on { @apply border-transparent bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-white shadow-sm font-semibold; }
   .row-hover:hover { background: #F8FAFC; }
   .tnum { font-variant-numeric: tabular-nums; }
 
   .card-gradient-pink {
-    background: linear-gradient(135deg, #FF3377 0%, #F5365C 100%);
+    background: linear-gradient(135deg, #F96D27 0%, #FA2E76 50%, #e91e63 100%);
   }
   .card-gradient-purple {
     background: linear-gradient(135deg, #6C5CE7 0%, #4834D4 100%);

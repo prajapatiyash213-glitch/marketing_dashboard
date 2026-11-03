@@ -133,7 +133,7 @@ export function SignIn() {
           <div>
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#FA2E76] to-[#7B61FF] text-white shadow-glow-pink">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-white shadow-glow-pink">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>

@@ -593,13 +593,13 @@ export function SocialMediaExecutiveStrip({ d, setView }) {
 
         <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
           <div className="text-[11px] font-medium text-slate-400 truncate">Seniority</div>
-          <div className="text-sm font-bold text-[#7B61FF] mt-1 truncate" title={seniorLabel}>
+          <div className="text-sm font-bold text-[#2B51E2] mt-1 truncate" title={seniorLabel}>
             {seniorLabel}
           </div>
           <div className="text-[10px] text-slate-400 truncate">{seniorityPct ? `${seniorityPct}% decision` : "Senior roles"}</div>
         </div>
 
-        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-blue-200 transition-colors">
+        <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs hover:border-pink-200 transition-colors">
           <div className="text-[11px] font-medium text-slate-400 truncate">Target Enterprise</div>
           <div className="text-sm font-bold text-[#FA2E76] mt-1 truncate" title={sizeLabel}>
             {sizeLabel.includes("10,001") ? "10k+ Org" : sizeLabel}
@@ -623,7 +623,7 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-purple-50 flex items-center justify-center text-[#7B61FF] font-bold text-base shadow-xs ring-1 ring-purple-100">
+              <div className="h-9 w-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#2B51E2] font-bold text-base shadow-xs ring-1 ring-blue-100">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
                 </svg>
@@ -641,7 +641,7 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
             <button
               type="button"
               onClick={() => setView("costs")}
-              className="text-xs font-semibold text-[#7B61FF] hover:text-purple-700 bg-white hover:bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              className="text-xs font-semibold text-[#2B51E2] hover:text-blue-700 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-200/80 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <span>Manage Subscriptions</span>
               <span>→</span>
@@ -651,7 +651,7 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
               <div className="text-[11px] font-medium text-slate-400 truncate">Total Monthly Spend</div>
-              <div className="text-base sm:text-lg font-bold text-[#7B61FF] mt-0.5">
+              <div className="text-base sm:text-lg font-bold text-[#2B51E2] mt-0.5">
                 {cost ? `₹${Math.round(cost.combinedTotalInrMonthly || cost.totalInrMonthly || 0).toLocaleString("en-IN")}` : "—"}
               </div>
               <div className="text-[10px] text-slate-400">All tools (INR + USD)</div>
@@ -700,11 +700,11 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
       </div>
 
       {/* Card 2: Marketing Channels & Email Campaigns Executive Summary */}
-      <div className="lg:col-span-6 panel p-5 bg-gradient-to-br from-white via-amber-50/15 to-orange-50/20 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col justify-between">
+      <div className="lg:col-span-6 panel p-5 bg-gradient-to-br from-white via-rose-50/15 to-pink-50/20 border border-slate-200/80 rounded-2xl shadow-xs flex flex-col justify-between">
         <div>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-orange-50 flex items-center justify-center text-[#FF9F43] font-bold text-base shadow-xs ring-1 ring-orange-100">
+              <div className="h-9 w-9 rounded-xl bg-pink-50 flex items-center justify-center text-[#FA2E76] font-bold text-base shadow-xs ring-1 ring-pink-100">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M11 5L6 9H2v6h4l5 4V5zM15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
                 </svg>
@@ -723,14 +723,14 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
               <button
                 type="button"
                 onClick={() => setView("email")}
-                className="text-xs font-semibold text-[#7B61FF] hover:text-purple-700 bg-white hover:bg-purple-50 px-2.5 py-1.5 rounded-xl border border-purple-200/80 transition-all shadow-xs cursor-pointer"
+                className="text-xs font-semibold text-[#2B51E2] hover:text-blue-700 bg-white hover:bg-blue-50 px-2.5 py-1.5 rounded-xl border border-blue-200/80 transition-all shadow-xs cursor-pointer"
               >
                 Email →
               </button>
               <button
                 type="button"
                 onClick={() => setView("channels")}
-                className="text-xs font-semibold text-[#FF9F43] hover:text-orange-700 bg-white hover:bg-orange-50 px-2.5 py-1.5 rounded-xl border border-orange-200/80 transition-all shadow-xs cursor-pointer"
+                className="text-xs font-semibold text-[#FA2E76] hover:text-pink-700 bg-white hover:bg-pink-50 px-2.5 py-1.5 rounded-xl border border-pink-200/80 transition-all shadow-xs cursor-pointer"
               >
                 Channels →
               </button>
@@ -740,7 +740,7 @@ export function OperationsAndChannelsExecutiveGrid({ d, setView }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
             <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-xs">
               <div className="text-[11px] font-medium text-slate-400 truncate">Email CTR</div>
-              <div className="text-base sm:text-lg font-bold text-[#FF9F43] mt-0.5">
+              <div className="text-base sm:text-lg font-bold text-[#FA2E76] mt-0.5">
                 {email?.ctr != null ? `${Number(email.ctr).toFixed(1)}%` : "—"}
               </div>
               <div className="text-[10px] font-semibold text-emerald-600">High engagement</div>

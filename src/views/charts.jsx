@@ -220,7 +220,7 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
           {!showEmptyChart && (
             <div className="hidden sm:flex items-center gap-4 text-xs font-semibold">
               <span className="flex items-center gap-1.5 text-slate-600">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#7B61FF]" /> Online Leads
+                <span className="h-2.5 w-2.5 rounded-full bg-[#FA2E76]" /> Online Leads
               </span>
               <span className="flex items-center gap-1.5 text-slate-600">
                 <span className="h-2.5 w-2.5 rounded-full bg-[#10B981]" /> Qualified Leads
@@ -273,8 +273,8 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
               <AreaChart data={leadTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="wavePink" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7B61FF" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#FA2E76" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#FA2E76" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#e91e63" stopOpacity={0.0} />
                   </linearGradient>
                   <linearGradient id="waveEmerald" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10B981" stopOpacity={0.35} />
@@ -289,11 +289,11 @@ export function MainPerformanceChart({ d, allUndated, onViewPipeline }) {
                   type="monotone"
                   dataKey="leads"
                   name="New leads"
-                  stroke="#7B61FF"
+                  stroke="#FA2E76"
                   strokeWidth={2.5}
                   fill="url(#wavePink)"
-                  dot={{ r: 3, fill: "#7B61FF", strokeWidth: 1.5, stroke: "#fff" }}
-                  activeDot={{ r: 6, fill: "#FA2E76", strokeWidth: 2, stroke: "#fff" }}
+                  dot={{ r: 3, fill: "#FA2E76", strokeWidth: 1.5, stroke: "#fff" }}
+                  activeDot={{ r: 6, fill: "#e91e63", strokeWidth: 2, stroke: "#fff" }}
                 />
                 <Area
                   type="monotone"
@@ -484,7 +484,7 @@ export function GradientStatCards() {
         </div>
 
         {/* Card 02: The Next 45 Days Are The Primary Email Push */}
-        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#F96D27] to-[#ED3865]">
+        <div className="rounded-2xl p-5 sm:p-6 text-white shadow-md relative overflow-hidden flex items-start justify-between min-h-[135px] bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63]">
           <div className="flex items-start gap-4 sm:gap-5 flex-1 pr-3 z-10">
             <span className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-none select-none">
               02
@@ -871,7 +871,7 @@ export function OrderStatusTable({ leads, onViewAll }) {
                 onClick={() => setPage(p)}
                 className={`h-7 w-7 rounded-lg flex items-center justify-center font-bold text-xs transition-all ${
                   active
-                    ? "bg-[#FA2E76] text-white shadow-sm"
+                    ? "bg-gradient-to-r from-[#FA2E76] to-[#e91e63] text-white shadow-sm"
                     : "border border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >

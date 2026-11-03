@@ -170,7 +170,7 @@ export function WebsiteDropoffsView({ d }) {
           figure={String(pendingCount)}
           label="Pending Outreach"
           detail="Requires SDR follow-up"
-          accent="#7B61FF"
+          accent="#2B51E2"
         />
       </KpiBand>
 
@@ -212,7 +212,7 @@ export function WebsiteDropoffsView({ d }) {
                         {item.url}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-black shrink-0 ${
-                        isSelected ? "bg-[#FA2E76] text-white" : "bg-rose-100 text-rose-800"
+                        isSelected ? "bg-gradient-to-r from-[#FA2E76] to-[#e91e63] text-white" : "bg-pink-100 text-[#FA2E76]"
                       }`}>
                         {item.count} leads ({pct}%)
                       </span>
@@ -220,7 +220,7 @@ export function WebsiteDropoffsView({ d }) {
                     {/* Progress visual bar */}
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all ${isSelected ? "bg-[#FA2E76]" : "bg-indigo-500"}`}
+                        className={`h-full rounded-full transition-all ${isSelected ? "bg-gradient-to-r from-[#FA2E76] to-[#e91e63]" : "bg-slate-300"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -548,7 +548,7 @@ export function WebsiteDropoffsView({ d }) {
                             </button>
                             <a
                               href={`mailto:${r.email}`}
-                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FA2E76] text-white hover:bg-pink-600 cursor-pointer"
+                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-[#FA2E76] to-[#e91e63] text-white hover:opacity-95 cursor-pointer shadow-xs"
                             >
                               Email
                             </a>

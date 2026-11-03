@@ -25,7 +25,7 @@ export function DateRangeBar({
                 aria-pressed={on}
                 className={`text-xs px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                   on
-                    ? "bg-gradient-to-r from-[#FA2E76] to-[#E91E63] text-white shadow-sm font-semibold"
+                    ? "bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-white shadow-sm font-semibold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                 }`}
                 onClick={() => setRangeKey(key)}

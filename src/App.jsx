@@ -77,14 +77,14 @@ function Dashboard() {
       <div className="flex flex-1 flex-col h-screen min-w-0 overflow-hidden">
         <header className="no-print shrink-0 z-20 flex flex-wrap items-center gap-3 border-b border-hairline bg-panel px-5 py-3 shadow-xs">
           <div className="md:hidden flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-[#FA2E76] to-[#7B61FF] text-white shadow-xs shrink-0">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-white shadow-xs shrink-0">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" strokeDasharray="36 10" />
                 <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2" />
                 <circle cx="12" cy="12" r="2.2" fill="#FDE047" />
               </svg>
             </div>
-            <span className="font-display text-base font-extrabold text-[#FA2E76] tracking-tight">Tecnoprism M&amp;S<span className="text-[#7B61FF]">.</span></span>
+            <span className="font-display text-base font-extrabold bg-gradient-to-r from-[#FA2E76] to-[#e91e63] bg-clip-text text-transparent tracking-tight">Tecnoprism M&amp;S<span className="text-[#F96D27]">.</span></span>
             <select
               id="section"
               className="field !py-1 text-xs"

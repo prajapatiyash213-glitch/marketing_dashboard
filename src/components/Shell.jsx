@@ -51,7 +51,7 @@ export function Sidebar({ view, setView, footer }) {
     <nav className="no-print hidden w-64 shrink-0 flex-col justify-between border-r border-[#EEF2F7] bg-white text-slate-600 shadow-sm md:flex h-screen overflow-y-auto section-scroll" aria-label="Sections">
       <div>
         {/* Tecnoprism M&S brand header */}
-        <div className="mb-6 flex items-center gap-3 bg-gradient-to-r from-[#FA2E76] to-[#7B61FF] px-5 py-5 text-white shadow-md rounded-br-2xl min-h-[80px]">
+        <div className="mb-6 flex items-center gap-3 bg-gradient-to-r from-[#F96D27] via-[#FA2E76] to-[#e91e63] px-5 py-5 text-white shadow-md rounded-br-2xl min-h-[80px]">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/25 backdrop-blur-sm shadow-inner shrink-0 ring-1 ring-white/30">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="12" cy="12" r="9.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="36 10" />
@@ -175,7 +175,7 @@ export function AccountMenu() {
           onClick={() => setOpen((o) => !o)}
         >
           <div className="relative">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#FA2E76] to-[#7B61FF] text-xs font-bold text-white shadow-sm">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-[#F96D27] via-[#FA2E76] to-[#e91e63] text-xs font-bold text-white shadow-sm">
               {initials}
             </span>
             <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
