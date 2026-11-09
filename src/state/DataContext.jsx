@@ -10,7 +10,7 @@ import { prettyDate } from "../lib/dates.js";
 const DataContext = createContext(null);
 const ACCEPTED = /\.(xlsx|xlsm|xls|csv)$/i;
 
-const MASTER_DATASET_VERSION = "2026-11-03-v31-tecnoprism-58weeks-update";
+const MASTER_DATASET_VERSION = "2026-11-09-v32-tecnoprism-googlesheets-autosync";
 
 function sanitizeLead(l) {
   if (!l) return l;
@@ -251,118 +251,145 @@ export function DataProvider({ children }) {
   const syncLiveGoogleSheet = useCallback(async () => {
     setSyncingGoogleSheet(true);
     try {
-      const SHEET_ID = "1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho";
-      const GOOGLE_SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?usp=sharing`;
-      const directCsvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&t=${Date.now()}`;
+      const LIVE_SHEETS = [
+        {
+          name: "Tecnoprism",
+          id: "1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI",
+          sheetUrl: "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0",
+          directCsvUrl: "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/export?format=csv",
+          targetFile: "Key Metrics of Marketing(Tecnoprism) (4).csv",
+          site: "tecnoprism.com",
+        },
+        {
+          name: "Automation COE",
+          id: "1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho",
+          sheetUrl: "https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing",
+          directCsvUrl: "https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/export?format=csv",
+          targetFile: "KPI _ Automation COE (2).xlsx",
+          site: "automationcoe.com",
+        },
+      ];
 
-      let meta = null;
-      let imported = false;
+      const filesToImport = [];
+      const extractedMetas = [];
 
-      const proxyCsvUrl = `https://corsproxy.io/?${encodeURIComponent(directCsvUrl)}`;
+      for (const sheet of LIVE_SHEETS) {
+        let imported = false;
+        const directUrl = `${sheet.directCsvUrl}&t=${Date.now()}`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(directUrl)}`;
 
-      const extractMetaFromBuffer = (buffer) => {
-        try {
-          const parsed = parseWorkbook(buffer.slice(0), "KPI _ Automation COE (2).xlsx");
-          const parsedWeeks = parsed?.seoWeeks || [];
-          const latestParsed = parsedWeeks.length ? parsedWeeks[parsedWeeks.length - 1] : null;
-          if (parsedWeeks.length > 0) {
-            return {
-              sheetId: SHEET_ID,
-              sheetUrl: GOOGLE_SHEET_URL,
-              site: "automationcoe.com",
-              weeksCount: parsedWeeks.length,
-              latestWeek: latestParsed?.label || null,
-              latestWeekDate: latestParsed?.date || null,
-              latestViews: latestParsed?.views || null,
-              latestUsers: latestParsed?.users || null,
-              latestBounce: latestParsed?.bounce || null,
-              lastSynced: new Date().toISOString(),
-            };
+        const extractMetaFromBuffer = (buffer) => {
+          try {
+            const parsed = parseWorkbook(buffer.slice(0), sheet.targetFile);
+            const parsedWeeks = parsed?.seoWeeks || [];
+            const latestParsed = parsedWeeks.length ? parsedWeeks[parsedWeeks.length - 1] : null;
+            if (parsedWeeks.length > 0) {
+              return {
+                name: sheet.name,
+                sheetId: sheet.id,
+                sheetUrl: sheet.sheetUrl,
+                site: sheet.site,
+                targetFile: sheet.targetFile,
+                weeksCount: parsedWeeks.length,
+                latestWeek: latestParsed?.label || null,
+                latestWeekDate: latestParsed?.date || null,
+                latestViews: latestParsed?.views || null,
+                latestUsers: latestParsed?.users || null,
+                latestBounce: latestParsed?.bounce || null,
+              };
+            }
+          } catch (e) {
+            console.warn(`Could not extract meta for ${sheet.name}:`, e);
           }
-        } catch (e) {
-          console.warn("Could not extract meta from parsed buffer:", e);
-        }
-        return null;
-      };
+          return null;
+        };
 
-      // 1. Directly fetch live Google Sheet via its CORS-enabled CSV export
-      try {
-        const liveRes = await fetch(directCsvUrl, { cache: "no-store" });
-        if (liveRes.ok) {
-          const ab = await liveRes.arrayBuffer();
-          if (ab && ab.byteLength > 100) {
-            meta = extractMetaFromBuffer(ab);
-            const file = new File([ab], "KPI _ Automation COE (2).xlsx");
-            await importFiles([file]);
-            imported = true;
-          }
-        }
-      } catch (directErr) {
-        console.warn("Direct browser CSV sync from Google Sheets failed, trying proxy fallback:", directErr);
-      }
-
-      // 1b. If direct fetch failed, try CORS proxy
-      if (!imported) {
+        // 1. Try direct CSV export
         try {
-          const proxyRes = await fetch(proxyCsvUrl, { cache: "no-store" });
-          if (proxyRes.ok) {
-            const ab = await proxyRes.arrayBuffer();
+          const liveRes = await fetch(directUrl, { cache: "no-store" });
+          if (liveRes.ok) {
+            const ab = await liveRes.arrayBuffer();
             if (ab && ab.byteLength > 100) {
-              meta = extractMetaFromBuffer(ab);
-              const file = new File([ab], "KPI _ Automation COE (2).xlsx");
-              await importFiles([file]);
+              const itemMeta = extractMetaFromBuffer(ab);
+              if (itemMeta) extractedMetas.push(itemMeta);
+              filesToImport.push(new File([ab], sheet.targetFile));
               imported = true;
             }
           }
-        } catch (proxyErr) {
-          console.warn("Proxy CSV sync from Google Sheets failed:", proxyErr);
+        } catch (directErr) {
+          console.warn(`Direct CSV sync for ${sheet.name} failed:`, directErr);
         }
-      }
 
-      // 2. Also trigger backend endpoint if running locally to write updated file to disk
-      try {
-        const res = await fetch("/api/sync-google-sheet", { method: "POST" });
-        if (res && res.ok) {
-          const json = await res.json();
-          if (json && json.meta) {
-            meta = json.meta;
+        // 2. Try CORS proxy fallback
+        if (!imported) {
+          try {
+            const proxyRes = await fetch(proxyUrl, { cache: "no-store" });
+            if (proxyRes.ok) {
+              const ab = await proxyRes.arrayBuffer();
+              if (ab && ab.byteLength > 100) {
+                const itemMeta = extractMetaFromBuffer(ab);
+                if (itemMeta) extractedMetas.push(itemMeta);
+                filesToImport.push(new File([ab], sheet.targetFile));
+                imported = true;
+              }
+            }
+          } catch (proxyErr) {
+            console.warn(`Proxy CSV sync for ${sheet.name} failed:`, proxyErr);
           }
         }
+
+        // 3. Fallback to server master file
+        if (!imported) {
+          const fileRes = await fetch(`/master/${sheet.targetFile}?t=${Date.now()}`).catch(() => null);
+          if (fileRes && fileRes.ok) {
+            const blob = await fileRes.blob();
+            const ab = await blob.arrayBuffer();
+            const itemMeta = extractMetaFromBuffer(ab);
+            if (itemMeta) extractedMetas.push(itemMeta);
+            filesToImport.push(new File([ab], sheet.targetFile));
+          }
+        }
+      }
+
+      if (filesToImport.length > 0) {
+        await importFiles(filesToImport);
+      }
+
+      // Also trigger backend endpoint if running locally to write files to disk
+      try {
+        await fetch("/api/sync-google-sheet", { method: "POST" });
       } catch {
-        /* backend optional */
+        /* optional local backend */
       }
 
-      // 3. If direct & proxy fetch could not run, fallback to master file on server
-      if (!imported) {
-        const fileRes = await fetch(`/master/KPI _ Automation COE (2).xlsx?t=${Date.now()}`).catch(() => null);
-        if (fileRes && fileRes.ok) {
-          const blob = await fileRes.blob();
-          const ab = await blob.arrayBuffer();
-          if (!meta) meta = extractMetaFromBuffer(ab);
-          await importFiles([new File([ab], "KPI _ Automation COE (2).xlsx")]);
-        }
+      let meta = null;
+      const metaRes = await fetch(`/master/google_sheet_sync.json?t=${Date.now()}`).catch(() => null);
+      if (metaRes && metaRes.ok) {
+        meta = await metaRes.json();
       }
 
-      // 4. Update metadata if not yet computed
-      if (!meta) {
-        const metaRes = await fetch(`/master/google_sheet_sync.json?t=${Date.now()}`).catch(() => null);
-        if (metaRes && metaRes.ok) {
-          meta = await metaRes.json();
-        }
-      }
-
-      if (!meta) {
+      if (!meta && extractedMetas.length > 0) {
+        const primary = extractedMetas[0];
+        const totalW = extractedMetas.reduce((acc, m) => acc + (m.weeksCount || 0), 0);
         meta = {
-          sheetId: SHEET_ID,
-          sheetUrl: GOOGLE_SHEET_URL,
-          site: "automationcoe.com",
-          weeksCount: 17,
-          latestWeek: "23-Oct",
+          sheetId: primary.sheetId,
+          sheetUrl: primary.sheetUrl,
+          site: primary.site,
+          weeksCount: primary.weeksCount,
+          latestWeek: primary.latestWeek,
+          latestWeekDate: primary.latestWeekDate,
+          latestViews: primary.latestViews,
+          latestUsers: primary.latestUsers,
+          latestBounce: primary.latestBounce,
+          totalWeeksCount: totalW,
           lastSynced: new Date().toISOString(),
+          sheets: extractedMetas,
         };
       }
 
-      setGoogleSheetMeta(meta);
+      if (meta) {
+        setGoogleSheetMeta(meta);
+      }
       return meta;
     } catch (e) {
       console.error("Google Sheet sync failed", e);

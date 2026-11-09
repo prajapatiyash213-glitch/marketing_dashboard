@@ -24,12 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync Google Sheet
+      - name: Sync Google Sheets (Tecnoprism & Automation COE)
         run: node scripts/sync-google-sheet.mjs
 
       - name: Commit and push if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add public/master/KPI\ _\ Automation\ COE\ \(2\).xlsx public/master/google_sheet_sync.json
+          git add "public/master/KPI _ Automation COE (2).xlsx" "public/master/Key Metrics of Marketing(Tecnoprism) (4).csv" public/master/google_sheet_sync.json
           git diff --quiet && git diff --staged --quiet || (git commit -m "[Automated] Weekly Google Sheet sync [skip ci]" && git push)

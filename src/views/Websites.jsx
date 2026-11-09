@@ -18,17 +18,24 @@ export function WebsitesView({ d, setView }) {
   const { syncLiveGoogleSheet, syncingGoogleSheet, googleSheetMeta } = useData();
   const [sheetSyncFeedback, setSheetSyncFeedback] = useState(null);
 
+  const tecnoprismWeeks = useMemo(() => (d.weeks || []).filter((w) => w.site === "tecnoprism.com"), [d.weeks]);
+  const latestTecnoprismWeek = tecnoprismWeeks.length ? tecnoprismWeeks[tecnoprismWeeks.length - 1] : null;
+  const tecnoprismWeeksCount = tecnoprismWeeks.length || (googleSheetMeta?.sheets?.find((s) => s.site === "tecnoprism.com")?.weeksCount) || 59;
+  const tecnoprismLatestLabel = latestTecnoprismWeek?.label || (googleSheetMeta?.sheets?.find((s) => s.site === "tecnoprism.com")?.latestWeek) || "6-Nov";
+
   const acoeWeeks = useMemo(() => (d.weeks || []).filter((w) => w.site === "automationcoe.com"), [d.weeks]);
   const latestAcoeWeek = acoeWeeks.length ? acoeWeeks[acoeWeeks.length - 1] : null;
-  const acoeWeeksCount = acoeWeeks.length || googleSheetMeta?.weeksCount || 17;
-  const acoeLatestLabel = latestAcoeWeek?.label || googleSheetMeta?.latestWeek || "23-Oct";
+  const acoeWeeksCount = acoeWeeks.length || (googleSheetMeta?.sheets?.find((s) => s.site === "automationcoe.com")?.weeksCount) || 19;
+  const acoeLatestLabel = latestAcoeWeek?.label || (googleSheetMeta?.sheets?.find((s) => s.site === "automationcoe.com")?.latestWeek) || "6-Nov";
+
+  const totalPeriods = (d.weeks || []).length || googleSheetMeta?.totalWeeksCount || (tecnoprismWeeksCount + acoeWeeksCount);
 
   const handleSyncSheet = async () => {
     try {
       const res = await syncLiveGoogleSheet();
       setSheetSyncFeedback({
         type: "success",
-        message: `Synced ${res?.weeksCount || acoeWeeksCount} weeks from Google Sheets! Latest: ${res?.latestWeek || acoeLatestLabel}`,
+        message: `Synced ${res?.totalWeeksCount || totalPeriods} weeks across Tecnoprism & ACOE! Latest: ${res?.latestWeek || "6-Nov"}`,
       });
       setTimeout(() => setSheetSyncFeedback(null), 4000);
     } catch (e) {
@@ -206,19 +213,19 @@ export function WebsitesView({ d, setView }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-base text-white">ACOE Website Status</span>
+              <span className="font-bold text-base text-white">Live SEO Google Sheets Connected</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-400/25 text-emerald-200 border border-emerald-300/40">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live Google Sheet Connected
+                Tecnoprism &amp; ACOE Active
               </span>
             </div>
             <p className="text-xs text-emerald-100/90 mt-0.5">
-              Source: ACOE Website Status (Google Sheets) · Live tracking: <strong className="text-white font-extrabold">{acoeWeeksCount} weekly periods</strong> · Latest week: <strong className="text-white font-extrabold">{acoeLatestLabel}</strong> · {googleSheetMeta?.lastSynced ? `Synced at ${new Date(googleSheetMeta.lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Active cloud sync"}
+              Live tracking: Tecnoprism (<strong className="text-white font-extrabold">{tecnoprismWeeksCount} weeks</strong>, latest <strong className="text-white font-extrabold">{tecnoprismLatestLabel}</strong>) · ACOE (<strong className="text-white font-extrabold">{acoeWeeksCount} weeks</strong>, latest <strong className="text-white font-extrabold">{acoeLatestLabel}</strong>) · {googleSheetMeta?.lastSynced ? `Synced at ${new Date(googleSheetMeta.lastSynced).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Active cloud sync"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           {sheetSyncFeedback && (
             <div className={`text-[11px] font-bold px-2.5 py-1.5 rounded-lg border flex items-center gap-1.5 animate-in fade-in duration-200 ${
               sheetSyncFeedback.type === "success"
@@ -250,21 +257,35 @@ export function WebsitesView({ d, setView }) {
             </svg>
             <span>
               {syncingGoogleSheet
-                ? "Syncing sheet..."
+                ? "Syncing sheets..."
                 : sheetSyncFeedback?.type === "success"
                 ? "✓ Synced!"
-                : "Sync Google Sheet"}
+                : "Sync Google Sheets"}
             </span>
           </button>
+
+          <a
+            href="https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-xl bg-white text-teal-900 px-3 py-2 text-xs font-bold shadow-sm hover:bg-teal-50 transition-all cursor-pointer whitespace-nowrap"
+            title="Open Tecnoprism KPI Google Sheet"
+          >
+            <span>Tecnoprism Sheet</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+            </svg>
+          </a>
 
           <a
             href="https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 rounded-xl bg-white text-teal-900 px-3.5 py-2 text-xs font-bold shadow-sm hover:bg-teal-50 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl bg-teal-100/30 hover:bg-teal-100/40 text-white px-3 py-2 text-xs font-bold border border-white/20 transition-all cursor-pointer whitespace-nowrap"
+            title="Open Automation COE KPI Google Sheet"
           >
-            <span>Open Sheet</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <span>ACOE Sheet</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
             </svg>
           </a>

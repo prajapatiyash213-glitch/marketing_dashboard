@@ -1,12 +1,41 @@
 {
-  "sheetId": "1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho",
-  "sheetUrl": "https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing",
-  "site": "automationcoe.com",
-  "weeksCount": 18,
-  "latestWeek": "30-Oct",
-  "latestWeekDate": "2026-10-30T00:00:00.000Z",
-  "latestViews": 166,
-  "latestUsers": 52,
-  "latestBounce": 67.23,
-  "lastSynced": "2026-11-02T19:39:40.197Z"
+  "sheetId": "1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI",
+  "sheetUrl": "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0",
+  "site": "tecnoprism.com",
+  "weeksCount": 59,
+  "latestWeek": "6-Nov",
+  "latestWeekDate": "2026-11-06T00:00:00.000Z",
+  "latestViews": 809,
+  "latestUsers": 513,
+  "latestBounce": 78.59,
+  "totalWeeksCount": 78,
+  "lastSynced": "2026-11-09T08:45:37.832Z",
+  "sheets": [
+    {
+      "name": "Tecnoprism",
+      "sheetId": "1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI",
+      "sheetUrl": "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0",
+      "site": "tecnoprism.com",
+      "targetFile": "Key Metrics of Marketing(Tecnoprism) (4).csv",
+      "weeksCount": 59,
+      "latestWeek": "6-Nov",
+      "latestWeekDate": "2026-11-06T00:00:00.000Z",
+      "latestViews": 809,
+      "latestUsers": 513,
+      "latestBounce": 78.59
+    },
+    {
+      "name": "Automation COE",
+      "sheetId": "1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho",
+      "sheetUrl": "https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing",
+      "site": "automationcoe.com",
+      "targetFile": "KPI _ Automation COE (2).xlsx",
+      "weeksCount": 19,
+      "latestWeek": "6-Nov",
+      "latestWeekDate": "2026-11-06T00:00:00.000Z",
+      "latestViews": 130,
+      "latestUsers": 58,
+      "latestBounce": 72
+    }
+  ]
 }
