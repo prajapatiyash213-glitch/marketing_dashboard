@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead } from '../lib/salesSync.js';
+import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead, clearAllLiveLeads } from '../lib/salesSync.js';
 
 export const SOURCES_OPTIONS = [
   "Inbound - Referral",
@@ -281,6 +281,8 @@ export function SalesTeamView() {
   };
 
   const fileInputRef = useRef(null);
+  const [showClearModal, setShowClearModal] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const handleImportFile = async (e) => {
     const file = e.target.files?.[0];
@@ -795,6 +797,13 @@ export function SalesTeamView() {
               className="px-3.5 py-1.5 rounded-full border border-slate-200 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-all cursor-pointer"
             >
               📥 Import Excel / CSV
+            </button>
+            <button
+              onClick={() => setShowClearModal(true)}
+              className="px-3.5 py-1.5 rounded-full border border-red-200 text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition-all cursor-pointer flex items-center gap-1.5"
+              title="Admin action: Clear all leads data"
+            >
+              🗑️ Clear All Leads
             </button>
             <button
               onClick={() => setShowAddModal(true)}
@@ -1352,6 +1361,62 @@ export function SalesTeamView() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear All Leads Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl border border-red-200 shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-11 h-11 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-xl shrink-0">
+                ⚠️
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-red-900">Clear All Leads Data?</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Admin confirmation required</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => !clearing && setShowClearModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-md cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-xs text-red-800 leading-relaxed mb-5">
+              This action will <strong>permanently delete all {leads.length} leads</strong> from the live pipeline database. This operation cannot be undone.
+            </div>
+            <div className="flex justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={clearing}
+                onClick={() => setShowClearModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={clearing}
+                onClick={async () => {
+                  setClearing(true);
+                  const ok = await clearAllLiveLeads();
+                  if (ok) {
+                    await syncData();
+                    setShowClearModal(false);
+                    alert("All leads have been successfully cleared.");
+                  } else {
+                    alert("Failed to clear leads. Please try again.");
+                  }
+                  setClearing(false);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {clearing ? 'Clearing…' : '🗑️ Yes, Clear All Leads'}
+              </button>
             </div>
           </div>
         </div>

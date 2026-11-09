@@ -245,3 +245,22 @@ export async function updateLiveLead(leadId, patchObj) {
     return false;
   }
 }
+
+/**
+ * Permanently delete all leads from live backend (Admin only)
+ */
+export async function clearAllLiveLeads() {
+  try {
+    const data = await requestSalesApi({
+      method: "DELETE"
+    });
+    if (typeof window !== "undefined" && window.localStorage) {
+      localStorage.removeItem(LEAD_META_KEY);
+      localStorage.removeItem("last_uploaded_sales_lead_file");
+    }
+    return !!data?.success;
+  } catch (err) {
+    console.error("[SalesSync] Error clearing live leads:", err);
+    return false;
+  }
+}
