@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead } from '../lib/salesSync.js';
 
@@ -61,6 +61,10 @@ function formatDisplayDate(dateStr) {
 const INITIAL_LEADS = [
   {
     id: 'e6ee692a-fdba-4681-a099-842545b7ef79',
+    firstName: 'Om',
+    lastName: 'Sharma',
+    designation: 'VP of Procurement',
+    contactNo: '+91 98765 43210',
     company: 'adani',
     email: 'om@adani.com',
     brand: 'Tecnoprism',
@@ -77,6 +81,10 @@ const INITIAL_LEADS = [
   },
   {
     id: 'd11c4d3d-8daf-4f27-b55a-90866e6486a2',
+    firstName: 'Niti',
+    lastName: 'Tata',
+    designation: 'Director of Technology',
+    contactNo: '+91 98111 22334',
     company: 'tata',
     email: 'niti@tata.com',
     brand: 'Tecnoprism',
@@ -93,6 +101,10 @@ const INITIAL_LEADS = [
   },
   {
     id: 'ee56e5a6-1601-49c8-a653-972b4af87262',
+    firstName: 'Sarah',
+    lastName: 'Jenkins',
+    designation: 'Head of Sales Operations',
+    contactNo: '+1 555-019-2834',
     company: 'Globex',
     email: 'sales@globex.com',
     brand: 'AutomationCOE',
@@ -109,6 +121,10 @@ const INITIAL_LEADS = [
   },
   {
     id: '4d707116-20af-4b37-9d57-1dc49f7ed457',
+    firstName: 'Miles',
+    lastName: 'Dyson',
+    designation: 'Chief Technology Officer',
+    contactNo: '+1 555-482-9901',
     company: 'Cyberdyne',
     email: 'info@cyberdyne.org',
     brand: 'Tecnoprism',
@@ -125,6 +141,10 @@ const INITIAL_LEADS = [
   },
   {
     id: '1cac93ac-ca6f-4d6d-a6a2-e12df58c6618',
+    firstName: 'Alexander',
+    lastName: 'Hayes',
+    designation: 'VP of Digital Strategy',
+    contactNo: '+1 555-732-4412',
     company: 'Vertex',
     email: 'support@vertex.com',
     brand: 'Tecnoprism',
@@ -155,10 +175,15 @@ export function SalesTeamView() {
   const [lastSyncTime, setLastSyncTime] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [search, setSearch] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [designationFilter, setDesignationFilter] = useState('all');
   const [ownerFilter, setOwnerFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedStage, setSelectedStage] = useState('all');
+  const [stageFilter, setStageFilter] = useState('all');
+  const [overdueFilter, setOverdueFilter] = useState(false);
 
   // Live Supabase Auto-Sync (5s Interval Polling)
   const syncData = async () => {
@@ -193,6 +218,10 @@ export function SalesTeamView() {
 
   // New Lead Form State
   const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    designation: '',
+    contactNo: '',
     email: '',
     company: '',
     brand: 'Tecnoprism',
@@ -232,6 +261,10 @@ export function SalesTeamView() {
 
     setShowAddModal(false);
     setForm({
+      firstName: '',
+      lastName: '',
+      designation: '',
+      contactNo: '',
       email: '',
       company: '',
       brand: 'Tecnoprism',
@@ -265,8 +298,12 @@ export function SalesTeamView() {
         const email = row.Email || row.email || row['Email Address'];
         if (!email) continue;
         const newLead = {
+          firstName: row['First Name'] || row.firstName || row.fname || '',
+          lastName: row['Last Name'] || row.lastName || row.lname || '',
+          designation: row.Designation || row.designation || row.Title || row.title || row.Role || row.role || '',
+          contactNo: row['Contact No'] || row['Contact Number'] || row.contactNo || row.Phone || row.phone || row.Mobile || row.mobile || '',
           email,
-          company: row.Company || row.company || '',
+          company: row.Company || row.company || row['Company Name'] || '',
           brand: row.Brand || row.brand || 'Tecnoprism',
           owner: row.Owner || row.owner || 'Yash Prajapati',
           leadDate: row['Lead Date'] || row.leadDate || new Date().toISOString().split('T')[0],
@@ -275,7 +312,7 @@ export function SalesTeamView() {
           dateOfConnect: row['Date Of Connect'] || row['Connect Date'] || '',
           comments: row.Comments || row.comments || '',
           followup2Date: row['Follow-up 2 Date'] || row.followup2Date || '',
-          followup2Comments: row['Follow-up 2 Notes'] || row.followup2Comments || '',
+          followup2Comments: row['Follow-up 2 Notes'] || row['Follow-up 2 Comments'] || row.followup2Comments || '',
           leadStatus: row['Lead Status'] || row.leadStatus || 'New'
         };
         await createLiveLead(newLead);
@@ -293,32 +330,48 @@ export function SalesTeamView() {
     // 1. Optimistic local update
     setLeads(prev => prev.map(item => item.id === leadId ? { ...item, ...patchLocal } : item));
 
-    // 2. Persist to live Supabase DB
-    if (leadId && patchSupabase) {
-      try {
-        const ok = await updateLiveLead(leadId, patchSupabase);
-        if (ok) {
-          setSyncStatus('synced');
-          setSyncError(null);
-          setLastSyncTime(new Date().toLocaleTimeString());
-        }
-      } catch (err) {
-        console.error("Failed to update lead:", err);
-        setSyncStatus('offline');
-        setSyncError(err.message || 'Update failed');
+    // 2. Persist to live Supabase DB & metadata cache
+    try {
+      const ok = await updateLiveLead(leadId, patchSupabase || patchLocal);
+      if (ok) {
+        setSyncStatus('synced');
+        setSyncError(null);
+        setLastSyncTime(new Date().toLocaleTimeString());
       }
+    } catch (err) {
+      console.error("Failed to update lead:", err);
+      setSyncStatus('offline');
+      setSyncError(err.message || 'Update failed');
     }
   };
 
-  const [selectedStage, setSelectedStage] = useState('all');
-  const [overdueFilter, setOverdueFilter] = useState(false);
-
   // Export CSV handler
   const handleExportCsv = () => {
-    const headers = ["Email", "Company", "Brand", "Owner", "Lead Date", "Source", "Stage", "Connect Date", "Comments", "Follow-up 2 Date", "Follow-up 2 Notes", "Status"];
+    const headers = [
+      "First Name",
+      "Last Name",
+      "Designation",
+      "Contact No",
+      "Email",
+      "Company",
+      "Brand",
+      "Owner",
+      "Lead Date",
+      "Source",
+      "Stage",
+      "Connect Date",
+      "Comments",
+      "Follow-up 2 Date",
+      "Follow-up 2 Notes",
+      "Status"
+    ];
     const rows = filteredLeads.map(l => [
+      `"${(l.firstName || '').replace(/"/g, '""')}"`,
+      `"${(l.lastName || '').replace(/"/g, '""')}"`,
+      `"${(l.designation || '').replace(/"/g, '""')}"`,
+      `"${(l.contactNo || '').replace(/"/g, '""')}"`,
       `"${l.email || ''}"`,
-      `"${l.company || ''}"`,
+      `"${(l.company || '').replace(/"/g, '""')}"`,
       `"${l.brand || ''}"`,
       `"${l.owner || ''}"`,
       `"${l.leadDate || ''}"`,
@@ -340,18 +393,108 @@ export function SalesTeamView() {
     URL.revokeObjectURL(url);
   };
 
-  // Filtered Leads
-  const filteredLeads = leads.filter(l => {
-    const q = search.toLowerCase();
-    const matchSearch = !q || l.email.toLowerCase().includes(q) || l.company.toLowerCase().includes(q) || l.comments.toLowerCase().includes(q);
-    const matchOwner = ownerFilter === 'all' || l.owner === ownerFilter;
-    const matchBrand = brandFilter === 'all' || l.brand === brandFilter;
-    const matchSource = sourceFilter === 'all' || l.leadSource === sourceFilter;
-    const matchStatus = statusFilter === 'all' || l.leadStatus === statusFilter;
-    const matchStage = selectedStage === 'all' || l.leadStage === selectedStage;
-    const matchOverdue = !overdueFilter || (l.followup2Date && new Date(l.followup2Date) < new Date());
-    return matchSearch && matchOwner && matchBrand && matchSource && matchStatus && matchStage && matchOverdue;
-  });
+  // Dynamic lists for filters
+  const companiesList = useMemo(() => {
+    const set = new Set();
+    leads.forEach(l => { if (l.company && l.company !== '—') set.add(l.company.trim()); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [leads]);
+
+  const designationsList = useMemo(() => {
+    const set = new Set();
+    leads.forEach(l => { if (l.designation && l.designation !== '—') set.add(l.designation.trim()); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [leads]);
+
+  const ownersList = useMemo(() => {
+    const set = new Set();
+    Object.values(profilesMap).forEach(o => { if (o) set.add(o.trim()); });
+    leads.forEach(l => { if (l.owner) set.add(l.owner.trim()); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [leads, profilesMap]);
+
+  const brandsList = useMemo(() => {
+    const set = new Set(['Tecnoprism', 'AutomationCOE']);
+    leads.forEach(l => { if (l.brand) set.add(l.brand.trim()); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [leads]);
+
+  const sourcesList = useMemo(() => {
+    const set = new Set(SOURCES_OPTIONS);
+    leads.forEach(l => { if (l.leadSource) set.add(l.leadSource.trim()); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [leads]);
+
+  // Filtered Leads (with filter on all attributes including company name)
+  const filteredLeads = useMemo(() => {
+    return leads.filter(l => {
+      const q = search.trim().toLowerCase();
+      const matchSearch = !q ||
+        (l.firstName && l.firstName.toLowerCase().includes(q)) ||
+        (l.lastName && l.lastName.toLowerCase().includes(q)) ||
+        (l.designation && l.designation.toLowerCase().includes(q)) ||
+        (l.contactNo && l.contactNo.toLowerCase().includes(q)) ||
+        (l.email && l.email.toLowerCase().includes(q)) ||
+        (l.company && l.company.toLowerCase().includes(q)) ||
+        (l.brand && l.brand.toLowerCase().includes(q)) ||
+        (l.owner && l.owner.toLowerCase().includes(q)) ||
+        (l.leadSource && l.leadSource.toLowerCase().includes(q)) ||
+        (l.leadStage && l.leadStage.toLowerCase().includes(q)) ||
+        (l.leadStatus && l.leadStatus.toLowerCase().includes(q)) ||
+        (l.comments && l.comments.toLowerCase().includes(q)) ||
+        (l.followup2Comments && l.followup2Comments.toLowerCase().includes(q));
+
+      const matchCompany = companyFilter === 'all' || (l.company && l.company.toLowerCase() === companyFilter.toLowerCase());
+      const matchDesignation = designationFilter === 'all' || (l.designation && l.designation.toLowerCase() === designationFilter.toLowerCase());
+      const matchOwner = ownerFilter === 'all' || l.owner === ownerFilter;
+      const matchBrand = brandFilter === 'all' || l.brand === brandFilter;
+      const matchSource = sourceFilter === 'all' || l.leadSource === sourceFilter;
+      const matchStatus = statusFilter === 'all' || l.leadStatus === statusFilter;
+      const effectiveStage = stageFilter !== 'all' ? stageFilter : selectedStage;
+      const matchStage = effectiveStage === 'all' || l.leadStage === effectiveStage;
+      const matchOverdue = !overdueFilter || (l.followup2Date && new Date(l.followup2Date) < new Date());
+
+      return matchSearch && matchCompany && matchDesignation && matchOwner && matchBrand && matchSource && matchStatus && matchStage && matchOverdue;
+    });
+  }, [leads, search, companyFilter, designationFilter, ownerFilter, brandFilter, sourceFilter, statusFilter, stageFilter, selectedStage, overdueFilter]);
+
+  const hasActiveFilters = Boolean(
+    search.trim() ||
+    companyFilter !== 'all' ||
+    designationFilter !== 'all' ||
+    ownerFilter !== 'all' ||
+    brandFilter !== 'all' ||
+    sourceFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    stageFilter !== 'all' ||
+    selectedStage !== 'all' ||
+    overdueFilter
+  );
+
+  const activeFilterCount = [
+    search.trim() ? 1 : 0,
+    companyFilter !== 'all' ? 1 : 0,
+    designationFilter !== 'all' ? 1 : 0,
+    ownerFilter !== 'all' ? 1 : 0,
+    brandFilter !== 'all' ? 1 : 0,
+    sourceFilter !== 'all' ? 1 : 0,
+    statusFilter !== 'all' ? 1 : 0,
+    stageFilter !== 'all' || selectedStage !== 'all' ? 1 : 0,
+    overdueFilter ? 1 : 0
+  ].reduce((a, b) => a + b, 0);
+
+  const handleResetFilters = () => {
+    setSearch('');
+    setCompanyFilter('all');
+    setDesignationFilter('all');
+    setOwnerFilter('all');
+    setBrandFilter('all');
+    setSourceFilter('all');
+    setStatusFilter('all');
+    setStageFilter('all');
+    setSelectedStage('all');
+    setOverdueFilter(false);
+  };
 
   // Stage Distribution Counts (Exact match with screenshot)
   const stages = [
@@ -518,56 +661,108 @@ export function SalesTeamView() {
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search email, company or comments"
-              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs w-64 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              placeholder="Search by name, email, company, designation, phone..."
+              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs w-72 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
             />
+
+            {/* Company Filter (Explicitly requested by user) */}
+            <select
+              value={companyFilter}
+              onChange={e => setCompanyFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
+            >
+              <option value="all">All companies ({companiesList.length})</option>
+              {companiesList.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+
+            {/* Designation Filter */}
+            <select
+              value={designationFilter}
+              onChange={e => setDesignationFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
+            >
+              <option value="all">All designations ({designationsList.length})</option>
+              {designationsList.map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
 
             {/* Owner Filter */}
             <select
               value={ownerFilter}
               onChange={e => setOwnerFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
             >
               <option value="all">All members</option>
-              <option value="Yash Prajapati">Yash Prajapati</option>
-              <option value="Pinali Timba">Pinali Timba</option>
-              <option value="shashank Jha">shashank Jha</option>
+              {ownersList.map(o => (
+                <option key={o} value={o}>{o}</option>
+              ))}
             </select>
 
             {/* Brand Filter */}
             <select
               value={brandFilter}
               onChange={e => setBrandFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
             >
               <option value="all">All brands</option>
-              <option value="Tecnoprism">Tecnoprism</option>
-              <option value="AutomationCOE">AutomationCOE</option>
+              {brandsList.map(b => (
+                <option key={b} value={b}>{b}</option>
+              ))}
             </select>
 
-            {/* Source Filter (Exact match with Image 1) */}
+            {/* Source Filter */}
             <select
               value={sourceFilter}
               onChange={e => setSourceFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
             >
               <option value="all">All sources</option>
-              {SOURCES_OPTIONS.map(s => (
+              {sourcesList.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
 
-            {/* Status Filter (Exact match with Image 2) */}
+            {/* Stage Filter */}
+            <select
+              value={stageFilter}
+              onChange={e => {
+                setStageFilter(e.target.value);
+                setSelectedStage(e.target.value);
+              }}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
+            >
+              <option value="all">All stages</option>
+              {STAGES_OPTIONS.map(st => (
+                <option key={st} value={st}>{st}</option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none"
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white focus:outline-none cursor-pointer"
             >
               <option value="all">All statuses</option>
               {STATUSES_OPTIONS.map(st => (
                 <option key={st} value={st}>{st}</option>
               ))}
             </select>
+
+            {/* Reset Filters Button */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="px-3 py-1.5 rounded-xl border border-rose-200 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                title="Reset all filters"
+              >
+                ✕ Reset ({activeFilterCount})
+              </button>
+            )}
           </div>
 
           {/* Right Action Buttons */}
@@ -610,12 +805,16 @@ export function SalesTeamView() {
           </div>
         </div>
 
-        {/* Lead Table (Exact 12-column match from screenshots) */}
+        {/* Lead Table (16 columns with Name, Designation, Contact No) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <tr>
+                  <th className="py-3 px-4">FIRST NAME</th>
+                  <th className="py-3 px-4">LAST NAME</th>
+                  <th className="py-3 px-4">DESIGNATION</th>
+                  <th className="py-3 px-4">CONTACT NO</th>
                   <th className="py-3 px-4">EMAIL</th>
                   <th className="py-3 px-4">COMPANY</th>
                   <th className="py-3 px-4">BRAND</th>
@@ -633,6 +832,86 @@ export function SalesTeamView() {
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {filteredLeads.map(l => (
                   <tr key={l.id} className="hover:bg-slate-50/80 transition-colors">
+                    {/* FIRST NAME */}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      <input
+                        type="text"
+                        value={l.firstName || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, firstName: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { firstName: e.target.value });
+                        }}
+                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 font-semibold text-xs text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
+                        placeholder="First name"
+                      />
+                    </td>
+
+                    {/* LAST NAME */}
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                      <input
+                        type="text"
+                        value={l.lastName || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, lastName: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { lastName: e.target.value });
+                        }}
+                        className="w-24 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 font-semibold text-xs text-slate-800 focus:outline-none transition-all placeholder:text-slate-400"
+                        placeholder="Last name"
+                      />
+                    </td>
+
+                    {/* DESIGNATION */}
+                    <td className="py-3.5 px-4 text-slate-600 font-medium">
+                      <input
+                        type="text"
+                        value={l.designation || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setLeads(prev => prev.map(item => item.id === l.id ? { ...item, designation: val } : item));
+                        }}
+                        onBlur={(e) => {
+                          handleUpdateField(l.id, { designation: e.target.value });
+                        }}
+                        className="w-36 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 text-xs text-slate-600 focus:outline-none transition-all placeholder:text-slate-400"
+                        placeholder="Designation"
+                        title={l.designation || ''}
+                      />
+                    </td>
+
+                    {/* CONTACT NO */}
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-700">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={l.contactNo || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setLeads(prev => prev.map(item => item.id === l.id ? { ...item, contactNo: val } : item));
+                          }}
+                          onBlur={(e) => {
+                            handleUpdateField(l.id, { contactNo: e.target.value });
+                          }}
+                          className="w-28 bg-transparent hover:bg-slate-100/60 focus:bg-white px-1.5 py-0.5 rounded border border-transparent focus:border-slate-300 font-mono text-[11px] text-slate-700 focus:outline-none transition-all placeholder:text-slate-400"
+                          placeholder="Contact no"
+                        />
+                        {l.contactNo && (
+                          <a
+                            href={`tel:${l.contactNo.replace(/\s+/g, '')}`}
+                            className="text-slate-400 hover:text-emerald-600 p-0.5 text-xs"
+                            title="Call"
+                          >
+                            📞
+                          </a>
+                        )}
+                      </div>
+                    </td>
+
                     {/* EMAIL */}
                     <td className="py-3.5 px-4 text-slate-600 font-normal">
                       {l.email}
@@ -856,6 +1135,52 @@ export function SalesTeamView() {
                 {/* Lead details */}
                 <div className="space-y-4">
                   <h3 className="font-bold text-slate-900 text-sm">Lead details</h3>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">First Name</label>
+                      <input
+                        type="text"
+                        value={form.firstName}
+                        onChange={e => setForm({ ...form, firstName: e.target.value })}
+                        placeholder="e.g. John"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Last Name</label>
+                      <input
+                        type="text"
+                        value={form.lastName}
+                        onChange={e => setForm({ ...form, lastName: e.target.value })}
+                        placeholder="e.g. Doe"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Designation / Role</label>
+                      <input
+                        type="text"
+                        value={form.designation}
+                        onChange={e => setForm({ ...form, designation: e.target.value })}
+                        placeholder="e.g. VP of Technology"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium mb-1.5 text-slate-600">Contact No</label>
+                      <input
+                        type="tel"
+                        value={form.contactNo}
+                        onChange={e => setForm({ ...form, contactNo: e.target.value })}
+                        placeholder="e.g. +91 98765 43210"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 text-xs"
+                      />
+                    </div>
+                  </div>
 
                   <div>
                     <label className="block font-medium mb-1.5 text-slate-600">Email</label>

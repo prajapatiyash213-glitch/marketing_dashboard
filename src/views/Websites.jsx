@@ -51,32 +51,6 @@ export function WebsitesView({ d, setView }) {
   const latest = d.seo?.latest || {};
   const bounceDisplay = d.seo?.avgBounce != null ? `${d.seo.avgBounce.toFixed(1)}%` : (latest.bounce != null ? `${latest.bounce}%` : "—");
 
-  if (!sites.length && !d.periodWeeks?.length && !d.weeks?.length) {
-    return (
-      <div className="space-y-6">
-        <Panel
-          title="Website & SEO Analytics"
-          note="Weekly organic traffic, keywords, domain authority, and conversion funnel"
-          right={
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => downloadSampleSheet("seo")}
-                className="btn !py-2 !px-3.5 !text-xs !font-bold flex items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-xs"
-              >
-                Download SEO_Matrix_tecnoprism_com.xlsx
-              </button>
-            </div>
-          }
-        >
-          <EmptyState height={200}>
-            No SEO weekly matrix is loaded. Drop your SEO matrix file (or click &ldquo;Load 45-Week SEO Matrix&rdquo; above) to analyze all 11 metrics across views, users, bounce rate, backlinks, keyword rankings, and leads.
-          </EmptyState>
-        </Panel>
-      </div>
-    );
-  }
-
   // One row per bucket with a column per site, so the lines share an axis.
   const byLabel = new Map();
   for (const s of sites) {
@@ -147,6 +121,32 @@ export function WebsitesView({ d, setView }) {
         bounce: item.bounceN ? Math.round((item.bounceSum / item.bounceN) * 10) / 10 : null,
       }));
   }, [d.weeks, d.site]);
+
+  if (!sites.length && !d.periodWeeks?.length && !d.weeks?.length) {
+    return (
+      <div className="space-y-6">
+        <Panel
+          title="Website & SEO Analytics"
+          note="Weekly organic traffic, keywords, domain authority, and conversion funnel"
+          right={
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => downloadSampleSheet("seo")}
+                className="btn !py-2 !px-3.5 !text-xs !font-bold flex items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-xs"
+              >
+                Download SEO_Matrix_tecnoprism_com.xlsx
+              </button>
+            </div>
+          }
+        >
+          <EmptyState height={200}>
+            No SEO weekly matrix is loaded. Drop your SEO matrix file (or click &ldquo;Load 45-Week SEO Matrix&rdquo; above) to analyze all 11 metrics across views, users, bounce rate, backlinks, keyword rankings, and leads.
+          </EmptyState>
+        </Panel>
+      </div>
+    );
+  }
 
   const currentDatasetWeek = chronologicalWeeks[chronologicalWeeks.length - 1] || null;
   const previousDatasetWeek = chronologicalWeeks.length >= 2 ? chronologicalWeeks[chronologicalWeeks.length - 2] : null;

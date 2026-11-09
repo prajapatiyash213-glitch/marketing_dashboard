@@ -62,11 +62,11 @@ export default async function handler(req, res) {
 
     let body = req.body;
     if (typeof body === "string") {
-      try { body = JSON.parse(body); } catch {}
+      try { body = JSON.parse(body); } catch { body = {}; }
     } else if (!body && typeof req.on === "function") {
       let raw = "";
       for await (const chunk of req) raw += chunk;
-      try { body = JSON.parse(raw); } catch {}
+      try { body = JSON.parse(raw); } catch { body = {}; }
     }
 
     if (req.method === "POST") {

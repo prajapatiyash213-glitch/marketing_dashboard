@@ -28,7 +28,7 @@ export const FIELD_DEFS = [
   ["date", "Date", ["date", "created", "created on", "created date", "date added", "captured on", "visit date", "enquiry date", "timestamp", "first seen"]],
   ["title", "Job title", ["designation", "job title", "title", "role", "position"]],
   ["email", "Email", ["email", "email address", "e mail", "work email"]],
-  ["phone", "Phone", ["phone", "mobile", "contact number", "phone number"]],
+  ["phone", "Phone", ["contact no", "contact number", "phone", "mobile", "phone number", "contact"]],
   ["pipeline", "Pipeline", ["pipeline", "business unit", "business line", "vertical", "product line", "brand", "practice", "division"]],
   ["site", "Website", ["site", "website", "domain", "property", "web property"]],
   ["campaign", "Campaign", ["utm campaign", "campaign name"]],

@@ -9,6 +9,28 @@
  */
 
 const FALLBACK_ENDPOINT = "https://sales-hazel-ten.vercel.app/api/sales-leads";
+const LEAD_META_KEY = "sales_lead_metadata_cache_v1";
+
+export function getLeadMetadataCache() {
+  if (typeof window === "undefined" || !window.localStorage) return {};
+  try {
+    const raw = localStorage.getItem(LEAD_META_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveLeadMetadata(idOrEmail, meta) {
+  if (typeof window === "undefined" || !window.localStorage || !idOrEmail) return;
+  try {
+    const cache = getLeadMetadataCache();
+    cache[idOrEmail] = { ...(cache[idOrEmail] || {}), ...meta };
+    localStorage.setItem(LEAD_META_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.warn("[SalesSync] Failed to persist lead metadata:", e);
+  }
+}
 
 function getEndpointUrl() {
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -71,10 +93,17 @@ export function displayCompany(row) {
 }
 
 function mapRowToLead(row, profilesMap = {}) {
+  const metaCache = getLeadMetadataCache();
+  const cached = metaCache[row.id] || metaCache[row.email] || {};
+
   return {
     id: row.id,
+    firstName: row.first_name || row.firstName || cached.firstName || "",
+    lastName: row.last_name || row.lastName || cached.lastName || "",
+    designation: row.designation || row.title || row.job_title || row.role || cached.designation || "",
+    contactNo: row.contact_no || row.contactNo || row.phone || row.mobile || row.work_phone || cached.contactNo || "",
     email: row.email || "",
-    company: displayCompany(row),
+    company: row.company || displayCompany(row) || cached.company || "",
     brand: row.brand || "Tecnoprism",
     owner: profilesMap[row.owner_id] || (row.owner_id === "5a94425d-b626-417c-a373-f9fa2ff0fdb0" ? "shashank Jha" : "Yash Prajapati"),
     owner_id: row.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24",
@@ -141,6 +170,16 @@ export async function fetchLiveLeads(profilesMap = {}) {
  */
 export async function createLiveLead(leadData) {
   try {
+    if (leadData.id || leadData.email) {
+      saveLeadMetadata(leadData.id || leadData.email, {
+        firstName: leadData.firstName || "",
+        lastName: leadData.lastName || "",
+        designation: leadData.designation || "",
+        contactNo: leadData.contactNo || "",
+        company: leadData.company || ""
+      });
+    }
+
     const payload = sanitizeLeadPatch({
       email: leadData.email,
       company: leadData.company,
@@ -162,6 +201,16 @@ export async function createLiveLead(leadData) {
       body: JSON.stringify(payload)
     });
 
+    if (data?.lead?.id) {
+      saveLeadMetadata(data.lead.id, {
+        firstName: leadData.firstName || "",
+        lastName: leadData.lastName || "",
+        designation: leadData.designation || "",
+        contactNo: leadData.contactNo || "",
+        company: leadData.company || ""
+      });
+    }
+
     return data.lead || null;
   } catch (err) {
     console.error("[SalesSync] Error creating live lead:", err);
@@ -174,6 +223,16 @@ export async function createLiveLead(leadData) {
  */
 export async function updateLiveLead(leadId, patchObj) {
   try {
+    if (patchObj.firstName !== undefined || patchObj.lastName !== undefined || patchObj.designation !== undefined || patchObj.contactNo !== undefined || patchObj.company !== undefined) {
+      saveLeadMetadata(leadId, {
+        ...(patchObj.firstName !== undefined ? { firstName: patchObj.firstName } : {}),
+        ...(patchObj.lastName !== undefined ? { lastName: patchObj.lastName } : {}),
+        ...(patchObj.designation !== undefined ? { designation: patchObj.designation } : {}),
+        ...(patchObj.contactNo !== undefined ? { contactNo: patchObj.contactNo } : {}),
+        ...(patchObj.company !== undefined ? { company: patchObj.company } : {})
+      });
+    }
+
     const sanitized = sanitizeLeadPatch(patchObj);
     const data = await requestSalesApi({
       method: "PATCH",

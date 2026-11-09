@@ -94,7 +94,7 @@ export const SAMPLE_CATEGORIES = [
     badge: "Drop-offs",
     badgeBg: "bg-rose-50 text-[#FA2E76] border-rose-200/60",
     description: "Visitor drop-offs capturing multi-line pages visited, brand, owner, lead dates, connect dates, and stages.",
-    columns: ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"],
+    columns: ["First Name", "Last Name", "Designation", "Contact No", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"],
   },
 ];
 
@@ -262,11 +262,12 @@ export function buildSampleWorkbook(categoryId = "all") {
   };
 
   const addDropoffsSheet = () => {
-    const headers = ["First Name", "Last Name", "Title", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"];
+    const headers = ["First Name", "Last Name", "Designation", "Contact No", "Company Name", "Company Name for Emails", "Email", "Page Visited", "Brand", "Ownership", "Lead Date", "Lead Source", "Lead Stage", "Date of Connect", "Comments", "Follow-up 2 Date", "Comments", "Lead Status"];
     const rows = EXACT_SAMPLE_DROPOFFS.map((r) => [
       r.firstName,
       r.lastName,
-      r.title,
+      r.title || r.designation || "",
+      r.phone || r.contactNo || "",
       r.company,
       r.companyForEmails,
       r.email,

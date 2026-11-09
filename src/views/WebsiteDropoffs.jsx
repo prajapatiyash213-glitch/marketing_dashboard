@@ -5,6 +5,7 @@ import { EXACT_SAMPLE_DROPOFFS, formatDropoffRecord } from "../lib/dropoffData.j
 
 export function WebsiteDropoffsView({ d }) {
   const [visitorBrandFilter, setVisitorBrandFilter] = useState("All");
+  const [companyFilter, setCompanyFilter] = useState("All");
   const [ownerFilter, setOwnerFilter] = useState("All");
   const [visitorSearch, setVisitorSearch] = useState("");
   const [visitorJourneyFilter, setVisitorJourneyFilter] = useState("All");
@@ -50,9 +51,25 @@ export function WebsiteDropoffsView({ d }) {
     return Array.from(set).sort();
   }, [baseRecords]);
 
+  // Unique list of companies from base records
+  const companiesList = useMemo(() => {
+    const set = new Set();
+    for (const r of baseRecords) {
+      if (r.company && String(r.company).trim()) {
+        set.add(String(r.company).trim());
+      }
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [baseRecords]);
+
   // Filtered visitor leads based on in-view interactive filters
   const filteredVisitors = useMemo(() => {
     let list = baseRecords;
+
+    // Company filter
+    if (companyFilter !== "All") {
+      list = list.filter((r) => r.company?.toLowerCase() === companyFilter.toLowerCase());
+    }
 
     // Brand filter (if not already constrained by global site)
     if (visitorBrandFilter !== "All") {
@@ -98,7 +115,7 @@ export function WebsiteDropoffsView({ d }) {
       );
     }
     return list;
-  }, [baseRecords, visitorBrandFilter, ownerFilter, visitorJourneyFilter, connectFilter, exitPageFilter, visitorSearch]);
+  }, [baseRecords, companyFilter, visitorBrandFilter, ownerFilter, visitorJourneyFilter, connectFilter, exitPageFilter, visitorSearch]);
 
   // Dynamic counts derived from the active view scope
   const totalInScope = baseRecords.length;
@@ -122,6 +139,7 @@ export function WebsiteDropoffsView({ d }) {
 
   // Clear all local filters
   const resetLocalFilters = () => {
+    setCompanyFilter("All");
     setVisitorBrandFilter("All");
     setOwnerFilter("All");
     setVisitorJourneyFilter("All");
@@ -131,6 +149,7 @@ export function WebsiteDropoffsView({ d }) {
   };
 
   const hasActiveLocalFilters =
+    companyFilter !== "All" ||
     visitorBrandFilter !== "All" ||
     ownerFilter !== "All" ||
     visitorJourneyFilter !== "All" ||
@@ -378,6 +397,23 @@ export function WebsiteDropoffsView({ d }) {
               </div>
             )}
 
+            {/* Company Filter */}
+            <select
+              value={companyFilter}
+              onChange={(e) => setCompanyFilter(e.target.value)}
+              className="bg-slate-50 border border-slate-200/80 rounded-xl px-2.5 py-1 text-xs text-slate-700 font-medium focus:outline-none"
+            >
+              <option value="All">All Companies ({companiesList.length})</option>
+              {companiesList.map((comp) => {
+                const cnt = baseRecords.filter((r) => r.company?.toLowerCase() === comp.toLowerCase()).length;
+                return (
+                  <option key={comp} value={comp}>
+                    {comp} ({cnt})
+                  </option>
+                );
+              })}
+            </select>
+
             {/* Journey Depth Filter */}
             <select
               value={visitorJourneyFilter}
@@ -416,6 +452,20 @@ export function WebsiteDropoffsView({ d }) {
                 );
               })}
             </select>
+
+            {/* Active Company Filter Badge */}
+            {companyFilter !== "All" && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                Company: {companyFilter}
+                <button
+                  type="button"
+                  onClick={() => setCompanyFilter("All")}
+                  className="hover:text-black font-extrabold cursor-pointer"
+                >
+                  ✕
+                </button>
+              </span>
+            )}
 
             {/* Active Exit Filter Badge */}
             {exitPageFilter !== "All" && (
@@ -712,6 +762,16 @@ export function WebsiteDropoffsView({ d }) {
                             </div>
                           ) : (
                             <span className="text-slate-400">—</span>
+                          )}
+                          {(r.phone || r.contactNo) && (
+                            <div className="mt-1">
+                              <a
+                                href={`tel:${(r.phone || r.contactNo).replace(/\s+/g, '')}`}
+                                className="text-[10px] text-slate-500 hover:text-emerald-700 font-mono inline-flex items-center gap-1"
+                              >
+                                <span>📞</span> {r.phone || r.contactNo}
+                              </a>
+                            </div>
                           )}
                         </td>
 
