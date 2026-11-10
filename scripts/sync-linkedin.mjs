@@ -130,6 +130,20 @@ export async function syncLinkedIn() {
       liveFollowers: followers,
     };
 
+    const publicMasterPath = path.resolve(__dirname, "../public/master/linkedin_live.json");
+    const distMasterPath = path.resolve(__dirname, "../dist/master/linkedin_live.json");
+
+    let existingData = {};
+    try {
+      if (fs.existsSync(publicMasterPath)) {
+        existingData = JSON.parse(fs.readFileSync(publicMasterPath, "utf8"));
+      }
+    } catch {}
+
+    if (!recentPosts.length && existingData.recentPosts?.length) {
+      recentPosts = existingData.recentPosts;
+    }
+
     const liveData = {
       profileUrl: LINKEDIN_URL,
       companyName: companyMeta.name?.includes("Tecnoprism") ? "Tecnoprism Pvt Ltd" : (companyMeta.name || "Tecnoprism Pvt Ltd"),
@@ -144,9 +158,6 @@ export async function syncLinkedIn() {
       demographics: liveDemographics,
     };
 
-    const publicMasterPath = path.resolve(__dirname, "../public/master/linkedin_live.json");
-    const distMasterPath = path.resolve(__dirname, "../dist/master/linkedin_live.json");
-
     fs.mkdirSync(path.dirname(publicMasterPath), { recursive: true });
     fs.writeFileSync(publicMasterPath, JSON.stringify(liveData, null, 2), "utf8");
 
@@ -160,6 +171,13 @@ export async function syncLinkedIn() {
   } catch (error) {
     console.error("[LinkedIn Sync Error]:", error.message);
     // Write fallback snapshot if network fails
+    let existingFallback = {};
+    try {
+      if (fs.existsSync(publicMasterPath)) {
+        existingFallback = JSON.parse(fs.readFileSync(publicMasterPath, "utf8"));
+      }
+    } catch {}
+
     const fallbackData = {
       profileUrl: LINKEDIN_URL,
       companyName: "Tecnoprism Pvt Ltd",
@@ -170,7 +188,7 @@ export async function syncLinkedIn() {
       employees: 231,
       hq: "Tomball, Texas, US",
       slogan: "Tecnoprism empowers enterprises to operate autonomously by transforming manual processes into intelligent automation.",
-      recentPosts: [],
+      recentPosts: existingFallback.recentPosts?.length ? existingFallback.recentPosts : [],
     };
     const publicMasterPath = path.resolve(__dirname, "../public/master/linkedin_live.json");
     fs.mkdirSync(path.dirname(publicMasterPath), { recursive: true });
