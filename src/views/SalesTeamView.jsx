@@ -303,7 +303,7 @@ export function SalesTeamView() {
           firstName: row['First Name'] || row.firstName || row.fname || '',
           lastName: row['Last Name'] || row.lastName || row.lname || '',
           designation: row.Designation || row.designation || row.Title || row.title || row.Role || row.role || '',
-          contactNo: row['Contact No'] || row['Contact Number'] || row.contactNo || row.Phone || row.phone || row.Mobile || row.mobile || '',
+          contactNo: row['Contact No'] || row['Contact Number'] || row['Corporate Phone'] || row['corporate phone'] || row['Corporate phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.contactNo || row.Phone || row.phone || row.Mobile || row.mobile || '',
           email,
           company: row.Company || row.company || row['Company Name'] || '',
           brand: row.Brand || row.brand || 'Tecnoprism',

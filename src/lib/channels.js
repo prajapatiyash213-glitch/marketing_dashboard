@@ -99,7 +99,7 @@ export const CHANNEL_SCHEMAS = {
       D("firstName", "First Name", ["first name", "fname"]),
       D("lastName", "Last Name", ["last name", "lname"]),
       D("title", "Designation", ["designation", "title", "job title", "role", "position"]),
-      D("contactNo", "Contact No", ["contact no", "contact number", "contact", "phone", "mobile", "phone number", "mobile phone", "work direct phone", "cell"]),
+      D("contactNo", "Contact No", ["contact no", "contact number", "contact", "corporate phone", "corporate phone number", "corp phone", "corporate contact", "phone", "mobile", "phone number", "mobile phone", "work direct phone", "cell"]),
       D("company", "Company Name", ["company name", "company", "account"]),
       D("companyForEmails", "Company Name for Emails", ["company name for emails", "company for emails"]),
       D("email", "Email", ["email", "email address", "work email"]),

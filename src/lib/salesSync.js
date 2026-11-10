@@ -101,7 +101,7 @@ function mapRowToLead(row, profilesMap = {}) {
     firstName: row.first_name || row.firstName || cached.firstName || "",
     lastName: row.last_name || row.lastName || cached.lastName || "",
     designation: row.designation || row.title || row.job_title || row.role || cached.designation || "",
-    contactNo: row.contact_no || row.contactNo || row.phone || row.mobile || row.work_phone || cached.contactNo || "",
+    contactNo: row.contact_no || row.contactNo || row.corporate_phone || row['Corporate Phone'] || row.phone || row.mobile || row.work_phone || cached.contactNo || "",
     email: row.email || "",
     company: row.company || displayCompany(row) || cached.company || "",
     brand: row.brand || "Tecnoprism",
