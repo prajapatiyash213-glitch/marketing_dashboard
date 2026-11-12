@@ -296,15 +296,21 @@ export function SalesTeamView() {
       const worksheet = workbook.Sheets[firstSheetName];
       const json = XLSX.utils.sheet_to_json(worksheet);
 
+      let insertedCount = 0;
+      let updatedCount = 0;
+      let skippedCount = 0;
+
       for (const row of json) {
         const email = row.Email || row.email || row['Email Address'];
         if (!email) continue;
+        const cleanEmail = String(email).trim().toLowerCase();
+
         const newLead = {
           firstName: row['First Name'] || row.firstName || row.fname || '',
           lastName: row['Last Name'] || row.lastName || row.lname || '',
           designation: row.Designation || row.designation || row.Title || row.title || row.Role || row.role || '',
           contactNo: row['Contact No'] || row['Contact Number'] || row['Corporate Phone'] || row['corporate phone'] || row['Corporate phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.contactNo || row.Phone || row.phone || row.Mobile || row.mobile || '',
-          email,
+          email: cleanEmail,
           company: row.Company || row.company || row['Company Name'] || '',
           brand: row.Brand || row.brand || 'Tecnoprism',
           owner: row.Owner || row.owner || 'Yash Prajapati',
@@ -317,9 +323,62 @@ export function SalesTeamView() {
           followup2Comments: row['Follow-up 2 Notes'] || row['Follow-up 2 Comments'] || row.followup2Comments || '',
           leadStatus: row['Lead Status'] || row.leadStatus || 'New'
         };
-        await createLiveLead(newLead);
+
+        const existing = leads.find(l => l.email && l.email.trim().toLowerCase() === cleanEmail);
+        if (existing) {
+          const patchLocal = {};
+          const patchSupabase = {};
+
+          if (newLead.contactNo && newLead.contactNo !== existing.contactNo) {
+            patchLocal.contactNo = newLead.contactNo;
+            patchSupabase.contact_no = newLead.contactNo;
+          }
+          if (newLead.firstName && newLead.firstName !== existing.firstName) {
+            patchLocal.firstName = newLead.firstName;
+            patchSupabase.first_name = newLead.firstName;
+          }
+          if (newLead.lastName && newLead.lastName !== existing.lastName) {
+            patchLocal.lastName = newLead.lastName;
+            patchSupabase.last_name = newLead.lastName;
+          }
+          if (newLead.designation && newLead.designation !== existing.designation) {
+            patchLocal.designation = newLead.designation;
+            patchSupabase.designation = newLead.designation;
+          }
+          if (newLead.company && newLead.company !== existing.company) {
+            patchLocal.company = newLead.company;
+            patchSupabase.company = newLead.company;
+          }
+          if (newLead.brand && newLead.brand !== existing.brand) {
+            patchLocal.brand = newLead.brand;
+            patchSupabase.brand = newLead.brand;
+          }
+          if (newLead.leadStage && newLead.leadStage !== existing.leadStage) {
+            patchLocal.leadStage = newLead.leadStage;
+            patchSupabase.lead_stage = newLead.leadStage;
+          }
+          if (newLead.leadStatus && newLead.leadStatus !== existing.leadStatus) {
+            patchLocal.leadStatus = newLead.leadStatus;
+            patchSupabase.lead_status = newLead.leadStatus;
+          }
+          if (newLead.comments && newLead.comments !== existing.comments) {
+            patchLocal.comments = newLead.comments;
+            patchSupabase.comments = newLead.comments;
+          }
+
+          if (Object.keys(patchLocal).length > 0) {
+            await handleUpdateField(existing.id, patchLocal, patchSupabase);
+            updatedCount++;
+          } else {
+            skippedCount++;
+          }
+        } else {
+          await createLiveLead(newLead);
+          insertedCount++;
+        }
       }
       await syncData();
+      alert(`Import complete: ${insertedCount} new added, ${updatedCount} updated with changed details, ${skippedCount} unchanged duplicates skipped.`);
     } catch (err) {
       console.error("Import error:", err);
       alert("Failed to import file: " + err.message);
