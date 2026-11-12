@@ -198,6 +198,40 @@ const extractField = (row, aliases) => {
   return '';
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const sanitizeAndExtractEmail = (raw) => {
+  if (!raw) return '';
+  let str = String(raw).trim();
+  str = str.replace(/^mailto:/i, '').replace(/^[<("'`]+|[>)"'`]+$/g, '').trim();
+  if (EMAIL_REGEX.test(str)) return str.toLowerCase();
+  const m = str.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (m && EMAIL_REGEX.test(m[0])) return m[0].toLowerCase();
+  return '';
+};
+
+const extractEmailFromRow = (row) => {
+  const normAliases = ['email', 'emailid', 'workemail', 'emailaddress', 'leademail'];
+  for (const alias of normAliases) {
+    for (const key of Object.keys(row)) {
+      if (normKey(key) === alias) {
+        const em = sanitizeAndExtractEmail(row[key]);
+        if (em) return em;
+      }
+    }
+  }
+  for (const alias of normAliases) {
+    for (const key of Object.keys(row)) {
+      const k = normKey(key);
+      if (k.includes(alias) && !k.includes('company') && !k.includes('open') && !k.includes('bounce') && !k.includes('status') && !k.includes('source')) {
+        const em = sanitizeAndExtractEmail(row[key]);
+        if (em) return em;
+      }
+    }
+  }
+  return '';
+};
+
 export function SalesTeamView() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [profilesMap, setProfilesMap] = useState(INITIAL_PROFILES_MAP);
@@ -363,11 +397,10 @@ export function SalesTeamView() {
           'work phone',
           'company phone'
         ]);
-        const email = extractField(row, ['email', 'email id', 'work email', 'email address', 'lead email']);
-        const company = extractField(row, ['company', 'company name', 'company name for emails', 'client', 'account', 'organization']);
+        const cleanEmail = extractEmailFromRow(row);
+        const company = extractField(row, ['company', 'company name', 'client', 'account', 'organization']);
 
-        if (!email) continue;
-        const cleanEmail = String(email).trim().toLowerCase();
+        if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) continue;
 
         const newLead = {
           firstName,
