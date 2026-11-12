@@ -167,6 +167,37 @@ const INITIAL_PROFILES_MAP = {
   '5a94425d-b626-417c-a373-f9fa2ff0fdb0': 'shashank Jha'
 };
 
+const cleanStr = (v) => {
+  if (v === undefined || v === null) return '';
+  const s = String(v).trim();
+  if (s.toLowerCase() === 'undefined' || s.toLowerCase() === 'null') return '';
+  return s;
+};
+
+const normKey = (k) => k.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+const extractField = (row, aliases) => {
+  const normAliases = aliases.map(normKey);
+  for (const alias of normAliases) {
+    for (const key of Object.keys(row)) {
+      if (normKey(key) === alias) {
+        const val = cleanStr(row[key]);
+        if (val) return val;
+      }
+    }
+  }
+  for (const alias of normAliases) {
+    for (const key of Object.keys(row)) {
+      const k = normKey(key);
+      if (k.includes(alias)) {
+        const val = cleanStr(row[key]);
+        if (val) return val;
+      }
+    }
+  }
+  return '';
+};
+
 export function SalesTeamView() {
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [profilesMap, setProfilesMap] = useState(INITIAL_PROFILES_MAP);
@@ -301,27 +332,60 @@ export function SalesTeamView() {
       let skippedCount = 0;
 
       for (const row of json) {
-        const email = row.Email || row.email || row['Email Address'];
+        let firstName = extractField(row, ['first name', 'firstname', 'fname', 'first_name', 'given name']);
+        let lastName = extractField(row, ['last name', 'lastname', 'lname', 'last_name', 'surname']);
+        if (!firstName && !lastName) {
+          const fullName = extractField(row, ['name', 'full name', 'fullname', 'contact name', 'person name', 'lead name']);
+          if (fullName) {
+            const parts = fullName.split(/\s+/);
+            firstName = parts[0] || '';
+            lastName = parts.slice(1).join(' ') || '';
+          }
+        }
+        const designation = extractField(row, ['designation', 'title', 'role', 'job title', 'position', 'seniority']);
+        const contactNo = extractField(row, [
+          'contact no',
+          'contact number',
+          'corporate phone',
+          'corporate phone number',
+          'corporate phone no',
+          'corp phone',
+          'mobile phone',
+          'mobile no',
+          'mobile number',
+          'phone number',
+          'phone no',
+          'phone',
+          'contact',
+          'cell phone',
+          'cell',
+          'work direct phone',
+          'work phone',
+          'company phone'
+        ]);
+        const email = extractField(row, ['email', 'email id', 'work email', 'email address', 'lead email']);
+        const company = extractField(row, ['company', 'company name', 'company name for emails', 'client', 'account', 'organization']);
+
         if (!email) continue;
         const cleanEmail = String(email).trim().toLowerCase();
 
         const newLead = {
-          firstName: row['First Name'] || row.firstName || row.fname || '',
-          lastName: row['Last Name'] || row.lastName || row.lname || '',
-          designation: row.Designation || row.designation || row.Title || row.title || row.Role || row.role || '',
-          contactNo: row['Contact No'] || row['Contact Number'] || row['Corporate Phone'] || row['corporate phone'] || row['Corporate phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.contactNo || row.Phone || row.phone || row.Mobile || row.mobile || '',
+          firstName,
+          lastName,
+          designation,
+          contactNo,
           email: cleanEmail,
-          company: row.Company || row.company || row['Company Name'] || '',
-          brand: row.Brand || row.brand || 'Tecnoprism',
-          owner: row.Owner || row.owner || 'Yash Prajapati',
-          leadDate: row['Lead Date'] || row.leadDate || new Date().toISOString().split('T')[0],
-          leadSource: row['Lead Source'] || row.leadSource || 'Inbound - Referral',
-          leadStage: row['Lead Stage'] || row.leadStage || 'Discovery',
-          dateOfConnect: row['Date Of Connect'] || row['Connect Date'] || '',
-          comments: row.Comments || row.comments || '',
-          followup2Date: row['Follow-up 2 Date'] || row.followup2Date || '',
-          followup2Comments: row['Follow-up 2 Notes'] || row['Follow-up 2 Comments'] || row.followup2Comments || '',
-          leadStatus: row['Lead Status'] || row.leadStatus || 'New'
+          company,
+          brand: extractField(row, ['brand', 'brand name']) || 'Tecnoprism',
+          owner: extractField(row, ['owner', 'ownership', 'owner name', 'sales member']) || 'Yash Prajapati',
+          leadDate: extractField(row, ['lead date', 'date']) || new Date().toISOString().split('T')[0],
+          leadSource: extractField(row, ['source', 'lead source', 'channel']) || 'Inbound - Referral',
+          leadStage: extractField(row, ['stage', 'lead stage']) || 'Discovery',
+          dateOfConnect: extractField(row, ['date of connect', 'connect date']) || '',
+          comments: extractField(row, ['comments', 'notes', 'comment', 'note', 'lead comment']) || '',
+          followup2Date: extractField(row, ['follow-up 2 date', 'followup 2 date']) || '',
+          followup2Comments: extractField(row, ['follow-up 2 notes', 'follow-up 2 comments', 'followup 2 comments']) || '',
+          leadStatus: extractField(row, ['status', 'lead status', 'current status']) || 'New'
         };
 
         const existing = leads.find(l => l.email && l.email.trim().toLowerCase() === cleanEmail);

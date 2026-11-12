@@ -92,16 +92,30 @@ export function displayCompany(row) {
   return derived || '—';
 }
 
+function decodeLeadComments(rawComments) {
+  if (!rawComments) return { comments: "", meta: {} };
+  const match = String(rawComments).match(/<!--lead-meta:([\s\S]*?)-->/);
+  let meta = {};
+  if (match && match[1]) {
+    try {
+      meta = JSON.parse(match[1]);
+    } catch {}
+  }
+  const comments = String(rawComments).replace(/<!--lead-meta:[\s\S]*?-->/g, "").trim();
+  return { comments, meta };
+}
+
 function mapRowToLead(row, profilesMap = {}) {
   const metaCache = getLeadMetadataCache();
-  const cached = metaCache[row.id] || metaCache[row.email] || {};
+  const cached = metaCache[row.id] || metaCache[row.email] || (row.email ? metaCache[row.email.toLowerCase()] : {}) || {};
+  const { comments: cleanComments, meta: commentMeta } = decodeLeadComments(row.comments);
 
   return {
     id: row.id,
-    firstName: row.first_name || row.firstName || cached.firstName || "",
-    lastName: row.last_name || row.lastName || cached.lastName || "",
-    designation: row.designation || row.title || row.job_title || row.role || cached.designation || "",
-    contactNo: row.contact_no || row.contactNo || row.corporate_phone || row['Corporate Phone'] || row.phone || row.mobile || row.work_phone || cached.contactNo || "",
+    firstName: row.first_name || row.firstName || commentMeta.first_name || cached.firstName || "",
+    lastName: row.last_name || row.lastName || commentMeta.last_name || cached.lastName || "",
+    designation: row.designation || row.title || row.job_title || row.role || commentMeta.designation || cached.designation || "",
+    contactNo: row.contact_no || row.contactNo || row['Contact No.'] || row['Contact No'] || row['Contact Number'] || row.corporate_phone || row['Corporate Phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.phone || row.mobile || row.work_phone || commentMeta.contact_no || cached.contactNo || "",
     email: row.email || "",
     company: row.company || displayCompany(row) || cached.company || "",
     brand: row.brand || "Tecnoprism",
@@ -111,7 +125,7 @@ function mapRowToLead(row, profilesMap = {}) {
     leadSource: row.lead_source || "Inbound - Referral",
     leadStage: row.lead_stage || "Discovery",
     dateOfConnect: row.connect_date || "",
-    comments: row.comments || "",
+    comments: cleanComments,
     followup2Date: row.followup2_date || "",
     followup2Comments: row.followup2_comments || "",
     leadStatus: row.lead_status || "New",
@@ -181,6 +195,10 @@ export async function createLiveLead(leadData) {
     }
 
     const payload = sanitizeLeadPatch({
+      first_name: leadData.firstName || "",
+      last_name: leadData.lastName || "",
+      designation: leadData.designation || "",
+      contact_no: leadData.contactNo || "",
       email: leadData.email,
       company: leadData.company,
       brand: leadData.brand || "Tecnoprism",
@@ -233,7 +251,13 @@ export async function updateLiveLead(leadId, patchObj) {
       });
     }
 
-    const sanitized = sanitizeLeadPatch(patchObj);
+    const sanitized = sanitizeLeadPatch({
+      ...patchObj,
+      ...(patchObj.firstName !== undefined ? { first_name: patchObj.firstName } : {}),
+      ...(patchObj.lastName !== undefined ? { last_name: patchObj.lastName } : {}),
+      ...(patchObj.designation !== undefined ? { designation: patchObj.designation } : {}),
+      ...(patchObj.contactNo !== undefined ? { contact_no: patchObj.contactNo } : {})
+    });
     const data = await requestSalesApi({
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
