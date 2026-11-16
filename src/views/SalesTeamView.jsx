@@ -462,6 +462,18 @@ export function SalesTeamView() {
             patchLocal.comments = newLead.comments;
             patchSupabase.comments = newLead.comments;
           }
+          if (newLead.dateOfConnect && newLead.dateOfConnect !== existing.dateOfConnect) {
+            patchLocal.dateOfConnect = newLead.dateOfConnect;
+            patchSupabase.connect_date = newLead.dateOfConnect;
+          }
+          if (newLead.followup2Date && newLead.followup2Date !== existing.followup2Date) {
+            patchLocal.followup2Date = newLead.followup2Date;
+            patchSupabase.followup2_date = newLead.followup2Date;
+          }
+          if (newLead.followup2Comments && newLead.followup2Comments !== existing.followup2Comments) {
+            patchLocal.followup2Comments = newLead.followup2Comments;
+            patchSupabase.followup2_comments = newLead.followup2Comments;
+          }
 
           if (Object.keys(patchLocal).length > 0) {
             await handleUpdateField(existing.id, patchLocal, patchSupabase);

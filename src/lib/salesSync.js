@@ -124,7 +124,7 @@ function mapRowToLead(row, profilesMap = {}) {
     leadDate: row.lead_date || row.created_at?.split("T")[0] || "",
     leadSource: row.lead_source || "Inbound - Referral",
     leadStage: row.lead_stage || "Discovery",
-    dateOfConnect: row.connect_date || "",
+    dateOfConnect: row.connect_date || row.date_of_connect || "",
     comments: cleanComments,
     followup2Date: row.followup2_date || "",
     followup2Comments: row.followup2_comments || "",
