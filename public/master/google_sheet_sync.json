@@ -2,14 +2,14 @@
   "sheetId": "1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI",
   "sheetUrl": "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0",
   "site": "tecnoprism.com",
-  "weeksCount": 59,
-  "latestWeek": "6-Nov",
-  "latestWeekDate": "2026-11-06T00:00:00.000Z",
-  "latestViews": 809,
-  "latestUsers": 513,
-  "latestBounce": 78.59,
-  "totalWeeksCount": 78,
-  "lastSynced": "2026-11-09T19:57:06.467Z",
+  "weeksCount": 60,
+  "latestWeek": "13-Nov",
+  "latestWeekDate": "2026-11-13T00:00:00.000Z",
+  "latestViews": 542,
+  "latestUsers": 489,
+  "latestBounce": 83.43,
+  "totalWeeksCount": 80,
+  "lastSynced": "2026-11-16T19:45:33.277Z",
   "sheets": [
     {
       "name": "Tecnoprism",
@@ -17,12 +17,12 @@
       "sheetUrl": "https://docs.google.com/spreadsheets/d/1G6hN7zR-4vkwUgANW1Fi3lLVCfME6kqJcHu4-1YZgRI/edit?gid=0#gid=0",
       "site": "tecnoprism.com",
       "targetFile": "Key Metrics of Marketing(Tecnoprism) (4).csv",
-      "weeksCount": 59,
-      "latestWeek": "6-Nov",
-      "latestWeekDate": "2026-11-06T00:00:00.000Z",
-      "latestViews": 809,
-      "latestUsers": 513,
-      "latestBounce": 78.59
+      "weeksCount": 60,
+      "latestWeek": "13-Nov",
+      "latestWeekDate": "2026-11-13T00:00:00.000Z",
+      "latestViews": 542,
+      "latestUsers": 489,
+      "latestBounce": 83.43
     },
     {
       "name": "Automation COE",
@@ -30,12 +30,12 @@
       "sheetUrl": "https://docs.google.com/spreadsheets/d/1YVysKInWrAQBa_TrU6pnsmNQ2Ds86ZGb7ogf1-uYGho/edit?usp=sharing",
       "site": "automationcoe.com",
       "targetFile": "KPI _ Automation COE (2).xlsx",
-      "weeksCount": 19,
-      "latestWeek": "6-Nov",
-      "latestWeekDate": "2026-11-06T00:00:00.000Z",
-      "latestViews": 130,
-      "latestUsers": 58,
-      "latestBounce": 72
+      "weeksCount": 20,
+      "latestWeek": "13-Nov",
+      "latestWeekDate": "2026-11-13T00:00:00.000Z",
+      "latestViews": 84,
+      "latestUsers": 36,
+      "latestBounce": 63.01
     }
   ]
 }
