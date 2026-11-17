@@ -99,7 +99,9 @@ function decodeLeadComments(rawComments) {
   if (match && match[1]) {
     try {
       meta = JSON.parse(match[1]);
-    } catch {}
+    } catch {
+      // ignore malformed metadata
+    }
   }
   const comments = String(rawComments).replace(/<!--lead-meta:[\s\S]*?-->/g, "").trim();
   return { comments, meta };
