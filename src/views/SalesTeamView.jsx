@@ -261,7 +261,14 @@ export function SalesTeamView() {
       }
       const liveLeads = await fetchLiveLeads(map);
       if (liveLeads && Array.isArray(liveLeads)) {
-        setLeads(liveLeads);
+        setLeads(prev => {
+          if (!prev || prev.length === 0) return liveLeads;
+          const newMap = new Map(liveLeads.map(l => [l.id, l]));
+          const updated = prev.map(p => newMap.get(p.id) || p);
+          const prevIds = new Set(prev.map(p => p.id));
+          const brandNew = liveLeads.filter(l => !prevIds.has(l.id));
+          return [...brandNew, ...updated];
+        });
         setSyncStatus('synced');
         setSyncError(null);
         setLastSyncTime(new Date().toLocaleTimeString());

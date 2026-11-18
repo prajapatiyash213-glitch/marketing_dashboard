@@ -201,7 +201,7 @@ export async function createLiveLead(leadData) {
       last_name: leadData.lastName || "",
       designation: leadData.designation || "",
       contact_no: leadData.contactNo || "",
-      email: leadData.email,
+      email: leadData.email ? String(leadData.email).trim().toLowerCase() : "",
       company: leadData.company,
       brand: leadData.brand || "Tecnoprism",
       owner_id: leadData.owner_id || "e1914945-b140-46b6-b13d-82b45f053f24",
