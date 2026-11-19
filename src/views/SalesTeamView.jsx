@@ -10,7 +10,13 @@ export const SOURCES_OPTIONS = [
   "Inbound - Drop-Offs",
   "Events - Imagine",
   "Events - CFO",
-  "Outbound"
+  "Apollo",
+  "Apollo WV",
+  "Solution - Smart Procure",
+  "Solution - Plantflow",
+  "Solution - Sales",
+  "Outbound",
+  "Inbound"
 ];
 
 export const STATUSES_OPTIONS = [
