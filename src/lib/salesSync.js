@@ -11,11 +11,39 @@
 const FALLBACK_ENDPOINT = "https://sales-hazel-ten.vercel.app/api/sales-leads";
 const LEAD_META_KEY = "sales_lead_metadata_cache_v1";
 
+export function isValidContactNo(val) {
+  if (!val) return false;
+  const s = String(val).trim();
+  if (s.includes('@')) return false;
+  if (/^[a-f0-9]{16,}$/i.test(s.replace(/\s+/g, ''))) return false;
+  if (!/\d/.test(s)) return false;
+  const letters = (s.match(/[a-zA-Z]/g) || []).length;
+  const digits = (s.match(/\d/g) || []).length;
+  if (letters > digits) return false;
+  return true;
+}
+
 export function getLeadMetadataCache() {
   if (typeof window === "undefined" || !window.localStorage) return {};
   try {
     const raw = localStorage.getItem(LEAD_META_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    let dirty = false;
+    for (const key of Object.keys(parsed)) {
+      if (parsed[key]?.contactNo && !isValidContactNo(parsed[key].contactNo)) {
+        delete parsed[key].contactNo;
+        dirty = true;
+      }
+      if (parsed[key]?.contact_no && !isValidContactNo(parsed[key].contact_no)) {
+        delete parsed[key].contact_no;
+        dirty = true;
+      }
+    }
+    if (dirty) {
+      localStorage.setItem(LEAD_META_KEY, JSON.stringify(parsed));
+    }
+    return parsed;
   } catch {
     return {};
   }
@@ -88,8 +116,7 @@ export function extractCompanyFromEmail(email) {
 
 export function displayCompany(row) {
   if (row.company && row.company.trim()) return row.company.trim();
-  const derived = extractCompanyFromEmail(row.email);
-  return derived || '—';
+  return '—';
 }
 
 function decodeLeadComments(rawComments) {
@@ -117,7 +144,9 @@ function mapRowToLead(row, profilesMap = {}) {
     firstName: row.first_name || row.firstName || commentMeta.first_name || cached.firstName || "",
     lastName: row.last_name || row.lastName || commentMeta.last_name || cached.lastName || "",
     designation: row.designation || row.title || row.job_title || row.role || commentMeta.designation || cached.designation || "",
-    contactNo: row.contact_no || row.contactNo || row['Contact No.'] || row['Contact No'] || row['Contact Number'] || row.corporate_phone || row['Corporate Phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.phone || row.mobile || row.work_phone || commentMeta.contact_no || cached.contactNo || "",
+    contactNo: isValidContactNo(row.contact_no || row.contactNo || row['Contact No.'] || row['Contact No'] || row['Contact Number'] || row.corporate_phone || row['Corporate Phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.phone || row.mobile || row.work_phone || commentMeta.contact_no || cached.contactNo || "")
+      ? (row.contact_no || row.contactNo || row['Contact No.'] || row['Contact No'] || row['Contact Number'] || row.corporate_phone || row['Corporate Phone'] || row['Corporate Phone Number'] || row['Corp Phone'] || row.phone || row.mobile || row.work_phone || commentMeta.contact_no || cached.contactNo || "")
+      : "",
     email: row.email || "",
     company: row.company || displayCompany(row) || cached.company || "",
     brand: row.brand || "Tecnoprism",

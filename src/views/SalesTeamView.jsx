@@ -183,22 +183,67 @@ const cleanStr = (v) => {
 
 const normKey = (k) => k.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-const extractField = (row, aliases) => {
+const isValidContactNo = (val) => {
+  if (!val) return false;
+  const s = String(val).trim();
+  // Under NO circumstances should an email or string containing @ be a contact number
+  if (s.includes('@')) return false;
+  // Hex IDs (like Apollo/MongoDB 16+ hex chars) are IDs, not phone numbers
+  if (/^[a-f0-9]{16,}$/i.test(s.replace(/\s+/g, ''))) return false;
+  // Must contain at least one digit
+  if (!/\d/.test(s)) return false;
+  // Must not have more letters than digits
+  const letters = (s.match(/[a-zA-Z]/g) || []).length;
+  const digits = (s.match(/\d/g) || []).length;
+  if (letters > digits) return false;
+  return true;
+};
+
+const isValidName = (val) => {
+  if (!val) return false;
+  const s = String(val).trim();
+  if (s.includes('@')) return false;
+  if (/^(http|https|www\.)/i.test(s)) return false;
+  return true;
+};
+
+const isValidText = (val) => {
+  if (!val) return false;
+  const s = String(val).trim();
+  if (s.includes('@')) return false;
+  return true;
+};
+
+const extractField = (row, aliases, options = {}) => {
+  const { excludeKeySubstrings = [], validator = (v) => !!v } = options;
   const normAliases = aliases.map(normKey);
+  const excludeSubs = excludeKeySubstrings.map(normKey);
+
+  // 1st pass: exact match on normalized key
+  // If an exact matching column exists in the row:
+  // If it has a valid value, return it.
+  // If it is blank/empty, return '' immediately!
+  // A column that was explicitly present in Excel but left blank MUST remain blank.
   for (const alias of normAliases) {
     for (const key of Object.keys(row)) {
-      if (normKey(key) === alias) {
+      const normK = normKey(key);
+      if (normK === alias) {
         const val = cleanStr(row[key]);
-        if (val) return val;
+        if (val && validator(val)) return val;
+        return '';
       }
     }
   }
+
+  // 2nd pass: key contains alias (only for specific aliases >= 5 chars, excluding forbidden substrings)
   for (const alias of normAliases) {
+    if (alias.length < 5) continue;
     for (const key of Object.keys(row)) {
       const k = normKey(key);
+      if (excludeSubs.some(sub => k.includes(sub))) continue;
       if (k.includes(alias)) {
         const val = cleanStr(row[key]);
-        if (val) return val;
+        if (val && validator(val)) return val;
       }
     }
   }
@@ -401,49 +446,73 @@ export function SalesTeamView() {
       let skippedCount = 0;
 
       for (const row of json) {
-        let firstName = extractField(row, ['first name', 'firstname', 'fname', 'first_name', 'given name']);
-        let lastName = extractField(row, ['last name', 'lastname', 'lname', 'last_name', 'surname']);
+        let firstName = extractField(row, ['first name', 'firstname', 'fname', 'first_name', 'given name'], {
+          excludeKeySubstrings: ['company', 'brand', 'email', 'mail', 'file', 'sheet', 'user', 'owner', 'account'],
+          validator: isValidName
+        });
+        let lastName = extractField(row, ['last name', 'lastname', 'lname', 'last_name', 'surname'], {
+          excludeKeySubstrings: ['company', 'brand', 'email', 'mail', 'file', 'sheet', 'user', 'owner', 'account'],
+          validator: isValidName
+        });
         if (!firstName && !lastName) {
-          const fullName = extractField(row, ['name', 'full name', 'fullname', 'contact name', 'person name', 'lead name']);
+          const fullName = extractField(row, ['name', 'full name', 'fullname', 'contact name', 'person name', 'lead name'], {
+            excludeKeySubstrings: ['company', 'brand', 'email', 'mail', 'file', 'sheet', 'user', 'owner', 'account'],
+            validator: isValidName
+          });
           if (fullName) {
             const parts = fullName.split(/\s+/);
             firstName = parts[0] || '';
             lastName = parts.slice(1).join(' ') || '';
           }
         }
-        const designation = extractField(row, ['designation', 'title', 'role', 'job title', 'position', 'seniority']);
+        const designation = extractField(row, ['designation', 'job title', 'title', 'role', 'position', 'seniority'], {
+          excludeKeySubstrings: ['email', 'mail', 'company', 'brand', 'file', 'sheet'],
+          validator: isValidText
+        });
         const contactNo = extractField(row, [
           'contact no',
           'contact number',
+          'contactno',
+          'contact#',
           'corporate phone',
           'corporate phone number',
           'corporate phone no',
           'corp phone',
           'mobile phone',
           'mobile no',
+          'mobileno',
           'mobile number',
+          'mobile',
           'phone number',
           'phone no',
+          'phoneno',
           'phone',
-          'contact',
           'cell phone',
           'cell',
           'work direct phone',
           'work phone',
-          'company phone'
-        ]);
+          'company phone',
+          'direct phone',
+          'telephone'
+        ], {
+          excludeKeySubstrings: ['email', 'mail', 'id', 'name', 'person', 'title', 'company', 'brand', 'source', 'stage', 'status', 'url', 'web', 'link'],
+          validator: isValidContactNo
+        });
         const cleanEmail = extractEmailFromRow(row);
-        const company = extractField(row, ['company', 'company name', 'client', 'account', 'organization']);
+        const company = extractField(row, ['company', 'company name', 'client', 'account', 'organization'], {
+          excludeKeySubstrings: ['email', 'mail', 'user', 'owner', 'contact', 'person', 'phone'],
+          validator: isValidText
+        });
 
         if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) continue;
 
         const newLead = {
-          firstName,
-          lastName,
-          designation,
-          contactNo,
+          firstName: isValidName(firstName) ? firstName : '',
+          lastName: isValidName(lastName) ? lastName : '',
+          designation: isValidText(designation) ? designation : '',
+          contactNo: isValidContactNo(contactNo) ? contactNo : '',
           email: cleanEmail,
-          company,
+          company: isValidText(company) ? company : '',
           brand: extractField(row, ['brand', 'brand name']) || 'Tecnoprism',
           owner: extractField(row, ['owner', 'ownership', 'owner name', 'sales member']) || 'Yash Prajapati',
           leadDate: extractField(row, ['lead date', 'date']) || new Date().toISOString().split('T')[0],
