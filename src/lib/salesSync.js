@@ -300,6 +300,33 @@ export async function deleteLiveLead(leadId) {
 }
 
 /**
+ * Bulk delete multiple leads from live backend (Admin only)
+ */
+export async function deleteLiveLeads(ids) {
+  try {
+    const data = await requestSalesApi({
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids })
+    });
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        const raw = localStorage.getItem(LEAD_META_KEY);
+        if (raw) {
+          const cache = JSON.parse(raw);
+          ids.forEach(id => delete cache[id]);
+          localStorage.setItem(LEAD_META_KEY, JSON.stringify(cache));
+        }
+      } catch {}
+    }
+    return !!data?.success;
+  } catch (err) {
+    console.error("[SalesSync] Error bulk deleting leads:", err);
+    return false;
+  }
+}
+
+/**
  * Permanently delete all leads from live backend (Admin only)
  */
 export async function clearAllLiveLeads() {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead, deleteLiveLead, clearAllLiveLeads } from '../lib/salesSync.js';
+import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead, deleteLiveLead, deleteLiveLeads, clearAllLiveLeads } from '../lib/salesSync.js';
 import { useAuth } from '../auth/AuthContext.jsx';
 
 export const SOURCES_OPTIONS = [
@@ -243,6 +243,7 @@ export function SalesTeamView() {
   const { user } = useAuth();
   const isAdmin = !user || user.badge === 'Admin' || user.role === 'admin' || (typeof user.role === 'string' && user.role.toLowerCase().includes('admin'));
   const [leads, setLeads] = useState(INITIAL_LEADS);
+  const [selectedLeadIds, setSelectedLeadIds] = useState(new Set());
   const [profilesMap, setProfilesMap] = useState(INITIAL_PROFILES_MAP);
   const [syncStatus, setSyncStatus] = useState('syncing');
   const [syncError, setSyncError] = useState(null);
@@ -258,6 +259,24 @@ export function SalesTeamView() {
   const [selectedStage, setSelectedStage] = useState('all');
   const [stageFilter, setStageFilter] = useState('all');
   const [overdueFilter, setOverdueFilter] = useState(false);
+
+  const handleBulkDelete = async () => {
+    if (!selectedLeadIds.size || !isAdmin) return;
+    const count = selectedLeadIds.size;
+    if (!confirm(`Are you sure you want to permanently delete the ${count} selected ${count === 1 ? 'lead' : 'leads'}?\n\nThis operation cannot be undone.`)) {
+      return;
+    }
+    const idsArray = Array.from(selectedLeadIds);
+    const ok = await deleteLiveLeads(idsArray);
+    if (ok) {
+      const deletedSet = new Set(idsArray);
+      setLeads(prev => prev.filter(l => !deletedSet.has(l.id)));
+      setSelectedLeadIds(new Set());
+      alert(`Successfully deleted ${count} leads.`);
+    } else {
+      alert("Failed to delete leads. Please try again.");
+    }
+  };
 
   // Live Supabase Auto-Sync (5s Interval Polling)
   const syncData = async () => {
@@ -943,12 +962,60 @@ export function SalesTeamView() {
           </div>
         </div>
 
+        {/* Admin Multi-Select Bulk Actions Bar */}
+        {isAdmin && selectedLeadIds.size > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4 flex-wrap shadow-xs">
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🗑️</span>
+              <div>
+                <p className="text-sm font-bold text-red-900">
+                  {selectedLeadIds.size} {selectedLeadIds.size === 1 ? 'lead' : 'leads'} selected
+                </p>
+                <p className="text-xs text-red-700">Admin bulk deletion: Selected leads will be permanently deleted.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setSelectedLeadIds(new Set())}
+                className="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer"
+              >
+                Deselect All
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                className="px-4 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                🗑️ Delete {selectedLeadIds.size} Selected {selectedLeadIds.size === 1 ? 'Lead' : 'Leads'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Lead Table (16 columns with Name, Designation, Contact No) */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <tr>
+                  {isAdmin && (
+                    <th className="py-3 px-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={filteredLeads.length > 0 && selectedLeadIds.size === filteredLeads.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedLeadIds(new Set(filteredLeads.map(l => l.id)));
+                          } else {
+                            setSelectedLeadIds(new Set());
+                          }
+                        }}
+                        className="rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                        title="Select/Deselect All Visible Leads"
+                      />
+                    </th>
+                  )}
                   <th className="py-3 px-4">FIRST NAME</th>
                   <th className="py-3 px-4">LAST NAME</th>
                   <th className="py-3 px-4">DESIGNATION</th>
@@ -971,6 +1038,24 @@ export function SalesTeamView() {
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
                 {filteredLeads.map(l => (
                   <tr key={l.id} className="hover:bg-slate-50/80 transition-colors">
+                    {isAdmin && (
+                      <td className="py-3.5 px-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIds.has(l.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            setSelectedLeadIds(prev => {
+                              const next = new Set(prev);
+                              if (next.has(l.id)) next.delete(l.id);
+                              else next.add(l.id);
+                              return next;
+                            });
+                          }}
+                          className="rounded border-slate-300 text-red-600 focus:ring-red-500 cursor-pointer"
+                        />
+                      </td>
+                    )}
                     {/* FIRST NAME */}
                     <td className="py-3.5 px-4 font-semibold text-slate-800">
                       <input

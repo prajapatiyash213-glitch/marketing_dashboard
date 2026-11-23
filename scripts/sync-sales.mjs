@@ -95,7 +95,27 @@ export async function updateSalesLead(id, patch) {
   return { success: true, lead: updated?.[0] || null };
 }
 
-export async function deleteSalesLead(id) {
+export async function deleteSalesLead(id, ids) {
+  if (Array.isArray(ids) && ids.length > 0) {
+    for (const singleId of ids) {
+      if (!UUID_REGEX.test(singleId)) {
+        throw new Error(`Invalid UUID id '${singleId}' provided for bulk delete.`);
+      }
+    }
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      const inQuery = `(${chunk.join(',')})`;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=in.${inQuery}`, {
+        method: "DELETE",
+        headers: HEADERS
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Failed to bulk delete leads: ${err}`);
+      }
+    }
+    return { success: true, count: ids.length };
+  }
   if (id) {
     if (!UUID_REGEX.test(id)) {
       throw new Error(`Invalid UUID id '${id}' provided for delete.`);

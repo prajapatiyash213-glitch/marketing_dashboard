@@ -120,7 +120,31 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      const { id } = body || {};
+      const { id, ids } = body || {};
+      if (Array.isArray(ids) && ids.length > 0) {
+        for (const singleId of ids) {
+          if (!UUID_REGEX.test(singleId)) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: `Invalid UUID: ${singleId}` }));
+            return;
+          }
+        }
+        for (let i = 0; i < ids.length; i += 100) {
+          const chunk = ids.slice(i, i + 100);
+          const inQuery = `(${chunk.join(',')})`;
+          const resp = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=in.${inQuery}`, {
+            method: "DELETE",
+            headers: HEADERS
+          });
+          if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`Failed to bulk delete leads: ${err}`);
+          }
+        }
+        res.statusCode = 200;
+        res.end(JSON.stringify({ success: true, count: ids.length }));
+        return;
+      }
       if (id) {
         if (!UUID_REGEX.test(id)) {
           res.statusCode = 400;

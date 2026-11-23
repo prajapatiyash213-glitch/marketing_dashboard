@@ -114,8 +114,8 @@ function salesSyncPlugin() {
       }
 
       if (req.method === "DELETE") {
-        const { id } = parsed;
-        const result = await deleteSalesLead(id);
+        const { id, ids } = parsed;
+        const result = await deleteSalesLead(id, ids);
         res.statusCode = 200;
         res.end(JSON.stringify(result));
         return;
