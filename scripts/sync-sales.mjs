@@ -94,3 +94,29 @@ export async function updateSalesLead(id, patch) {
   const updated = await res.json();
   return { success: true, lead: updated?.[0] || null };
 }
+
+export async function deleteSalesLead(id) {
+  if (id) {
+    if (!UUID_REGEX.test(id)) {
+      throw new Error(`Invalid UUID id '${id}' provided for delete.`);
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+      method: "DELETE",
+      headers: HEADERS
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Failed to delete lead: ${err}`);
+    }
+    return { success: true, id };
+  }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=not.is.null`, {
+    method: "DELETE",
+    headers: HEADERS
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Failed to clear leads: ${err}`);
+  }
+  return { success: true };
+}

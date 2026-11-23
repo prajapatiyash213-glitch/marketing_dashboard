@@ -273,6 +273,33 @@ export async function updateLiveLead(leadId, patchObj) {
 }
 
 /**
+ * Delete a single lead from live backend (Admin only)
+ */
+export async function deleteLiveLead(leadId) {
+  try {
+    const data = await requestSalesApi({
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: leadId })
+    });
+    if (typeof window !== "undefined" && window.localStorage) {
+      try {
+        const raw = localStorage.getItem(LEAD_META_KEY);
+        if (raw) {
+          const cache = JSON.parse(raw);
+          delete cache[leadId];
+          localStorage.setItem(LEAD_META_KEY, JSON.stringify(cache));
+        }
+      } catch {}
+    }
+    return !!data?.success;
+  } catch (err) {
+    console.error("[SalesSync] Error deleting lead:", err);
+    return false;
+  }
+}
+
+/**
  * Permanently delete all leads from live backend (Admin only)
  */
 export async function clearAllLiveLeads() {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
-import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead, clearAllLiveLeads } from '../lib/salesSync.js';
+import { fetchProfilesMap, fetchLiveLeads, createLiveLead, updateLiveLead, deleteLiveLead, clearAllLiveLeads } from '../lib/salesSync.js';
+import { useAuth } from '../auth/AuthContext.jsx';
 
 export const SOURCES_OPTIONS = [
   "Inbound - Referral",
@@ -239,6 +240,8 @@ const extractEmailFromRow = (row) => {
 };
 
 export function SalesTeamView() {
+  const { user } = useAuth();
+  const isAdmin = !user || user.badge === 'Admin' || user.role === 'admin' || (typeof user.role === 'string' && user.role.toLowerCase().includes('admin'));
   const [leads, setLeads] = useState(INITIAL_LEADS);
   const [profilesMap, setProfilesMap] = useState(INITIAL_PROFILES_MAP);
   const [syncStatus, setSyncStatus] = useState('syncing');
@@ -436,71 +439,16 @@ export function SalesTeamView() {
 
         const existing = leads.find(l => l.email && l.email.trim().toLowerCase() === cleanEmail);
         if (existing) {
-          const patchLocal = {};
-          const patchSupabase = {};
-
-          if (newLead.contactNo && newLead.contactNo !== existing.contactNo) {
-            patchLocal.contactNo = newLead.contactNo;
-            patchSupabase.contact_no = newLead.contactNo;
-          }
-          if (newLead.firstName && newLead.firstName !== existing.firstName) {
-            patchLocal.firstName = newLead.firstName;
-            patchSupabase.first_name = newLead.firstName;
-          }
-          if (newLead.lastName && newLead.lastName !== existing.lastName) {
-            patchLocal.lastName = newLead.lastName;
-            patchSupabase.last_name = newLead.lastName;
-          }
-          if (newLead.designation && newLead.designation !== existing.designation) {
-            patchLocal.designation = newLead.designation;
-            patchSupabase.designation = newLead.designation;
-          }
-          if (newLead.company && newLead.company !== existing.company) {
-            patchLocal.company = newLead.company;
-            patchSupabase.company = newLead.company;
-          }
-          if (newLead.brand && newLead.brand !== existing.brand) {
-            patchLocal.brand = newLead.brand;
-            patchSupabase.brand = newLead.brand;
-          }
-          if (newLead.leadStage && newLead.leadStage !== existing.leadStage) {
-            patchLocal.leadStage = newLead.leadStage;
-            patchSupabase.lead_stage = newLead.leadStage;
-          }
-          if (newLead.leadStatus && newLead.leadStatus !== existing.leadStatus) {
-            patchLocal.leadStatus = newLead.leadStatus;
-            patchSupabase.lead_status = newLead.leadStatus;
-          }
-          if (newLead.comments && newLead.comments !== existing.comments) {
-            patchLocal.comments = newLead.comments;
-            patchSupabase.comments = newLead.comments;
-          }
-          if (newLead.dateOfConnect && newLead.dateOfConnect !== existing.dateOfConnect) {
-            patchLocal.dateOfConnect = newLead.dateOfConnect;
-            patchSupabase.connect_date = newLead.dateOfConnect;
-          }
-          if (newLead.followup2Date && newLead.followup2Date !== existing.followup2Date) {
-            patchLocal.followup2Date = newLead.followup2Date;
-            patchSupabase.followup2_date = newLead.followup2Date;
-          }
-          if (newLead.followup2Comments && newLead.followup2Comments !== existing.followup2Comments) {
-            patchLocal.followup2Comments = newLead.followup2Comments;
-            patchSupabase.followup2_comments = newLead.followup2Comments;
-          }
-
-          if (Object.keys(patchLocal).length > 0) {
-            await handleUpdateField(existing.id, patchLocal, patchSupabase);
-            updatedCount++;
-          } else {
-            skippedCount++;
-          }
+          // STRICT RULE: Existing data must NOT be changed under any circumstances ("existing data as it is not change in exists data")
+          skippedCount++;
+          continue;
         } else {
           await createLiveLead(newLead);
           insertedCount++;
         }
       }
       await syncData();
-      alert(`Import complete: ${insertedCount} new added, ${updatedCount} updated with changed details, ${skippedCount} unchanged duplicates skipped.`);
+      alert(`Import complete: ${insertedCount} new added, ${skippedCount} existing leads kept untouched.`);
     } catch (err) {
       console.error("Import error:", err);
       alert("Failed to import file: " + err.message);
@@ -1017,6 +965,7 @@ export function SalesTeamView() {
                   <th className="py-3 px-4">FOLLOW-UP 2 DATE</th>
                   <th className="py-3 px-4">COMMENTS</th>
                   <th className="py-3 px-4">LEAD STATUS</th>
+                  {isAdmin && <th className="py-3 px-4 text-center">ACTION</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
@@ -1289,6 +1238,32 @@ export function SalesTeamView() {
                         ))}
                       </select>
                     </td>
+
+                    {/* ADMIN ACTION: DELETE SINGLE LEAD */}
+                    {isAdmin && (
+                      <td className="py-3.5 px-4 text-center">
+                        <button
+                          type="button"
+                          title={`Delete lead: ${l.email}`}
+                          onClick={async () => {
+                            const name = [l.firstName, l.lastName].filter(Boolean).join(' ') || l.company || l.email;
+                            if (!confirm(`Are you sure you want to delete lead: "${name}" (${l.email})?\n\nThis cannot be undone.`)) {
+                              return;
+                            }
+                            const ok = await deleteLiveLead(l.id);
+                            if (ok) {
+                              setLeads(prev => prev.filter(item => item.id !== l.id));
+                              alert(`Lead "${name}" deleted successfully.`);
+                            } else {
+                              alert("Failed to delete lead. Please try again.");
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold cursor-pointer inline-flex items-center gap-1 transition-colors"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

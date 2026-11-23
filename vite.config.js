@@ -73,7 +73,7 @@ function salesSyncPlugin() {
   const handler = async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     if (req.method === "OPTIONS") {
@@ -83,7 +83,7 @@ function salesSyncPlugin() {
     }
 
     try {
-      const { getSalesData, createSalesLead, updateSalesLead } = await import("./scripts/sync-sales.mjs");
+      const { getSalesData, createSalesLead, updateSalesLead, deleteSalesLead } = await import("./scripts/sync-sales.mjs");
 
       if (req.method === "GET") {
         const data = await getSalesData();
@@ -108,6 +108,14 @@ function salesSyncPlugin() {
       if (req.method === "PATCH") {
         const { id, patch } = parsed;
         const result = await updateSalesLead(id, patch);
+        res.statusCode = 200;
+        res.end(JSON.stringify(result));
+        return;
+      }
+
+      if (req.method === "DELETE") {
+        const { id } = parsed;
+        const result = await deleteSalesLead(id);
         res.statusCode = 200;
         res.end(JSON.stringify(result));
         return;

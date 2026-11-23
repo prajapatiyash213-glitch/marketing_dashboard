@@ -119,6 +119,39 @@ export default async function handler(req, res) {
       return;
     }
 
+    if (req.method === "DELETE") {
+      const { id } = body || {};
+      if (id) {
+        if (!UUID_REGEX.test(id)) {
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: `Invalid UUID: ${id}` }));
+          return;
+        }
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${id}`, {
+          method: "DELETE",
+          headers: HEADERS
+        });
+        if (!resp.ok) {
+          const err = await resp.text();
+          throw new Error(`Failed to delete lead: ${err}`);
+        }
+        res.statusCode = 200;
+        res.end(JSON.stringify({ success: true, id }));
+        return;
+      }
+      const resp = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=not.is.null`, {
+        method: "DELETE",
+        headers: HEADERS
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        throw new Error(`Failed to clear leads: ${err}`);
+      }
+      res.statusCode = 200;
+      res.end(JSON.stringify({ success: true }));
+      return;
+    }
+
     res.statusCode = 405;
     res.end(JSON.stringify({ error: "Method not allowed" }));
   } catch (err) {
