@@ -644,6 +644,36 @@ export function SalesTeamView() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [leads]);
 
+  const addDaysStr = (dateStr, days) => {
+    if (!dateStr) return '';
+    const clean = String(dateStr).slice(0, 10);
+    const [y, m, d] = clean.split('-').map(Number);
+    if (!y || !m || !d) return '';
+    const dt = new Date(y, m - 1, d);
+    dt.setDate(dt.getDate() + days);
+    const ry = dt.getFullYear();
+    const rm = String(dt.getMonth() + 1).padStart(2, '0');
+    const rd = String(dt.getDate()).padStart(2, '0');
+    return `${ry}-${rm}-${rd}`;
+  };
+
+  const isPendingFollowupLead = (l) => {
+    const normStatus = (l.leadStatus || 'New').trim();
+    if (['Opportunity', 'Postponed', 'Junk Lead'].includes(normStatus)) return false;
+
+    const hasFollowup2Taken = !!(l.followup2Comments && String(l.followup2Comments).trim());
+    if (hasFollowup2Taken) return false;
+
+    const t = new Date().toLocaleDateString('en-CA');
+    const firstConnect = l.dateOfConnect || l.connectDate || l.connect_date;
+    const oneWeekAfterConnect = firstConnect ? addDaysStr(firstConnect, 7) : null;
+
+    const isOneWeekAfterFollow1 = !!oneWeekAfterConnect && oneWeekAfterConnect <= t;
+    const isFollowup2DateDue = !!l.followup2Date && String(l.followup2Date).slice(0, 10) <= t;
+
+    return isOneWeekAfterFollow1 || isFollowup2DateDue;
+  };
+
   // Filtered Leads (with filter on all attributes including company name)
   const filteredLeads = useMemo(() => {
     return leads.filter(l => {
@@ -671,7 +701,7 @@ export function SalesTeamView() {
       const matchStatus = statusFilter === 'all' || l.leadStatus === statusFilter;
       const effectiveStage = stageFilter !== 'all' ? stageFilter : selectedStage;
       const matchStage = effectiveStage === 'all' || l.leadStage === effectiveStage;
-      const matchOverdue = !overdueFilter || (l.followup2Date && new Date(l.followup2Date) < new Date());
+      const matchOverdue = !overdueFilter || isPendingFollowupLead(l);
 
       return matchSearch && matchCompany && matchDesignation && matchOwner && matchBrand && matchSource && matchStatus && matchStage && matchOverdue;
     });
@@ -730,11 +760,7 @@ export function SalesTeamView() {
 
   const inProgressCount = leads.filter(l => ['Qualified', 'Opportunity', 'Pilot/POC', 'Proposal', 'Value Negotiation'].includes(l.leadStage)).length;
   const closedWonCount = leads.filter(l => ['Closed Won', 'Client'].includes(l.leadStage)).length;
-  const overdueCount = leads.filter(l => {
-    if (!l.followup2Date) return false;
-    const d = new Date(l.followup2Date);
-    return !isNaN(d.getTime()) && d < new Date();
-  }).length;
+  const pendingCount = leads.filter(isPendingFollowupLead).length;
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -825,14 +851,14 @@ export function SalesTeamView() {
             <div className="mt-1 text-xs font-medium opacity-95">₹0.00 Win Ratio</div>
           </div>
 
-          {/* Card 4: Follow-ups Overdue */}
-          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md">
+          {/* Card 4: Follow-ups Pending */}
+          <div className="relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md">
             <div className="flex items-center justify-between text-[11px] font-bold tracking-wider uppercase opacity-90">
-              <span>Follow-ups Overdue</span>
+              <span>Follow-ups Pending</span>
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-[9px]">Action Needed</span>
             </div>
-            <div className="mt-3 text-3xl font-extrabold">{overdueCount}</div>
-            <div className="mt-1 text-xs font-medium opacity-95">{overdueCount} Pending Action Items</div>
+            <div className="mt-3 text-3xl font-extrabold">{pendingCount}</div>
+            <div className="mt-1 text-xs font-medium opacity-95">{pendingCount} Pending Action Items</div>
           </div>
         </div>
 
@@ -994,7 +1020,7 @@ export function SalesTeamView() {
                   : 'border-slate-200 text-slate-700 bg-white hover:bg-slate-50'
               }`}
             >
-              Overdue follow-ups ({overdueCount})
+              Pending follow-ups ({pendingCount})
             </button>
             <button
               onClick={handleExportCsv}
